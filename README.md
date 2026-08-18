@@ -144,7 +144,8 @@ instalado, funciona 100% offline.
 | **Ciclos** | Nome, início e fim previsto. Todo bloco entra automaticamente no ciclo ativo. Ao encerrar, as estatísticas congelam e o ciclo vai para a Estante. |
 | **Assunto** | Campo com autocompletar pelos assuntos do ciclo atual e atalho para os 5 últimos. Fica visível durante o bloco. |
 | **Histórico** | Hoje, últimos 7 dias em barras, lista completa com opção de corrigir o assunto ou apagar o registro, exportar e importar tudo em JSON. |
-| **Progresso** | Mapa de calor anual, estante de ciclos, comparação em tempo real com o ciclo anterior, contador vitalício de horas com marcos de 100/250/500/1000h e recordes pessoais. |
+| **Cartas** | Flashcards com prazo: escada de 1, 2, 4, 8 e 16 dias, teto pela data da prova e reta final nos últimos 3 dias. Travei / Quase / Mandei bem, lacunas com `{{chaves}}`, revisão livre fora da fila e edição de qualquer campo, inclusive degrau e data. Ao encerrar o ciclo, o baralho é guardado junto com ele. |
+| **Progresso** | Mapa de calor anual, estante de ciclos, comparação em tempo real com o ciclo anterior, contador vitalício de horas com marcos de 100/250/500/1000h, recordes pessoais e os números do baralho do ciclo. |
 
 Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
 murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
