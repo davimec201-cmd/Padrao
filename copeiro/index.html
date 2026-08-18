@@ -434,7 +434,8 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
           </div>
           <hr class="divisor">
           <div class="fichas" style="margin-top:16px">
-            <button class="ficha" id="fichaAlarmeFundo">Alarme em segundo plano</button>
+            <button class="ficha" id="fichaAlarmeFundo">Avisar fora do app</button>
+            <button class="ficha" id="btTestarAlarme">Testar (20s)</button>
           </div>
           <p class="sub" id="subAlarmeFundo" style="margin-top:8px"></p>
         </div>
@@ -1259,10 +1260,19 @@ function tocaAlarmeDoFim(tipo, silencioso) {
   alarme(tipo);
 }
 
-/** WAV de um segundo, amplitude 1 de 32767: inaudível, mas não é silêncio digital. */
+/**
+ * WAV de manutenção: um segundo de senoide de 40 Hz a -34 dBFS, em laço.
+ *
+ * A versão anterior era silêncio quase digital, e era esse o problema: o
+ * Android classificava a aba como "sem som" e congelava a página junto com o
+ * relógio do áudio. 40 Hz é grave demais para o alto-falante de um tablet
+ * reproduzir — inaudível na prática —, mas o mixer do sistema enxerga um
+ * fluxo com energia de verdade e mantém a página viva como reprodução de
+ * mídia. Um segundo cabe exatos 40 ciclos, então o laço não estala.
+ */
 function wavInaudivel() {
   if (urlManutencao) return urlManutencao;
-  const taxa = 8000, quadros = taxa;
+  const taxa = 8000, quadros = taxa;          // 1 segundo
   const buf = new ArrayBuffer(44 + quadros * 2);
   const v = new DataView(buf);
   const texto = (p, t) => { for (let i = 0; i < t.length; i++) v.setUint8(p + i, t.charCodeAt(i)); };
@@ -1272,7 +1282,10 @@ function wavInaudivel() {
   v.setUint32(24, taxa, true); v.setUint32(28, taxa * 2, true);
   v.setUint16(32, 2, true); v.setUint16(34, 16, true);
   texto(36, 'data'); v.setUint32(40, quadros * 2, true);
-  for (let i = 0; i < quadros; i++) v.setInt16(44 + i * 2, 1, true);
+  const amplitude = 0.02 * 32767;
+  for (let i = 0; i < quadros; i++) {
+    v.setInt16(44 + i * 2, Math.round(Math.sin(2 * Math.PI * 40 * i / taxa) * amplitude), true);
+  }
   urlManutencao = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
   return urlManutencao;
 }
@@ -1282,14 +1295,116 @@ function ligaManutencao() {
     if (!manutencao) {
       manutencao = new Audio(wavInaudivel());
       manutencao.loop = true;
+      manutencao.volume = 1;
     }
     const p = manutencao.play();
     if (p && p.catch) p.catch(() => { /* sem permissão de tocar ainda */ });
+    ligaSessaoDeMidia();
   } catch (erro) { /* sem som de manutenção: o alarme ainda toca na volta */ }
 }
 
 function desligaManutencao() {
   try { if (manutencao) manutencao.pause(); } catch (erro) { /* ignora */ }
+  desligaSessaoDeMidia();
+}
+
+/* ---------------- Sessão de mídia: o bloco na barra de notificação ----------------
+   Registrar a sessão de mídia faz o Android tratar o app como player: aparece
+   um controle na barra, com o assunto e a hora de término, e o sistema deixa
+   de congelar a página. De quebra, dá pra pausar o bloco sem abrir o app.
+   ------------------------------------------------------------------------------ */
+
+function ligaSessaoDeMidia() {
+  if (!('mediaSession' in navigator)) return;
+  const t = estado.timer;
+  if (!t) return;
+  try {
+    const fim = t.inicio + t.pausaAcum + t.duracaoMs;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: t.modo === 'foco' ? t.assunto : (t.longa ? 'Pausa longa' : 'Pausa'),
+      artist: 'Copeiro — termina às ' + horaDoDia(fim),
+      album: t.cicloNome || 'Sem campanha',
+      artwork: [
+        { src: './icone-192.png', sizes: '192x192', type: 'image/png' },
+        { src: './icone-512.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+    navigator.mediaSession.playbackState = 'playing';
+    navigator.mediaSession.setActionHandler('pause', () => pausaTimer());
+    navigator.mediaSession.setActionHandler('play', () => retomaTimer());
+    navigator.mediaSession.setActionHandler('stop', () => zeraTimer());
+  } catch (erro) { /* sem sessão de mídia: segue sem o controle na barra */ }
+}
+
+function desligaSessaoDeMidia() {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.playbackState = 'none';
+    navigator.mediaSession.metadata = null;
+  } catch (erro) { /* ignora */ }
+}
+
+/* ------------------------- Notificação do sistema -------------------------
+   É o aviso que aparece com o app fechado. Precisa de permissão, que só pode
+   ser pedida a partir de um toque — por isso o pedido sai do botão do ajuste.
+   -------------------------------------------------------------------------- */
+
+function temNotificacao() {
+  return typeof Notification !== 'undefined' && Notification.permission === 'granted';
+}
+
+async function pedePermissaoNotificacao() {
+  try {
+    if (typeof Notification === 'undefined') return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+    return (await Notification.requestPermission()) === 'granted';
+  } catch (erro) {
+    return false;
+  }
+}
+
+/** Manda a notificação pelo service worker, que é o caminho que o Android aceita. */
+async function notifica(titulo, corpo) {
+  if (!temNotificacao()) return false;
+  const opcoes = {
+    body: corpo,
+    icon: './icone-192.png',
+    badge: './icone-192.png',
+    tag: 'copeiro-fim',
+    renotify: true,
+    requireInteraction: true,       // fica na barra até o Davi tocar
+    vibrate: [300, 120, 300, 120, 500]
+  };
+  try {
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg && reg.showNotification) { await reg.showNotification(titulo, opcoes); return true; }
+    new Notification(titulo, opcoes);   // navegador de mesa
+    return true;
+  } catch (erro) {
+    return false;
+  }
+}
+
+/**
+ * Teste de 20 segundos do alarme em segundo plano.
+ * Percorre exatamente o mesmo caminho de um bloco de verdade — som agendado,
+ * manutenção e notificação — sem registrar nada no histórico. Serve pra
+ * conferir o comportamento com a tela bloqueada sem esperar meia hora.
+ */
+async function testaAlarmeEmSegundoPlano() {
+  const ctx = garanteAudio();
+  await pedePermissaoNotificacao();
+  if (ctx && ctx.state === 'running') {
+    try { montaAlarme('foco', ctx.currentTime + 20); } catch (erro) { /* sem som */ }
+  }
+  ligaManutencao();
+  setTimeout(() => {
+    notifica('Teste do alarme', 'Se tu leu isso com o app fora da tela, o aviso está funcionando.');
+    vibra([300, 120, 300]);
+    if (!estado.timer) desligaManutencao();
+  }, 20000);
+  avisa('Teste', 'Bloqueia o tablet agora. Em 20 segundos tem que tocar e avisar.');
 }
 
 /** Vibração, quando o aparelho tiver. */
@@ -1395,6 +1510,7 @@ function pausaTimer() {
   estado.timer.pausadoEm = Date.now();
   salvaEstado();
   cancelaAlarmeAgendado();
+  try { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; } catch (erro) {}
   soltaTravaTela();
   desenhaTimer();
 }
@@ -1478,7 +1594,11 @@ function terminaBloco(silencioso) {
     desenhaTimer();
     atualizaTudo();
     tocaAlarmeDoFim('pausa', silencioso);
-    if (!silencioso) vibra([200, 100, 200]);
+    if (!silencioso) {
+      vibra([200, 100, 200]);
+      notifica(t.longa ? 'Fim do intervalo' : 'Fim da pausa',
+               'Voltou o jogo, Davi. Escolhe o assunto do próximo bloco.');
+    }
     abreModal({
       titulo: t.longa ? 'Fim do intervalo' : 'Fim da pausa',
       frase: fala('fimPausa'),
@@ -1509,7 +1629,11 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
   salvaEstado();
 
   tocaAlarmeDoFim('foco', silencioso);
-  if (!silencioso) vibra([300, 120, 300, 120, 500]);
+  if (!silencioso) {
+    vibra([300, 120, 300, 120, 500]);
+    notifica('Bloco copado — ' + fmtDuracao(minutos),
+             assunto + '. Terminou às ' + horaDoDia(fim) + '.');
+  }
 
   const quebrados = atualizaRecordes(antes.recordes);
   const marcosNovos = verificaMarcos();
@@ -1903,10 +2027,20 @@ function desenhaFoco() {
   const ligado = !!estado.prefs.alarmeFundo;
   const ficha = $('#fichaAlarmeFundo');
   ficha.classList.toggle('ativa', ligado);
-  ficha.textContent = 'Alarme em segundo plano: ' + (ligado ? 'ligado' : 'desligado');
-  $('#subAlarmeFundo').textContent = ligado
-    ? 'Um som inaudível fica tocando durante o bloco pro alarme soar com a tela bloqueada. Se atrapalhar música de outro app, desliga aqui.'
-    : 'Com a tela bloqueada, o alarme só sai quando tu voltar pro app. O tempo do bloco segue certo do mesmo jeito.';
+  ficha.textContent = 'Avisar fora do app: ' + (ligado ? 'ligado' : 'desligado');
+  $('#btTestarAlarme').classList.toggle('oculto', !ligado);
+
+  let recado;
+  if (!ligado) {
+    recado = 'Com a tela bloqueada, o alarme só sai quando tu voltar pro app. O tempo do bloco segue certo do mesmo jeito.';
+  } else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+    recado = 'A notificação está bloqueada pra este site. Libera em Configurações do Chrome → Site (ou no cadeado da barra de endereço) → Notificações.';
+  } else if (!temNotificacao()) {
+    recado = 'Falta liberar a notificação: toca em "Testar (20s)" e aceita o pedido. Sem ela, o aviso não aparece com o app fechado.';
+  } else {
+    recado = 'O bloco aparece na barra de notificação enquanto roda, e o aviso chega mesmo com o tablet bloqueado. Se atrapalhar música de outro app, desliga aqui.';
+  }
+  $('#subAlarmeFundo').textContent = recado;
 
   desenhaAssuntos();
 }
@@ -2372,13 +2506,20 @@ $('#ajustesPausa').addEventListener('click', (ev) => {
 });
 
 /* ---- Alarme em segundo plano ---- */
-$('#fichaAlarmeFundo').addEventListener('click', () => {
+$('#fichaAlarmeFundo').addEventListener('click', async () => {
   estado.prefs.alarmeFundo = !estado.prefs.alarmeFundo;
   salvaEstado();
-  if (estado.prefs.alarmeFundo) agendaAlarmeDoTimer();
-  else cancelaAlarmeAgendado();
+  if (estado.prefs.alarmeFundo) {
+    agendaAlarmeDoTimer();
+    desenhaFoco();
+    await pedePermissaoNotificacao();   // o pedido precisa sair de um toque
+  } else {
+    cancelaAlarmeAgendado();
+  }
   desenhaFoco();
 });
+
+$('#btTestarAlarme').addEventListener('click', () => { testaAlarmeEmSegundoPlano(); });
 
 /* ---- Assunto ---- */
 $('#campoAssunto').addEventListener('input', () => { if (!estado.timer) desenhaTimer(); });
