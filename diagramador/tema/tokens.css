@@ -1,5 +1,5 @@
 /* GERADO por diagramador/ferramentas/gerar_tokens_css.py — não editar à mão.
-   Fonte: design/tokens.json v1.0.0 */
+   Fonte: design/tokens.json v1.1.0 */
 
 :root {
   /* ---- cor ---- */
@@ -33,7 +33,7 @@
   --cor-atencao-filete: #EDAF47;
 
   /* ---- tipografia: famílias ---- */
-  --fonte-display: 'Omnes Huggies', 'Poppins', sans-serif;
+  --fonte-display: 'Poppins', sans-serif;
   --fonte-titulo: 'Poppins', sans-serif;
   --fonte-leitura: 'Manrope', sans-serif;
 

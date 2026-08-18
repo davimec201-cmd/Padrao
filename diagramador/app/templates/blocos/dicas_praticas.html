@@ -1,0 +1,10 @@
+{% import 'conteudo.html' as c %}
+<section class="dicas" id="b{{ indice }}">
+  {% if bloco.dados.titulo %}<h2 class="abre-secao">{{ bloco.dados.titulo }}</h2>{% endif %}
+  {% for dica in bloco.dados.dicas %}
+  <div class="dica">
+    {% if dica.titulo %}<h3>{{ dica.titulo }}</h3>{% endif %}
+    {{ c.render(dica.corpo) }}
+  </div>
+  {% endfor %}
+</section>

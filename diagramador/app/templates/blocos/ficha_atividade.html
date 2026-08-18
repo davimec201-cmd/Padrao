@@ -1,0 +1,56 @@
+{% import 'conteudo.html' as c %}
+<section class="ficha {{ escala_ficha }}" id="b{{ indice }}">
+  <header class="ficha-cabecalho">
+    {% if bloco.dados.numero %}<div class="ficha-numero">{{ bloco.dados.numero }}</div>{% endif %}
+    <div class="ficha-titulo">
+      <span class="rotulo">Atividade</span>
+      <h2>{{ bloco.dados.nome }}</h2>
+    </div>
+  </header>
+
+  {% if bloco.dados.objetivo or bloco.dados.principio %}
+  <div class="ficha-par">
+    <div>
+      <span class="rotulo">Objetivo terapêutico</span>
+      <p>{{ bloco.dados.objetivo }}</p>
+    </div>
+    <div>
+      <span class="rotulo">Princípio ABA-TCC</span>
+      <p>{{ bloco.dados.principio }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if bloco.dados.materiais %}
+  <div class="ficha-materiais"><p>{{ bloco.dados.materiais }}</p></div>
+  {% endif %}
+
+  {% if bloco.dados.passos %}
+  <div class="ficha-passos">
+    <h3>Passo a passo</h3>
+    <ol class="passos">{% for passo in bloco.dados.passos %}<li>{{ passo }}</li>{% endfor %}</ol>
+  </div>
+  {% endif %}
+
+  {{ c.render(bloco.dados.extra) }}
+
+  {% if bloco.dados.facil or bloco.dados.desafiador %}
+  <div class="ficha-niveis">
+    <div class="facil">
+      <span class="rotulo">Mais fácil</span>
+      <p>{{ bloco.dados.facil }}</p>
+    </div>
+    <div class="desafiador">
+      <span class="rotulo">Mais desafiador</span>
+      <p>{{ bloco.dados.desafiador }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if bloco.dados.observar %}
+  <footer class="ficha-observar">
+    <span class="rotulo">O que observar</span>
+    <p>{{ bloco.dados.observar }}</p>
+  </footer>
+  {% endif %}
+</section>

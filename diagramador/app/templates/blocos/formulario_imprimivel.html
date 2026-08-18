@@ -1,0 +1,11 @@
+<section class="pagina formulario" id="b{{ indice }}">
+  {% if bloco.dados.titulo %}<h1>{{ bloco.dados.titulo }}</h1>{% endif %}
+  {% if bloco.dados.instrucao %}<p class="instrucao">{{ bloco.dados.instrucao }}</p>{% endif %}
+  {% for _ in range(bloco.dados.repeticoes) %}
+  <div class="formulario-ficha">
+    {% for campo in bloco.dados.campos %}
+    <p class="formulario-campo">{{ campo }}</p>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</section>

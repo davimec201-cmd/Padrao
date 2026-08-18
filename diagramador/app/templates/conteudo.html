@@ -1,0 +1,16 @@
+{%- macro render(elementos) -%}
+{%- for e in elementos -%}
+{%- if e.tipo == 'titulo' %}<h2>{{ e.texto }}</h2>
+{%- elif e.tipo == 'subtitulo' %}<h3>{{ e.texto }}</h3>
+{%- elif e.tipo == 'paragrafo' %}<p>{{ e.texto }}</p>
+{%- elif e.tipo == 'lista' %}<ul>{% for i in e.itens %}<li>{{ i }}</li>{% endfor %}</ul>
+{%- elif e.tipo == 'lista_numerada' %}<ol class="passos">{% for i in e.itens %}<li>{{ i }}</li>{% endfor %}</ol>
+{%- elif e.tipo == 'citacao' %}<blockquote class="citacao">{{ e.texto }}</blockquote>
+{%- elif e.tipo == 'tabela' %}
+<table class="tabela-simples">
+  <thead><tr>{% for c in e.cabecalhos %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for linha in e.linhas %}<tr>{% for c in linha %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+</table>
+{%- endif -%}
+{%- endfor -%}
+{%- endmacro -%}

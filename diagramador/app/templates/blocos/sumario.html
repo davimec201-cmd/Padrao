@@ -1,0 +1,12 @@
+<section class="pagina sumario" id="b{{ indice }}">
+  <h1>{{ bloco.dados.titulo }}</h1>
+  <ol>
+    {% for item in bloco.dados.itens %}
+    <li class="{{ 'grupo' if item.grupo else '' }}">
+      <span class="rotulo-item">{{ item.texto }}</span>
+      <span class="guia"></span>
+      <span class="num-pagina">{{ item.pagina or '' }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>

@@ -1,0 +1,5 @@
+# Só para as ferramentas de preparação, que rodam na máquina e não no serviço:
+# recorte de fundo das ilustrações e leitura das referências.
+-r requirements.txt
+pillow==12.3.0
+scipy==1.17.1

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F9F4E5">
+<title>Diagramador — TEA Formation</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="folha">
+
+  <header class="marca">
+    <svg class="peca" viewBox="0 0 24 24" aria-hidden="true"><path fill="#39A6D8" d="M9.6 2.2c1 0 1.9.6 2.3 1.5.2.5.7.8 1.2.7.6 0 1-.4 1.3-.9.5-.9 1.5-1.3 2.5-1 1.2.4 1.9 1.7 1.5 2.9-.2.5 0 1.1.4 1.4.4.3 1 .3 1.5.1 1-.5 2.2-.1 2.8.8.7 1.1.3 2.5-.8 3.1-.5.3-.8.8-.7 1.3 0 .6.4 1 .9 1.2 1.1.4 1.7 1.6 1.4 2.7-.4 1.2-1.7 1.9-2.9 1.5-.5-.2-1.1 0-1.4.4-.3.4-.3 1-.1 1.5.5 1-.1 2.2-1 2.8-1.1.7-2.5.3-3.1-.8-.3-.5-.8-.8-1.3-.7-.6 0-1 .4-1.2.9-.4 1.1-1.6 1.7-2.7 1.4-1.2-.4-1.9-1.7-1.5-2.9.2-.5 0-1.1-.4-1.4-.4-.3-1-.3-1.5-.1-1 .5-2.2.1-2.8-.8-.7-1.1-.3-2.5.8-3.1.5-.3.8-.8.7-1.3 0-.6-.4-1-.9-1.2-1.1-.4-1.7-1.6-1.4-2.7.4-1.2 1.7-1.9 2.9-1.5.5.2 1.1 0 1.4-.4.3-.4.3-1 .1-1.5-.5-1 .1-2.2 1-2.8.4-.3.9-.4 1.4-.4z"/></svg>
+    <h1><span class="tea">TEA</span>Formation · Diagramador</h1>
+    <form method="post" action="/sair" style="margin-left:auto">
+      <button class="sair" type="submit">sair</button>
+    </form>
+  </header>
+
+  <!-- ---------------------------------------------------------- entrada -->
+  <section id="entrada">
+    <div class="cartao">
+      <h2>1. O conteúdo</h2>
+      <p class="ajuda">Markdown do e-book: mande o arquivo ou cole o texto.</p>
+
+      <div class="abas" role="tablist">
+        <button type="button" role="tab" id="aba-arquivo" aria-selected="true">Arquivo .md</button>
+        <button type="button" role="tab" id="aba-texto" aria-selected="false">Colar texto</button>
+      </div>
+
+      <div id="painel-arquivo">
+        <label class="arquivo" for="arquivo">
+          <span class="escolher">Escolher arquivo</span>
+          <span class="nome" id="nome-arquivo">nenhum arquivo escolhido</span>
+          <input id="arquivo" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain">
+        </label>
+      </div>
+
+      <div id="painel-texto" class="escondido">
+        <textarea id="texto" placeholder="---
+titulo: Porto Seguro
+subtitulo: Atividades de regulação emocional
+personagem: mamae_urso
+---
+
+:::carta
+Se você abriu este material...
+:::"></textarea>
+      </div>
+
+      <div class="links">
+        <a href="/exemplo.md" download>Baixar markdown de exemplo</a>
+        <a href="/formato" download>Baixar o guia de formato</a>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>2. A supervisão técnica</h2>
+      <p class="ajuda">Entra na capa, na carta e na página final.</p>
+      <div class="dupla">
+        <div class="campo">
+          <label for="psicologa">Nome da psicóloga</label>
+          <input id="psicologa" type="text" autocomplete="name" placeholder="Ana Paula Ribeiro">
+        </div>
+        <div class="campo">
+          <label for="crp">CRP</label>
+          <input id="crp" type="text" inputmode="numeric" placeholder="12/34567">
+        </div>
+      </div>
+    </div>
+
+    <p class="erro escondido" id="erro-entrada"></p>
+    <button class="principal" id="gerar" type="button">Gerar o PDF</button>
+  </section>
+
+  <!-- -------------------------------------------------------- progresso -->
+  <section id="progresso" class="cartao progresso escondido">
+    <h2>Diagramando</h2>
+    <div class="trilha"><div class="barra" id="barra"></div></div>
+    <p class="etapa" id="etapa"><strong>na fila</strong></p>
+  </section>
+
+  <!-- --------------------------------------------------------- resultado -->
+  <section id="resultado" class="escondido">
+    <div class="cartao">
+      <h2 id="titulo-resultado">Resultado</h2>
+      <p class="ajuda" id="resumo-paginas"></p>
+      <div id="selo"></div>
+      <a class="botao baixar" id="baixar" href="#">Baixar o PDF</a>
+      <div class="lembrete" style="margin:14px 0 0">
+        <span>⚠️</span>
+        <span id="lembrete-texto"></span>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Relatório de QA</h2>
+      <p class="ajuda">Verde é o que passou. O que falhou diz a página e o quê.</p>
+      <div id="achados-importantes"></div>
+      <details class="tudo">
+        <summary>Ver as verificações que passaram</summary>
+        <div id="achados-ok"></div>
+      </details>
+    </div>
+
+    <div class="cartao">
+      <h2>Páginas</h2>
+      <p class="ajuda">Se você discordar de como um trecho foi classificado, troque o
+        tipo na miniatura e toque em regerar.</p>
+      <div class="paginas" id="paginas"></div>
+      <div class="barra-acao">
+        <button class="principal escondido" id="regerar" type="button">Regerar com as trocas</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

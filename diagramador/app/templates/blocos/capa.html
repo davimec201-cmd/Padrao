@@ -1,0 +1,24 @@
+<section class="capa">
+  <div class="capa-texto">
+    {{ bloco.dados.titulo_svg }}
+    {% if bloco.dados.subtitulo %}<p class="capa-subtitulo">{{ bloco.dados.subtitulo }}</p>{% endif %}
+  </div>
+
+  {% if bloco.dados.ilustracao %}
+    <img class="capa-ilustracao" src="{{ bloco.dados.ilustracao }}" alt="">
+  {% endif %}
+
+  <footer class="capa-rodape">
+    <p class="capa-assinatura">
+      <span class="rotulo-supervisao">Supervisão técnica</span>
+      <strong>{{ bloco.dados.psicologa }}</strong>{% if bloco.dados.crp %} — CRP {{ bloco.dados.crp }}{% endif %}
+      {%- if bloco.dados.especialidade %}<br>{{ bloco.dados.especialidade }}{% endif %}
+    </p>
+    <p class="capa-fundamentacao">{{ fundamentacao }}</p>
+    <p class="capa-marca">
+      <img src="{{ marca }}" alt="">
+      <span><span class="marca-tea">TEA</span>Formation</span>
+      <span class="capa-universo">· Universo TEAnimal</span>
+    </p>
+  </footer>
+</section>

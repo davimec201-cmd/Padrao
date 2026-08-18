@@ -35,9 +35,11 @@ def gerar(tokens: dict) -> str:
 
     linhas += ["", "  /* ---- tipografia: famílias ---- */"]
     familia = tokens["tipografia"]["familia"]
+    pilha_display = dict.fromkeys([familia["display"]["nome"], familia["titulo"]["nome"]])
     linhas.append(
         "  --fonte-display: "
-        f"'{familia['display']['nome']}', '{familia['titulo']['nome']}', sans-serif;"
+        + ", ".join(f"'{nome}'" for nome in pilha_display)
+        + ", sans-serif;"
     )
     linhas.append(f"  --fonte-titulo: '{familia['titulo']['nome']}', sans-serif;")
     linhas.append(f"  --fonte-leitura: '{familia['leitura']['nome']}', sans-serif;")

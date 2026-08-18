@@ -68,7 +68,7 @@ duas exigências, sem escolher entre elas.
 
 | Papel | Família | Onde vai | Especificação medida |
 |---|---|---|---|
-| Display | **Omnes Huggies Bold** | Título de capa, H1, número de bloco e de ficha | ⚠️ **pendente** — arquivo proprietário. Substituto declarado: Poppins Bold, sinalizado no QA. |
+| Display | **Poppins Bold** | Título de capa, H1, número de bloco e de ficha | Omnes Huggies foi **descartada por decisão do fundador**. O `@font-face` continua declarado em `base.css`: para retomar, basta colocar os `.otf` em `assets/fontes/` e trocar o nome da família em `tokens.json`. |
 | Título / interface | **Poppins** | H2, H3, rótulos, rodapé, campos de formulário | Medido: o corpo e os rótulos das cartilhas são Poppins ("a" de um andar, geométrica, terminais retos). |
 | Leitura | **Manrope** | Todo texto corrido | Manual, seção 5: face de leitura e elo de coerência da marca. |
 
@@ -76,7 +76,7 @@ duas exigências, sem escolher entre elas.
 
 | Nível | pt / entrelinha | Origem |
 |---|---|---|
-| `capa_titulo` | 46 / 1.05, contorno 0.075em coral | Medido 62pt/1.22 e contorno ~0.08em na CARTILHA_04 p1 → **reduzido a 46pt** (decisão T1). |
+| `capa_titulo` | 46 / 1.05, navy com contorno 0.075em coral | Medido 62pt/1.22 e contorno ~0.08em na CARTILHA_04 p1 → **reduzido a 46pt** (decisão T1), em Poppins Bold. O contorno é feito em SVG, com uma passada de traço e outra de preenchimento — WeasyPrint não implementa `text-stroke` nem `text-shadow`. |
 | `capa_subtitulo` | 15 / 1.3, navy sobre pill coral | Medido: pill de 16.4 × 140.6mm, raio 3.9mm (CARTILHA_04 p1). Texto virou navy (decisão T3). |
 | `h1` | 28 / 1.12 | Escala derivada do título de capa por passo de ~1.35. |
 | `h2` | 16.5 / 1.25 | idem |
@@ -140,6 +140,15 @@ O manual manda; abaixo o que ele venceu e o que isso custou.
 | **D4** | — | Lockup "TEAnimal + TEAFormation" no rodapé | Reconstruído tipograficamente até chegar o arquivo oficial. |
 | **D5** | — | "Realização" em coral sobre branco (2.70:1) | **Não replicado**: coral virou cor de preenchimento. Onde a cartilha usa coral como texto, o e-book usa navy. |
 
+### O título de capa: por que navy e não branco
+
+A cartilha escreve o título em **branco com contorno coral**, e funciona porque
+atrás dele existe uma ilustração de sangria. O e-book tem fundo creme: branco
+sobre creme desaparece, sobra só o contorno oco — testado, e a capa morre na
+miniatura de uma página de vendas. O tratamento foi mantido (mesma fonte, mesmo
+contorno coral, mesma espessura medida) e só o preenchimento virou navy
+(**decisão T4**). Comparação das três opções em `diagramador/amostras/`.
+
 ## 6. Melhorias propostas (mantendo a marca reconhecível)
 
 1. **Texto navy dentro dos cards coloridos, no lugar do branco.** A cartilha usa branco sobre
@@ -156,9 +165,9 @@ O manual manda; abaixo o que ele venceu e o que isso custou.
 
 ## 7. Pendências (bloqueiam "100% fiel", não bloqueiam a construção)
 
-| Item | Estado | Efeito enquanto faltar |
+| Item | Estado | Efeito |
 |---|---|---|
-| `Omnes_Huggies-Bold.otf` e `-Medium.otf` | No Drive; não baixável por esta sessão | Títulos saem em Poppins Bold e o QA emite alerta em toda geração |
+| Omnes Huggies | **descartada** por decisão do fundador em 18/08/2026 | Display é Poppins Bold. O `@font-face` segue declarado: colocar os `.otf` em `assets/fontes/` e trocar o nome em `tokens.json` retoma a face original sem mexer em layout |
+| Ilustrações dos personagens | **resolvido** — 8 personagens em `assets/ilustracoes/` com fundo transparente | Mamãe Urso, Leo, Jojo, Cora, Pipo, Marcos, Professora Canguru, Sr. Miau |
 | Lockup oficial TEAFormation / TEAnimal (PNG ou SVG) | Só existe rasterizado dentro das cartilhas | Rodapé reconstruído em tipografia + peça real |
-| Ilustrações dos personagens com fundo transparente | No Drive como JPG com fundo | Capa usa `ilustracao_padrao` (peça do quebra-cabeça) |
 | `Identidade Visual.pdf` completo (91 MB) | No Drive; grande demais para esta sessão | Trabalhando com o Resumo de Identidade, que cobre paleta, tipografia e simbolismo |

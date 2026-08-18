@@ -176,3 +176,30 @@ configurar. Todos os caminhos são relativos: funciona em qualquer subpasta.
 2. Menu `⋮` → **Adicionar à tela inicial** (ou **Instalar app**) → confirmar.
 3. Abrir pelo ícone da tela inicial: abre em tela cheia, sem barra do
    navegador, e a partir daí funciona sem internet.
+
+---
+
+### `diagramador/`
+
+Aplicação web que transforma markdown em e-book diagramado no padrão da TEA
+Formation. Roda no Render, uso pelo navegador do tablet: sobe o markdown,
+espera, olha o preview, baixa o PDF.
+
+O sistema é um **renderizador determinístico, não um gerador de design**. O
+design foi medido uma vez nas cartilhas aprovadas e congelado em
+`design/tokens.json`; em produção o LLM só classifica trecho em tipo de bloco —
+não escolhe cor, fonte, espaçamento nem hierarquia. Layout é CSS escrito à mão.
+
+| Documento | Para quê |
+|---|---|
+| [`FORMATO.md`](FORMATO.md) | como escrever o markdown de um e-book |
+| [`DEPLOY.md`](DEPLOY.md) | colocar no ar pelo tablet, sem terminal |
+| [`design/tokens.md`](design/tokens.md) | de onde veio cada cor, tamanho e medida |
+| [`diagramador/README.md`](diagramador/README.md) | como o código se organiza |
+
+Antes de baixar, o app mostra um relatório de QA com 15 verificações — margem,
+ficha quebrada, fonte embutida, contraste, cor fora da paleta, logo, textos
+obrigatórios, sumário conferido, linguagem da marca. Verde é o que passou; o que
+falhou diz a página e o quê.
+
+**Rodar:** `uvicorn diagramador.app.principal:app` com `SENHA_APP` definida.
