@@ -219,6 +219,19 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 .lista .dur{font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
 .lista .ciclo{font-size:.78rem;color:var(--fraco)}
 .divisor{border:0;border-top:1px solid var(--linha);margin:16px 0 0}
+.ajustes{display:grid;gap:12px}
+@media (min-width:600px){.ajustes{grid-template-columns:repeat(3,1fr)}}
+.ajuste{background:var(--fundo);border:1px solid var(--linha);border-radius:14px;padding:12px 14px}
+.ajuste-rot{font-size:.76rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:8px}
+.passo{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.passo b{font-size:1.3rem;font-variant-numeric:tabular-nums;color:var(--escuro)}
+.bt-passo{
+  width:48px;height:48px;flex:0 0 auto;border-radius:12px;border:1px solid var(--linha);
+  background:var(--branco);color:var(--escuro);font-size:1.35rem;font-weight:700;cursor:pointer;
+  line-height:1;transition:transform .12s ease;
+}
+.bt-passo:active{transform:scale(.94)}
+.bt-passo:disabled{opacity:.3;cursor:default}
 .bt-editar{
   min-height:40px;width:40px;border-radius:10px;border:1px solid var(--linha);
   background:var(--branco);color:var(--azul);font-weight:700;cursor:pointer;flex:0 0 auto;
@@ -410,7 +423,7 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 
         <div class="cartao">
           <h2>Duração do foco</h2>
-          <p class="sub">Pausa é fixa: 5 minutos, e só se tu quiser.</p>
+          <p class="sub">Quanto tempo cada bloco de estudo dura.</p>
           <div class="fichas" id="fichasDuracao">
             <button class="ficha" data-min="15">15 min</button>
             <button class="ficha" data-min="25">25 min</button>
@@ -422,6 +435,37 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
             <button class="ficha" id="fichaAlarmeFundo">Alarme em segundo plano</button>
           </div>
           <p class="sub" id="subAlarmeFundo" style="margin-top:8px"></p>
+        </div>
+
+        <div class="cartao">
+          <h2>Pausas</h2>
+          <p class="sub" id="subPausas"></p>
+          <div class="ajustes" id="ajustesPausa">
+            <div class="ajuste">
+              <div class="ajuste-rot">Pausa curta</div>
+              <div class="passo">
+                <button class="bt-passo" data-ajuste="pausaCurta" data-delta="-1" aria-label="Diminuir a pausa curta">&minus;</button>
+                <b id="valPausaCurta">5 min</b>
+                <button class="bt-passo" data-ajuste="pausaCurta" data-delta="1" aria-label="Aumentar a pausa curta">+</button>
+              </div>
+            </div>
+            <div class="ajuste">
+              <div class="ajuste-rot">Intervalo</div>
+              <div class="passo">
+                <button class="bt-passo" data-ajuste="pausaLonga" data-delta="-5" aria-label="Diminuir o intervalo">&minus;</button>
+                <b id="valPausaLonga">15 min</b>
+                <button class="bt-passo" data-ajuste="pausaLonga" data-delta="5" aria-label="Aumentar o intervalo">+</button>
+              </div>
+            </div>
+            <div class="ajuste">
+              <div class="ajuste-rot">Focos até o intervalo</div>
+              <div class="passo">
+                <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="-1" aria-label="Diminuir os focos até o intervalo">&minus;</button>
+                <b id="valFocosAteLonga">3</b>
+                <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="1" aria-label="Aumentar os focos até o intervalo">+</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="cartao">
@@ -599,7 +643,11 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 
 const DIA_MS = 86400000;
 const DURACOES = [15, 25, 30, 50];   // blocos de foco disponíveis
-const PAUSA_MIN = 5;                 // pausa fixa
+const LIMITES = {                    // faixas dos ajustes de pausa
+  pausaCurta:   { min: 1,  max: 30 },
+  pausaLonga:   { min: 5,  max: 60 },
+  focosAteLonga:{ min: 2,  max: 8  }
+};
 const MARCOS = [100, 250, 500, 1000];// marcos do contador vitalício, em horas
 
 const $ = (sel) => document.querySelector(sel);
@@ -728,7 +776,14 @@ function estadoNovo() {
     ciclos: [],        // {id, nome, inicio, fimPrevisto, fimReal|null, congelado|null}
     recordes: { dia: 0, semana: 0, sequencia: 0 },
     marcosVistos: [],  // marcos do contador vitalício já comemorados
-    prefs: { duracao: 30, alarmeFundo: true },
+    prefs: {
+      duracao: 30,          // minutos do bloco de foco
+      alarmeFundo: true,    // alarme agendado para tocar com a tela bloqueada
+      pausaCurta: 5,        // pausa entre blocos
+      pausaLonga: 15,       // pausa maior, no fim do ciclo de focos
+      focosAteLonga: 3      // quantos focos até a pausa maior
+    },
+    contadorFoco: { n: 0, dia: null },   // focos desde a última pausa longa
     timer: null        // bloco em andamento (sobrevive a fechar o app)
   };
 }
@@ -746,7 +801,9 @@ function carregaEstado() {
   estado.recordes = Object.assign(base.recordes, salvo.recordes || {});
   estado.marcosVistos = Array.isArray(salvo.marcosVistos) ? salvo.marcosVistos : [];
   estado.prefs = Object.assign(base.prefs, salvo.prefs || {});
+  estado.contadorFoco = Object.assign(base.contadorFoco, salvo.contadorFoco || {});
   if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
+  Object.keys(LIMITES).forEach((chave) => { estado.prefs[chave] = limita(chave, estado.prefs[chave]); });
 }
 
 function salvaEstado() {
@@ -764,6 +821,36 @@ async function pedePersistencia() {
       if (!(await navigator.storage.persisted())) await navigator.storage.persist();
     }
   } catch (erro) { /* sem suporte: segue com o comportamento padrão */ }
+}
+
+/** Mantém um ajuste de pausa dentro da faixa permitida. */
+function limita(chave, valor) {
+  const faixa = LIMITES[chave];
+  valor = Math.round(Number(valor));
+  if (!faixa || !isFinite(valor)) return faixa ? faixa.min : valor;
+  return Math.min(faixa.max, Math.max(faixa.min, valor));
+}
+
+/**
+ * Focos concluídos desde a última pausa longa.
+ * A conta zera na virada do dia: sobrou 2 de 3 de ontem, hoje começa do zero.
+ */
+function focosNoContador() {
+  const c = estado.contadorFoco;
+  return (c && c.dia === chaveHoje()) ? c.n : 0;
+}
+
+function registraFocoNoContador() {
+  estado.contadorFoco = { n: focosNoContador() + 1, dia: chaveHoje() };
+}
+
+/**
+ * A próxima pausa é a longa?
+ * Usa "maior ou igual" de propósito: se o Davi pular a pausa longa, ela
+ * continua valendo no fim do próximo bloco em vez de se perder.
+ */
+function pausaLongaAgora() {
+  return focosNoContador() >= estado.prefs.focosAteLonga;
 }
 
 /** Ciclo em andamento (sem data de encerramento), se houver. */
@@ -877,6 +964,18 @@ const VOZ = {
     'Esse bloco vale ponto na tabela, Davi.',
     'Copou. Agora respira.'
   ],
+  pausaLonga: [
+    'Intervalo grande, Davi. Aproveita.',
+    'Pausa longa: levanta, anda, bebe água.',
+    'Descanso de verdade agora, Davi.',
+    'Tempo técnico, copeiro.',
+    'Vestiário, Davi. Volta inteiro.',
+    'Pausa comprida — essa tu ganhou.',
+    'Respira fundo, Davi. O jogo continua.',
+    'Intervalo do jogo, sem culpa nenhuma.',
+    'Descansa que a segunda etapa é tua.',
+    'Pé pra cima, Davi. Volta melhor.'
+  ],
   fimPausa: [
     'Pausa encerrada, Davi. Volta pro jogo.',
     'Intervalo acabou. Bora, copeiro.',
@@ -989,10 +1088,84 @@ function nota(freq, t0, duracao, volume) {
   return osc;
 }
 
+/** Ruído branco de dois segundos, reaproveitado pelo apito. */
+let bufferRuido = null;
+function ruidoBranco() {
+  if (bufferRuido) return bufferRuido;
+  const quadros = Math.floor(audio.sampleRate * 2);
+  const buf = audio.createBuffer(1, quadros, audio.sampleRate);
+  const canal = buf.getChannelData(0);
+  for (let i = 0; i < quadros; i++) canal[i] = Math.random() * 2 - 1;
+  bufferRuido = buf;
+  return buf;
+}
+
+/**
+ * Um sopro de apito de árbitro, montado do zero:
+ * duas senoides agudas (o corpo do som), ruído passa-banda (o sopro de ar) e
+ * um trinado rápido no volume, que é o que a bolinha dentro do apito faz.
+ */
+function apito(t0, duracao, volume) {
+  const fontes = [];
+
+  const saida = audio.createGain();
+  saida.gain.setValueAtTime(0.0001, t0);
+  saida.gain.exponentialRampToValueAtTime(volume, t0 + 0.012);
+  saida.gain.setValueAtTime(volume, t0 + duracao - 0.05);
+  saida.gain.exponentialRampToValueAtTime(0.0001, t0 + duracao);
+  saida.connect(audio.destination);
+
+  // Trinado da bolinha: modula o volume ~22 vezes por segundo
+  const trilho = audio.createGain();
+  trilho.gain.setValueAtTime(0.7, t0);
+  trilho.connect(saida);
+  const trinado = audio.createOscillator();
+  const profundidade = audio.createGain();
+  trinado.type = 'sine';
+  trinado.frequency.setValueAtTime(22, t0);
+  profundidade.gain.setValueAtTime(0.3, t0);
+  trinado.connect(profundidade);
+  profundidade.connect(trilho.gain);
+  trinado.start(t0);
+  trinado.stop(t0 + duracao + 0.05);
+  fontes.push(trinado);
+
+  // Corpo do apito: duas senoides agudas, com a subida do ar no ataque
+  [[3720, 0.55], [4460, 0.30]].forEach((par) => {
+    const osc = audio.createOscillator();
+    const ganho = audio.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(par[0] * 0.94, t0);
+    osc.frequency.exponentialRampToValueAtTime(par[0], t0 + 0.05);
+    ganho.gain.setValueAtTime(par[1], t0);
+    osc.connect(ganho).connect(trilho);
+    osc.start(t0);
+    osc.stop(t0 + duracao + 0.05);
+    fontes.push(osc);
+  });
+
+  // Sopro de ar: ruído branco filtrado na mesma região aguda
+  const sopro = audio.createBufferSource();
+  sopro.buffer = ruidoBranco();
+  sopro.loop = true;
+  const passa = audio.createBiquadFilter();
+  passa.type = 'bandpass';
+  passa.frequency.setValueAtTime(3900, t0);
+  passa.Q.setValueAtTime(6, t0);
+  const ganhoSopro = audio.createGain();
+  ganhoSopro.gain.setValueAtTime(0.45, t0);
+  sopro.connect(passa).connect(ganhoSopro).connect(trilho);
+  sopro.start(t0);
+  sopro.stop(t0 + duracao + 0.05);
+  fontes.push(sopro);
+
+  return fontes;
+}
+
 /**
  * Monta o alarme a partir do instante t0 do relógio do áudio.
  * 'foco'  -> toque de gol: quatro notas subindo, repetidas.
- * 'pausa' -> chamada de volta: duas notas curtas, mais secas.
+ * 'pausa' -> apito de árbitro começando o jogo: dois curtos e um longo.
  */
 function montaAlarme(tipo, t0) {
   const fontes = [];
@@ -1001,8 +1174,9 @@ function montaAlarme(tipo, t0) {
     seq.forEach((f, i) => fontes.push(nota(f, t0 + i * 0.16, 0.30, 0.32)));
     seq.forEach((f, i) => fontes.push(nota(f, t0 + 0.95 + i * 0.16, 0.30, 0.28)));
   } else {
-    fontes.push(nota(659.25, t0, 0.22, 0.28));
-    fontes.push(nota(523.25, t0 + 0.28, 0.30, 0.26));
+    apito(t0, 0.26, 0.32).forEach((n) => fontes.push(n));
+    apito(t0 + 0.40, 0.26, 0.32).forEach((n) => fontes.push(n));
+    apito(t0 + 0.86, 0.95, 0.34).forEach((n) => fontes.push(n));
   }
   return fontes;
 }
@@ -1173,11 +1347,12 @@ function timerRodando() {
   return !!(estado.timer && !estado.timer.pausadoEm);
 }
 
-/** Começa um bloco de foco ou uma pausa. */
-function comecaBloco(modo, minutos, assunto) {
+/** Começa um bloco de foco ou uma pausa (curta ou longa). */
+function comecaBloco(modo, minutos, assunto, longa) {
   const ciclo = cicloAtivo();
   estado.timer = {
     modo: modo,                       // 'foco' | 'pausa'
+    longa: !!longa,                   // pausa maior, no fim do ciclo de focos
     duracaoMs: minutos * 60000,
     assunto: modo === 'foco' ? (assunto || 'Estudo') : 'Pausa',
     inicio: Date.now(),
@@ -1197,7 +1372,20 @@ function comecaBloco(modo, minutos, assunto) {
     avisa('Em campo', fala('iniciaBloco', {
       assunto: estado.timer.assunto, min: fmtDuracao(minutos)
     }));
+  } else if (longa) {
+    avisa('Intervalo', fala('pausaLonga'));
   }
+}
+
+/**
+ * Começa a pausa que a vez pede. A longa zera o contador de focos no
+ * momento em que começa — pular a pausa não perde a vez dela.
+ */
+function comecaPausa() {
+  const longa = pausaLongaAgora();
+  const minutos = longa ? estado.prefs.pausaLonga : estado.prefs.pausaCurta;
+  if (longa) estado.contadorFoco = { n: 0, dia: chaveHoje() };
+  comecaBloco('pausa', minutos, null, longa);
 }
 
 function pausaTimer() {
@@ -1290,9 +1478,10 @@ function terminaBloco(silencioso) {
     tocaAlarmeDoFim('pausa', silencioso);
     if (!silencioso) vibra([200, 100, 200]);
     abreModal({
-      titulo: 'Fim da pausa',
+      titulo: t.longa ? 'Fim do intervalo' : 'Fim da pausa',
       frase: fala('fimPausa'),
-      detalhe: 'Cinco minutos pagos. Escolhe o próximo assunto e volta pro jogo.',
+      detalhe: fmtDuracao(Math.round(t.duracaoMs / 60000)) + ' de descanso pagos. ' +
+               'Escolhe o próximo assunto e volta pro jogo.',
       botoes: [{ texto: 'Bora', tipo: 'bt-azul', acao: fechaModal }]
     });
   }
@@ -1305,6 +1494,7 @@ function terminaBloco(silencioso) {
 function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, parcial, silencioso) {
   const antes = { recordes: Object.assign({}, estado.recordes) };
 
+  registraFocoNoContador();
   estado.blocos.push({
     id: idNovo(),
     inicio: inicio,
@@ -1330,9 +1520,10 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
     frase: fala('concluiBloco', { min: fmtDuracao(minutos), assunto: assunto }),
     detalhe: fmtDuracao(minutos) + ' em ' + escapaHTML(assunto) +
              (cicloNome ? ' — ' + escapaHTML(cicloNome) : '') +
-             '. Hoje: ' + fmtDuracao(minutosDoDia(chaveHoje())) + '.',
+             '. Hoje: ' + fmtDuracao(minutosDoDia(chaveHoje())) + '. ' + textoDoCicloDeFocos(),
     botoes: [
-      { texto: 'Pausa de 5 min', tipo: 'bt-azul', acao: () => { fechaModal(); comecaBloco('pausa', PAUSA_MIN); } },
+      { texto: (pausaLongaAgora() ? 'Pausa longa de ' + estado.prefs.pausaLonga : 'Pausa de ' + estado.prefs.pausaCurta) + ' min',
+        tipo: 'bt-azul', acao: () => { fechaModal(); comecaPausa(); } },
       { texto: 'Direto pro próximo', tipo: '', acao: () => { fechaModal(); vaiPara('foco'); $('#campoAssunto').focus(); } }
     ]
   });
@@ -1580,7 +1771,11 @@ function avisa(rotulo, texto, brilho) {
   const el = document.createElement('div');
   el.className = 'aviso' + (brilho ? ' brilho' : '');
   el.innerHTML = '<b>' + escapaHTML(rotulo) + '</b>' + escapaHTML(texto);
-  $('#toaster').appendChild(el);
+  const caixa = $('#toaster');
+  caixa.appendChild(el);
+  // No máximo três avisos na tela: quatro recordes de uma vez não podem
+  // tapar o app inteiro.
+  while (caixa.children.length > 3) caixa.firstElementChild.remove();
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; }, brilho ? 7000 : 4200);
   setTimeout(() => el.remove(), brilho ? 7500 : 4700);
 }
@@ -1611,12 +1806,12 @@ function desenhaTimer() {
   const rotulo = $('#modoRotulo');
   if (!t) rotulo.textContent = 'Pronto';
   else if (t.pausadoEm) rotulo.textContent = t.modo === 'foco' ? 'Foco parado' : 'Pausa parada';
-  else rotulo.textContent = t.modo === 'foco' ? 'Foco' : 'Pausa';
+  else rotulo.textContent = t.modo === 'foco' ? 'Foco' : (t.longa ? 'Intervalo' : 'Pausa');
   rotulo.classList.toggle('piscando', !!(t && t.pausadoEm));
 
   const assunto = $('#assuntoAtual');
   if (t && t.modo === 'foco') assunto.textContent = t.assunto;
-  else if (t) assunto.textContent = 'Respira, Davi';
+  else if (t) assunto.textContent = t.longa ? 'Intervalo grande, Davi' : 'Respira, Davi';
   else assunto.textContent = $('#campoAssunto').value.trim() || 'Escolhe o assunto';
 
   const principal = $('#btPrincipal');
@@ -1691,6 +1886,17 @@ function desenhaFoco() {
     f.classList.toggle('ativa', Number(f.dataset.min) === estado.prefs.duracao);
   });
 
+  // Ajustes de pausa
+  $('#valPausaCurta').textContent = estado.prefs.pausaCurta + ' min';
+  $('#valPausaLonga').textContent = estado.prefs.pausaLonga + ' min';
+  $('#valFocosAteLonga').textContent = estado.prefs.focosAteLonga;
+  $('#subPausas').textContent = 'A pausa é livre: entra se tu quiser. ' + textoDoCicloDeFocos();
+  $$('#ajustesPausa .bt-passo').forEach((bt) => {
+    const chave = bt.dataset.ajuste;
+    const alvo = limita(chave, estado.prefs[chave] + Number(bt.dataset.delta));
+    bt.disabled = (alvo === estado.prefs[chave]);
+  });
+
   // Ajuste do alarme em segundo plano
   const ligado = !!estado.prefs.alarmeFundo;
   const ficha = $('#fichaAlarmeFundo');
@@ -1701,6 +1907,14 @@ function desenhaFoco() {
     : 'Com a tela bloqueada, o alarme só sai quando tu voltar pro app. O tempo do bloco segue certo do mesmo jeito.';
 
   desenhaAssuntos();
+}
+
+/** Em que pé está o ciclo de focos até o intervalo. */
+function textoDoCicloDeFocos() {
+  const feitos = focosNoContador();
+  const alvo = estado.prefs.focosAteLonga;
+  if (feitos >= alvo) return 'A próxima pausa é o intervalo de ' + estado.prefs.pausaLonga + ' min.';
+  return 'Foco ' + (feitos + 1) + ' de ' + alvo + ' até o intervalo.';
 }
 
 /** Autocompletar do ciclo atual + atalhos para os 5 últimos assuntos. */
@@ -2143,6 +2357,16 @@ $('#fichasDuracao').addEventListener('click', (ev) => {
   salvaEstado();
   $$('#fichasDuracao .ficha').forEach((x) => x.classList.toggle('ativa', x === f));
   if (!estado.timer) desenhaTimer();
+});
+
+/* ---- Ajustes de pausa ---- */
+$('#ajustesPausa').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-ajuste]');
+  if (!bt) return;
+  const chave = bt.dataset.ajuste;
+  estado.prefs[chave] = limita(chave, estado.prefs[chave] + Number(bt.dataset.delta));
+  salvaEstado();
+  desenhaFoco();
 });
 
 /* ---- Alarme em segundo plano ---- */
