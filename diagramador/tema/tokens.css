@@ -1,0 +1,124 @@
+/* GERADO por diagramador/ferramentas/gerar_tokens_css.py — não editar à mão.
+   Fonte: design/tokens.json v1.0.0 */
+
+:root {
+  /* ---- cor ---- */
+  --cor-fundo-palco: #F9F4E5;
+  --cor-fundo-bloco: #FFFFFF;
+  --cor-fundo-bloco-ficha: #FFFFFF;
+  --cor-fundo-bloco-secundario: #F1E9D5;
+  --cor-texto-corpo: #1F2D3D;
+  --cor-texto-titulo: #1F2D3D;
+  --cor-texto-secundario: #5A6675;
+  --cor-texto-sobre-cor: #FFFFFF;
+  --cor-linha-divisoria: #E0BC95;
+  --cor-habitante-tan: #E0BC95;
+  --cor-habitante-caramelo: #C89D67;
+  --cor-habitante-marrom: #9B6838;
+  --cor-habitante-ocre: #D88C4A;
+  --cor-habitante-terracota: #D25E38;
+  --cor-destaque-pedagogico: #0193C8;
+  --cor-destaque-pedagogico-texto: #016E96;
+  --cor-destaque-pedagogico-wash: #E6F4FA;
+  --cor-acento-material: #FF7345;
+  --cor-acento-material-wash: #FFF1EC;
+  --cor-logo-azul: #39A6D8;
+  --cor-taxonomia-teabook: #EDAF47;
+  --cor-taxonomia-teagame: #5E3D93;
+  --cor-taxonomia-teaplay: #00AB6F;
+  --cor-taxonomia-secundario: #FF8573;
+  --cor-facil-wash: #E6F7F1;
+  --cor-desafiador-wash: #FFF3F1;
+  --cor-atencao-fundo: #FDF5E9;
+  --cor-atencao-filete: #EDAF47;
+
+  /* ---- tipografia: famílias ---- */
+  --fonte-display: 'Omnes Huggies', 'Poppins', sans-serif;
+  --fonte-titulo: 'Poppins', sans-serif;
+  --fonte-leitura: 'Manrope', sans-serif;
+
+  /* ---- tipografia: escala ---- */
+  --capa-titulo-tamanho: 46pt;
+  --capa-titulo-entrelinha: 1.05;
+  --capa-titulo-peso: 700;
+  --capa-titulo-tracking: -0.015em;
+  --capa-subtitulo-tamanho: 15pt;
+  --capa-subtitulo-entrelinha: 1.3;
+  --capa-subtitulo-peso: 600;
+  --capa-assinatura-tamanho: 9.5pt;
+  --capa-assinatura-entrelinha: 1.45;
+  --capa-assinatura-peso: 500;
+  --h1-tamanho: 28pt;
+  --h1-entrelinha: 1.12;
+  --h1-peso: 700;
+  --h1-tracking: -0.01em;
+  --h2-tamanho: 16.5pt;
+  --h2-entrelinha: 1.25;
+  --h2-peso: 600;
+  --h3-tamanho: 12.5pt;
+  --h3-entrelinha: 1.3;
+  --h3-peso: 600;
+  --rotulo-tamanho: 8.5pt;
+  --rotulo-entrelinha: 1.2;
+  --rotulo-peso: 600;
+  --rotulo-tracking: 0.08em;
+  --corpo-tamanho: 11.5pt;
+  --corpo-entrelinha: 1.52;
+  --corpo-peso: 400;
+  --corpo-destaque-tamanho: 11.5pt;
+  --corpo-destaque-entrelinha: 1.52;
+  --corpo-destaque-peso: 700;
+  --corpo-pequeno-tamanho: 10pt;
+  --corpo-pequeno-entrelinha: 1.5;
+  --corpo-pequeno-peso: 400;
+  --nota-tamanho: 9.5pt;
+  --nota-entrelinha: 1.5;
+  --nota-peso: 400;
+  --numero-ficha-tamanho: 26pt;
+  --numero-ficha-entrelinha: 1;
+  --numero-ficha-peso: 700;
+  --numero-bloco-tamanho: 64pt;
+  --numero-bloco-entrelinha: 1;
+  --numero-bloco-peso: 700;
+  --rodape-tamanho: 7.5pt;
+  --rodape-entrelinha: 1.2;
+  --rodape-peso: 500;
+  --rodape-tracking: 0.02em;
+  --sumario-item-tamanho: 11pt;
+  --sumario-item-entrelinha: 1.9;
+  --sumario-item-peso: 500;
+  --formulario-campo-tamanho: 10pt;
+  --formulario-campo-entrelinha: 2.4;
+  --formulario-campo-peso: 500;
+
+  /* ---- grid ---- */
+  --pagina-largura: 210mm;
+  --pagina-altura: 297mm;
+  --margem-topo: 22mm;
+  --margem-base: 20mm;
+  --margem-lateral: 29mm;
+  --largura-conteudo: 152mm;
+  --base-vertical: 6.2mm;
+  --padding-card: 9.3mm;
+  --gap-colunas: 6.2mm;
+  --esp-xs: 3.1mm;
+  --esp-sm: 6.2mm;
+  --esp-md: 9.3mm;
+  --esp-lg: 12.4mm;
+  --esp-xl: 18.6mm;
+
+  /* ---- forma ---- */
+  --raio-card: 8mm;
+  --raio-pill: 4mm;
+  --raio-mini: 2.5mm;
+  --sombra-card: 0 1.5mm 4mm rgba(31,45,61,0.10);
+  --filete: 1.2mm;
+  --hairline: 0.35mm;
+  --faixa-borda: 13mm;
+  --faixa-apice: 26mm;
+
+  /* ---- marca ---- */
+  --logo-altura: 4.6mm;
+  --logo-base: 12mm;
+  --capa-contorno: 0.075em;
+}

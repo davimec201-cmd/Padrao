@@ -1,0 +1,272 @@
+/* base.css — página, fontes e mobília de página. Escrito à mão, versionado.
+   Nada aqui é decidido em runtime: todos os valores vêm de tokens.css. */
+
+/* ---------------------------------------------------------------- fontes
+   Sempre embutidas de assets/fontes/. Nunca CDN, nunca fonte do sistema.
+   Omnes Huggies é proprietária: quando o arquivo não existe, a declaração
+   simplesmente não resolve e --fonte-display cai em Poppins (o QA avisa). */
+
+@font-face {
+  font-family: 'Omnes Huggies';
+  src: url('../../assets/fontes/Omnes_Huggies-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Omnes Huggies';
+  src: url('../../assets/fontes/Omnes_Huggies-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('../../assets/fontes/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('../../assets/fontes/Poppins-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('../../assets/fontes/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('../../assets/fontes/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('../../assets/fontes/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Manrope';
+  src: url('../../assets/fontes/Manrope-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Manrope';
+  src: url('../../assets/fontes/Manrope-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Manrope';
+  src: url('../../assets/fontes/Manrope-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Manrope';
+  src: url('../../assets/fontes/Manrope-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Manrope';
+  src: url('../../assets/fontes/Manrope-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+/* ---------------------------------------------------------------- página */
+
+@page {
+  size: A4;
+  margin: var(--margem-topo) var(--margem-lateral) var(--margem-base);
+  background: var(--cor-fundo-palco);
+
+  /* rodapé: título do material à esquerda, marca + página à direita.
+     Idêntico em toda página; a capa e a página final sobrescrevem. */
+  @bottom-left {
+    content: element(rodape-titulo);
+    vertical-align: top;
+    padding-top: 4mm;
+  }
+  @bottom-right {
+    content: element(marca-rodape);
+    vertical-align: top;
+    padding-top: 4mm;
+  }
+}
+
+@page capa {
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+@page final {
+  @bottom-left { content: none; }
+  @bottom-right { content: element(marca-rodape); }
+}
+
+/* ------------------------------------------------------- base do documento */
+
+html {
+  font-family: var(--fonte-leitura);
+  font-size: var(--corpo-tamanho);
+  line-height: var(--corpo-entrelinha);
+  color: var(--cor-texto-corpo);
+}
+
+body {
+  margin: 0;
+  background: var(--cor-fundo-palco);
+  /* órfãs e viúvas: o QA verifica, o CSS previne */
+  orphans: 3;
+  widows: 3;
+  hyphens: none;
+}
+
+p {
+  margin: 0 0 var(--esp-sm);
+  font-size: var(--corpo-tamanho);
+  line-height: var(--corpo-entrelinha);
+}
+p:last-child { margin-bottom: 0; }
+
+strong, b { font-weight: var(--corpo-destaque-peso); }
+em, i { font-style: italic; }
+
+/* ------------------------------------------------------------ hierarquia */
+
+h1, h2, h3 {
+  margin: 0;
+  color: var(--cor-texto-titulo);
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+h1 {
+  font-family: var(--fonte-display);
+  font-size: var(--h1-tamanho);
+  line-height: var(--h1-entrelinha);
+  font-weight: var(--h1-peso);
+  letter-spacing: var(--h1-tracking);
+}
+
+h2 {
+  font-family: var(--fonte-titulo);
+  font-size: var(--h2-tamanho);
+  line-height: var(--h2-entrelinha);
+  font-weight: var(--h2-peso);
+  margin-top: var(--esp-lg);
+  margin-bottom: var(--esp-sm);
+}
+
+h3 {
+  font-family: var(--fonte-titulo);
+  font-size: var(--h3-tamanho);
+  line-height: var(--h3-entrelinha);
+  font-weight: var(--h3-peso);
+  margin-top: var(--esp-md);
+  margin-bottom: var(--esp-xs);
+}
+
+.rotulo {
+  font-family: var(--fonte-titulo);
+  font-size: var(--rotulo-tamanho);
+  line-height: var(--rotulo-entrelinha);
+  font-weight: var(--rotulo-peso);
+  letter-spacing: var(--rotulo-tracking);
+  text-transform: uppercase;
+  color: var(--cor-destaque-pedagogico-texto);
+}
+
+/* ------------------------------------------------------------- listas */
+
+ol, ul {
+  margin: 0 0 var(--esp-sm);
+  padding-left: 6mm;
+}
+li { margin-bottom: var(--esp-xs); }
+li:last-child { margin-bottom: 0; }
+
+ol.passos {
+  list-style: none;
+  padding-left: 0;
+  counter-reset: passo;
+}
+ol.passos > li {
+  counter-increment: passo;
+  position: relative;
+  padding-left: 8mm;
+  margin-bottom: var(--esp-xs);
+  break-inside: avoid;
+}
+ol.passos > li::before {
+  content: counter(passo);
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  width: 5.4mm;
+  height: 5.4mm;
+  border-radius: 50%;
+  background: var(--cor-destaque-pedagogico-texto);
+  color: var(--cor-texto-sobre-cor);
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  font-size: 8.5pt;
+  line-height: 5.4mm;
+  text-align: center;
+}
+
+/* --------------------------------------------------- marca no rodapé */
+
+.marca-rodape {
+  position: running(marca-rodape);
+  display: flex;
+  align-items: center;
+  gap: 1.4mm;
+  font-family: var(--fonte-titulo);
+  font-size: var(--rodape-tamanho);
+  color: var(--cor-texto-secundario);
+  white-space: nowrap;
+}
+.marca-rodape img {
+  height: var(--logo-altura);
+  width: auto;
+}
+.marca-rodape .marca-tea { font-weight: 700; color: var(--cor-texto-corpo); }
+.marca-rodape .marca-formation { font-weight: 400; color: var(--cor-texto-corpo); }
+.marca-rodape .pagina::after {
+  content: counter(page);
+  margin-left: 2.2mm;
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+/* ------------------------------------------------------------- páginas */
+
+.pagina {
+  break-after: page;
+  page-break-after: always;
+}
+.pagina:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.rodape-titulo {
+  position: running(rodape-titulo);
+  font-family: var(--fonte-titulo);
+  font-size: var(--rodape-tamanho);
+  line-height: var(--rodape-entrelinha);
+  font-weight: var(--rodape-peso);
+  letter-spacing: var(--rodape-tracking);
+  color: var(--cor-texto-secundario);
+  white-space: nowrap;
+}
