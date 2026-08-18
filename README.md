@@ -88,12 +88,33 @@ que continuar.
 - O cronômetro atualiza só o disco, nunca a tela inteira — senão o cursor
   saltaria do texto a cada segundo.
 
-#### Cores dos gráficos
+#### Identidade visual
 
-Série única, tom único (`#22A3C0`): o comprimento da barra já mostra a
-grandeza, e a identidade vem do rótulo. O tom foi validado contra a superfície
-escura (faixa de luminosidade, piso de croma e contraste ≥ 3:1); o neon
-`#67E8F9` fica reservado pra borda, brilho e texto de destaque.
+Segue a identidade da TEA Formation (Drive > 01_Marca e Design > Identidade
+Visual). As cores carregam o significado que o próprio manual atribui a elas:
+
+| Cor | Significado no manual | Uso no app |
+|---|---|---|
+| `#0193C8` | confiança, cuidado, estabilidade, técnica | ação principal, foco, dados |
+| `#F9F4E5` | leveza, acolhimento, acessibilidade | fundo |
+| `#1F2D3D` | seriedade | texto; vira superfície no tema escuro |
+| `#FF7345` | alegria | pausa do pomodoro, alerta no modo leitura |
+| `#00AB6F` | desenvolvimento | acerto em questões |
+| `#EDAF47` | curiosidade | realce (marca-texto) |
+| `#FF8573` | coral | erro em questões |
+
+Tipografia: **Poppins** nos títulos e na interface, **Manrope** na leitura —
+ambas carregadas do Google Fonts, que é o único host de fontes permitido pela
+política de conteúdo da página publicada. Omnes é a fonte do logo e não é
+usada em interface.
+
+O tema claro é o da marca. O tema escuro deriva do `#1F2D3D` — mesma marca,
+para quem estuda de madrugada. O azul `#0193C8` foi validado como cor de dado
+nos **dois** temas (faixa de luminosidade, piso de croma e contraste ≥ 3:1),
+então os gráficos usam a cor da marca sem variação inventada.
+
+Série única, tom único: o comprimento da barra já mostra a grandeza, e a
+identidade vem do rótulo.
 
 #### Onde os dados ficam
 
