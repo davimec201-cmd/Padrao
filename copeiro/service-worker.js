@@ -9,7 +9,7 @@
    service worker novo instala, limpa os caches antigos e assume o controle.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v5';
+const VERSAO = 'copeiro-v6';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */

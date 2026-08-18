@@ -314,6 +314,55 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 .trofeu .num-linha div span{font-size:.74rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.5px}
 .prateleira{height:10px;border-radius:0 0 var(--raio) var(--raio);background:linear-gradient(90deg,var(--escuro),var(--azul));margin-top:14px}
 
+/* ---------- Cartas ---------- */
+.cartao-revisao{
+  background:linear-gradient(160deg,#FFFFFF,#F7FAFD);
+  border:1px solid var(--linha);border-radius:20px;box-shadow:var(--sombra);
+  min-height:clamp(220px,38vh,340px);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;padding:26px 22px;text-align:center;
+  cursor:pointer;position:relative;overflow:hidden;
+}
+.cartao-revisao .faixa-topo{
+  position:absolute;left:0;right:0;top:0;height:6px;
+  background:repeating-linear-gradient(135deg,
+    var(--azul) 0 14px, var(--preto) 14px 28px, var(--branco) 28px 42px);
+}
+.carta-texto{font-size:clamp(1.15rem,3.6vw,1.6rem);font-weight:700;line-height:1.4;max-width:38ch}
+.carta-resposta{font-size:clamp(1rem,3vw,1.35rem);font-weight:600;color:var(--azul);line-height:1.45;max-width:40ch}
+.carta-lacuna{
+  background:#E8F3FB;border-bottom:2px solid var(--azul);border-radius:4px;
+  padding:0 6px;color:transparent;user-select:none;
+}
+.carta-lacuna.aberta{color:var(--azul);background:#E8F3FB;user-select:auto}
+.carta-dica{font-size:.82rem;color:var(--fraco);letter-spacing:.4px}
+.carta-meta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:.78rem;color:var(--fraco)}
+.carta-meta span{background:var(--fundo);border:1px solid var(--linha);border-radius:999px;padding:3px 10px}
+.notas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.bt-nota{
+  min-height:66px;border-radius:16px;border:1px solid var(--linha);background:var(--card);
+  font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  transition:transform .12s ease;
+}
+.bt-nota:active{transform:scale(.96)}
+.bt-nota small{font-weight:600;font-size:.72rem;color:var(--fraco)}
+.bt-nota.travei{border-color:#F0C9C6;color:#B3261E;background:#FFF6F5}
+.bt-nota.quase{border-color:#F2DFB0;color:#8A5A00;background:#FFFAF0}
+.bt-nota.bem{border-color:#C9E3F3;color:var(--azul);background:#F2F9FE}
+.baralho li{align-items:flex-start}
+.baralho .frente{flex:1;min-width:0;font-weight:600}
+.baralho .frente small{display:block;font-weight:500;color:var(--fraco);font-size:.78rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.selo-degrau{
+  font-size:.72rem;font-weight:800;color:var(--azul);background:#EAF5FC;
+  border:1px solid #C9E3F3;border-radius:999px;padding:3px 9px;white-space:nowrap;
+}
+.selo-degrau.hoje{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
+.barras-dia{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:12px}
+.barras-dia div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.barras-dia .haste{flex:1;width:100%;display:flex;align-items:flex-end}
+.barras-dia .haste i{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--azul2),var(--azul));min-height:3px;display:block}
+.barras-dia small{font-size:.68rem;color:var(--fraco)}
+
 /* ---------- Aviso de armazenamento ---------- */
 .aviso-armazem{
   background:#FFF4E5;border-bottom:1px solid #F3D9B0;color:#7A4E00;
@@ -381,6 +430,7 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
   <button class="ativa" data-tela="foco">Foco</button>
   <button data-tela="historico">Histórico</button>
   <button data-tela="progresso">Progresso</button>
+  <button data-tela="cartas">Cartas</button>
   <button data-tela="estante">Estante</button>
 </nav>
 
@@ -545,6 +595,17 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
     </div>
 
     <div class="cartao">
+      <h2>Cartas da campanha</h2>
+      <p class="sub" id="progressoCartasResumo"></p>
+      <div class="numeros">
+        <div class="numero"><b id="progCartasCriadas">0</b><span>cartas criadas</span></div>
+        <div class="numero"><b id="progCartasRevisoes">0</b><span>revisões</span></div>
+        <div class="numero"><b id="progCartasAcerto">—</b><span>mandei bem</span></div>
+      </div>
+      <div class="barras-dia" id="progCartasBarras"></div>
+    </div>
+
+    <div class="cartao">
       <h2>Mapa do ano</h2>
       <p class="sub" id="resumoCalor"></p>
       <div class="calor-rolagem">
@@ -570,6 +631,100 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
         <div class="numero"><b id="recSeq">0</b><span>maior sequência</span></div>
       </div>
       <p class="sub" id="recDetalhe" style="margin-top:12px"></p>
+    </div>
+
+  </section>
+
+  <!-- ================= TELA: CARTAS ================= -->
+  <section class="tela oculto" id="tela-cartas">
+
+    <!-- Painel: números do baralho e as três portas de entrada -->
+    <div class="cartao" id="painelCartas">
+      <h2>Cartas da campanha</h2>
+      <p class="sub" id="resumoCartas"></p>
+      <div class="numeros">
+        <div class="numero destaque"><b id="cartasHoje">0</b><span>na fila de hoje</span></div>
+        <div class="numero"><b id="cartasBaralho">0</b><span>no baralho</span></div>
+        <div class="numero"><b id="cartasDominadas">0</b><span>no último degrau</span></div>
+      </div>
+      <div class="linha-bts" style="margin-top:16px">
+        <button class="bt bt-azul bt-grande" id="btRevisarFila">Revisar a fila</button>
+        <button class="bt" id="btRevisarLivre">Rever o que eu quiser</button>
+        <button class="bt" id="btNovaCarta">Nova carta</button>
+      </div>
+    </div>
+
+    <!-- Revisor -->
+    <div class="cartao oculto" id="painelRevisor">
+      <p class="sub" id="revisorPasso"></p>
+      <div class="cartao-revisao" id="cartaoRevisao">
+        <div class="faixa-topo"></div>
+        <div class="carta-texto" id="cartaFrente"></div>
+        <div class="carta-resposta oculto" id="cartaVerso"></div>
+        <div class="carta-dica" id="cartaDica">toca pra ver a resposta</div>
+        <div class="carta-meta" id="cartaMeta"></div>
+      </div>
+      <div class="notas oculto" id="notasRevisao">
+        <button class="bt-nota travei" data-nota="0">Travei<small>volta ainda hoje</small></button>
+        <button class="bt-nota quase" data-nota="1">Quase<small>mesmo intervalo</small></button>
+        <button class="bt-nota bem" data-nota="2">Mandei bem<small>sobe um degrau</small></button>
+      </div>
+      <div class="linha-bts" style="margin-top:14px">
+        <button class="bt bt-fantasma" id="btSairRevisor">Sair</button>
+        <button class="bt bt-fantasma" id="btEditarNoRevisor">Editar esta carta</button>
+        <button class="bt bt-fantasma oculto" id="btContinuarAlemTeto">Continuar mesmo assim</button>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="cartao oculto" id="painelEditor">
+      <h2 id="tituloEditor">Nova carta</h2>
+      <p class="sub">Escreve <code>{{assim}}</code> na frente pra virar lacuna, e o verso fica opcional.</p>
+      <div class="campos">
+        <div>
+          <label class="rot" for="campoFrente">Frente</label>
+          <input type="text" id="campoFrente" maxlength="240" placeholder="Ex.: Antídoto da intoxicação por {{paracetamol}}">
+        </div>
+        <div>
+          <label class="rot" for="campoVerso">Verso</label>
+          <input type="text" id="campoVerso" maxlength="240" placeholder="Ex.: N-acetilcisteína">
+        </div>
+        <div>
+          <label class="rot" for="campoAssuntoCarta">Assunto</label>
+          <input type="text" id="campoAssuntoCarta" list="listaAssuntos" maxlength="60" placeholder="Herda o último assunto usado">
+        </div>
+      </div>
+      <div class="campos campos-3" id="camposAvancados" style="margin-top:14px">
+        <div>
+          <label class="rot" for="campoDegrau">Degrau</label>
+          <select id="campoDegrau" style="width:100%;min-height:56px;padding:0 14px;border:1px solid var(--linha);border-radius:12px;background:#fff"></select>
+        </div>
+        <div>
+          <label class="rot" for="campoProxima">Próxima revisão</label>
+          <input type="date" id="campoProxima">
+        </div>
+        <div>
+          <label class="rot" for="campoAposentada">Estado</label>
+          <select id="campoAposentada" style="width:100%;min-height:56px;padding:0 14px;border:1px solid var(--linha);border-radius:12px;background:#fff">
+            <option value="0">Na ativa</option>
+            <option value="1">Guardada</option>
+          </select>
+        </div>
+      </div>
+      <div class="linha-bts" style="margin-top:16px">
+        <button class="bt bt-azul" id="btSalvarCarta">Salvar</button>
+        <button class="bt" id="btSalvarEOutra">Salvar e criar outra</button>
+        <button class="bt bt-fantasma" id="btCancelarCarta">Cancelar</button>
+        <button class="bt bt-perigo oculto" id="btApagarCarta">Apagar</button>
+      </div>
+    </div>
+
+    <!-- Baralho -->
+    <div class="cartao" id="painelBaralho">
+      <h2>Baralho</h2>
+      <p class="sub" id="resumoBaralho"></p>
+      <div class="fichas" id="filtrosBaralho" style="margin-bottom:12px"></div>
+      <ul class="lista baralho" id="listaBaralho"></ul>
     </div>
 
   </section>
@@ -652,6 +807,12 @@ const LIMITES = {                    // faixas dos ajustes de pausa
   focosAteLonga:{ min: 2,  max: 8  }
 };
 const MARCOS = [100, 250, 500, 1000];// marcos do contador vitalício, em horas
+
+/* Escada das cartas, em dias. Curta de propósito: o ciclo dura pouco mais de
+   um mês e o conteúdo não volta depois, então cinco degraus cabem inteiros
+   dentro dele — a última revisão cai a cerca de uma semana da prova. */
+const ESCADA_CARTAS = [1, 2, 4, 8, 16];
+const DIAS_DE_RETA_FINAL = 3;        // nos últimos dias, tudo entra na fila
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -784,9 +945,14 @@ function estadoNovo() {
       alarmeFundo: true,    // alarme agendado para tocar com a tela bloqueada
       pausaCurta: 5,        // pausa entre blocos
       pausaLonga: 15,       // pausa maior, no fim do ciclo de focos
-      focosAteLonga: 3      // quantos focos até a pausa maior
+      focosAteLonga: 3,     // quantos focos até a pausa maior
+      tetoCartas: 20        // sugestão de fila por dia — nunca trava nada
     },
     contadorFoco: { n: 0, dia: null },   // focos desde a última pausa longa
+    cartas: [],        // {id, frente, verso, assunto, cicloId, cicloNome, nivel,
+                       //  proximaEm, criadaEm, ultimaEm, vezes, travei, quase,
+                       //  mandeiBem, guardada}
+    revisoesPorDia: {}, // {'AAAA-MM-DD': quantas revisões}
     timer: null        // bloco em andamento (sobrevive a fechar o app)
   };
 }
@@ -805,6 +971,9 @@ function carregaEstado() {
   estado.marcosVistos = Array.isArray(salvo.marcosVistos) ? salvo.marcosVistos : [];
   estado.prefs = Object.assign(base.prefs, salvo.prefs || {});
   estado.contadorFoco = Object.assign(base.contadorFoco, salvo.contadorFoco || {});
+  estado.cartas = Array.isArray(salvo.cartas) ? salvo.cartas : [];
+  estado.revisoesPorDia = (salvo.revisoesPorDia && typeof salvo.revisoesPorDia === 'object')
+    ? salvo.revisoesPorDia : {};
   if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
   Object.keys(LIMITES).forEach((chave) => { estado.prefs[chave] = limita(chave, estado.prefs[chave]); });
 }
@@ -2216,6 +2385,7 @@ function desenhaProgresso() {
     : 'Todos os marcos batidos, Davi. O contador segue somando.';
 
   desenhaComparacao();
+  desenhaProgressoCartas();
   desenhaMapaCalor(mapa);
 
   // Recordes
@@ -2425,6 +2595,8 @@ function desenhaEstante() {
         '<div><b>' + e.diasAtivos + '</b><span>dias ativos</span></div>' +
         '<div><b>' + e.maiorSequencia + '</b><span>sequência</span></div>' +
         '<div><b>' + e.blocos + '</b><span>blocos</span></div>' +
+        (e.cartas ? '<div><b>' + e.cartas + '</b><span>cartas</span></div>' +
+                    '<div><b>' + (e.revisoes || 0) + '</b><span>revisões</span></div>' : '') +
       '</div>' +
       '<div class="prateleira"></div>' +
       '</article>';
@@ -2436,6 +2608,7 @@ function desenhaEstante() {
 function atualizaTudo() {
   desenhaCabecalho();
   desenhaFoco();
+  desenhaCartas();
   desenhaHistorico();
   desenhaProgresso();
   desenhaEstante();
@@ -2581,12 +2754,18 @@ $('#btEncerrarCiclo').addEventListener('click', () => {
 function encerraCiclo(ciclo) {
   const est = estatCiclo(ciclo);
   ciclo.fimReal = chaveHoje();
+  const cartasDoCiclo = estado.cartas.filter((c) => c.cicloId === ciclo.id);
   ciclo.congelado = {                    // estatísticas congeladas no encerramento
     minutos: est.minutos,
     blocos: est.blocos,
     diasAtivos: est.diasAtivos,
-    maiorSequencia: est.maiorSequencia
+    maiorSequencia: est.maiorSequencia,
+    cartas: cartasDoCiclo.length,
+    revisoes: cartasDoCiclo.reduce((soma, c) => soma + (c.vezes || 0), 0)
   };
+  // As cartas da campanha saem da fila, mas continuam inteiras: dá pra rever
+  // quando quiser pelo modo livre, e pra trazer de volta editando a carta.
+  cartasDoCiclo.forEach((c) => { c.guardada = true; });
   salvaEstado();
   $('#cicloNome').value = '';
   $('#cicloInicio').value = '';
@@ -2732,6 +2911,488 @@ setInterval(() => {
     atualizaTudo();
   }
 }, 30000);
+
+/* ========================= 11. CARTAS =========================
+   Flashcards com prazo. O Anki agenda pra lembrar pra sempre; aqui o alvo
+   é a prova no fim do ciclo, e o conteúdo não volta depois disso. Daí a
+   escada curta (1, 2, 4, 8, 16), o teto pela data da prova e a reta final.
+
+   Nada aqui bloqueia o Davi: dá pra revisar fora da fila quando quiser,
+   repetir à vontade, passar do teto do dia e editar qualquer campo da
+   carta, inclusive o degrau e a data da próxima revisão.
+   ============================================================= */
+
+let revisao = null;        // sessão de revisão em andamento
+let cartaEmEdicao = null;  // carta aberta no editor (null = carta nova)
+let filtroBaralho = 'ativas';
+
+/* ---------- Consultas ---------- */
+
+const cartasVivas = () => estado.cartas.filter((c) => !c.guardada);
+
+/** Últimos dias do ciclo: tudo entra na fila, sem olhar degrau. */
+function emRetaFinal() {
+  const ciclo = cicloAtivo();
+  if (!ciclo || !ciclo.fimPrevisto) return false;
+  const faltam = diasEntre(chaveHoje(), ciclo.fimPrevisto);
+  return faltam >= 0 && faltam <= DIAS_DE_RETA_FINAL;
+}
+
+/** Cartas do baralho em uso: as da campanha aberta mais as sem campanha. */
+function cartasDaCampanha() {
+  const ciclo = cicloAtivo();
+  return cartasVivas().filter((c) => !ciclo || !c.cicloId || c.cicloId === ciclo.id);
+}
+
+/** A fila de hoje, já ordenada pela data mais antiga e pelo degrau mais baixo. */
+function filaDeCartas() {
+  const reta = emRetaFinal();
+  return cartasDaCampanha()
+    .filter((c) => reta || c.proximaEm <= chaveHoje())
+    .sort((a, b) => (a.proximaEm < b.proximaEm ? -1
+                   : a.proximaEm > b.proximaEm ? 1
+                   : (a.nivel || 0) - (b.nivel || 0)));
+}
+
+/** Data da próxima revisão pelo degrau, sem nunca passar da data da prova. */
+function dataDaProxima(carta) {
+  const nivel = Math.min(Math.max(carta.nivel || 0, 0), ESCADA_CARTAS.length - 1);
+  let proxima = chaveMais(chaveHoje(), ESCADA_CARTAS[nivel]);
+  const ciclo = cicloAtivo();
+  if (ciclo && ciclo.fimPrevisto && carta.cicloId === ciclo.id
+      && diasEntre(proxima, ciclo.fimPrevisto) < 0) {
+    proxima = ciclo.fimPrevisto;
+  }
+  return proxima;
+}
+
+/* ---------- Criar, responder e apagar ---------- */
+
+function cartaNova(frente, verso, assunto) {
+  const ciclo = cicloAtivo();
+  return {
+    id: idNovo(),
+    frente: frente,
+    verso: verso || '',
+    assunto: assunto || 'Sem assunto',
+    cicloId: ciclo ? ciclo.id : null,
+    cicloNome: ciclo ? ciclo.nome : null,
+    nivel: 0,
+    proximaEm: chaveHoje(),        // carta nova já entra na fila de hoje
+    criadaEm: chaveHoje(),
+    ultimaEm: null,
+    vezes: 0, travei: 0, quase: 0, mandeiBem: 0,
+    guardada: false
+  };
+}
+
+/**
+ * Registra a resposta.
+ * A contagem de revisões vale sempre — revisão é revisão. Só o reagendamento
+ * depende de `contando`, que é falso no modo livre: treinar fora da fila não
+ * deve bagunçar as datas.
+ */
+function respondeCarta(carta, nota, contando) {
+  carta.vezes = (carta.vezes || 0) + 1;
+  if (nota === 0) carta.travei = (carta.travei || 0) + 1;
+  else if (nota === 1) carta.quase = (carta.quase || 0) + 1;
+  else carta.mandeiBem = (carta.mandeiBem || 0) + 1;
+  carta.ultimaEm = chaveHoje();
+  estado.revisoesPorDia[chaveHoje()] = (estado.revisoesPorDia[chaveHoje()] || 0) + 1;
+
+  if (contando) {
+    if (nota === 0) carta.nivel = 0;
+    else if (nota === 2) carta.nivel = Math.min((carta.nivel || 0) + 1, ESCADA_CARTAS.length - 1);
+    carta.proximaEm = dataDaProxima(carta);
+  }
+  salvaEstado();
+}
+
+/* ---------- Lacunas ---------- */
+
+const temLacuna = (txt) => /\{\{.+?\}\}/.test(txt || '');
+
+function comLacunas(txt, aberta) {
+  return escapaHTML(txt).replace(/\{\{(.+?)\}\}/g, (todo, dentro) =>
+    '<span class="carta-lacuna' + (aberta ? ' aberta' : '') + '">' + dentro + '</span>');
+}
+
+/* ---------- Painéis ---------- */
+
+function mostraPainelDeCartas(qual) {
+  $('#painelCartas').classList.toggle('oculto', qual === 'revisor' || qual === 'editor');
+  $('#painelBaralho').classList.toggle('oculto', qual === 'revisor' || qual === 'editor');
+  $('#painelRevisor').classList.toggle('oculto', qual !== 'revisor');
+  $('#painelEditor').classList.toggle('oculto', qual !== 'editor');
+}
+
+/* ---------- Revisor ---------- */
+
+function abreRevisor(lista, opcoes) {
+  opcoes = opcoes || {};
+  if (!lista.length) {
+    avisa('Cartas', opcoes.vazio || 'Nada pra revisar agora, Davi.');
+    return;
+  }
+  revisao = {
+    lista: lista.slice(),
+    sobra: (opcoes.sobra || []).slice(),   // o que passou do teto do dia
+    indice: 0,
+    virada: false,
+    contando: opcoes.contando !== false,
+    origem: opcoes.origem || 'fila'
+  };
+  vaiPara('cartas');
+  mostraPainelDeCartas('revisor');
+  desenhaRevisor();
+}
+
+function fechaRevisor() {
+  revisao = null;
+  mostraPainelDeCartas('painel');
+  atualizaTudo();
+}
+
+function cartaAtual() {
+  return revisao && revisao.lista[revisao.indice];
+}
+
+function desenhaRevisor() {
+  const carta = cartaAtual();
+  if (!carta) { desenhaFimDaRevisao(); return; }
+
+  $('#revisorPasso').textContent = 'Carta ' + (revisao.indice + 1) + ' de ' + revisao.lista.length +
+    (revisao.contando ? '' : ' · treino livre, não mexe nas datas');
+
+  const frente = $('#cartaFrente');
+  const verso = $('#cartaVerso');
+  if (temLacuna(carta.frente)) {
+    frente.innerHTML = comLacunas(carta.frente, revisao.virada);
+  } else {
+    frente.textContent = carta.frente;
+  }
+  verso.textContent = carta.verso || '';
+  verso.classList.toggle('oculto', !revisao.virada || !carta.verso);
+  $('#cartaDica').classList.toggle('oculto', revisao.virada);
+  $('#notasRevisao').classList.toggle('oculto', !revisao.virada);
+  $('#btContinuarAlemTeto').classList.add('oculto');
+
+  $('#cartaMeta').innerHTML =
+    '<span>' + escapaHTML(carta.assunto) + '</span>' +
+    '<span>degrau ' + ((carta.nivel || 0) + 1) + ' de ' + ESCADA_CARTAS.length + '</span>' +
+    (carta.vezes ? '<span>' + carta.vezes + (carta.vezes === 1 ? ' revisão' : ' revisões') + '</span>' : '') +
+    (carta.guardada ? '<span>guardada</span>' : '');
+}
+
+function viraCarta() {
+  if (!revisao || revisao.virada) return;
+  revisao.virada = true;
+  desenhaRevisor();
+}
+
+function respondeNoRevisor(nota) {
+  const carta = cartaAtual();
+  if (!carta) return;
+  respondeCarta(carta, nota, revisao.contando);
+
+  // "Travei" volta ainda hoje: a carta vai pro fim da fila desta sessão
+  if (nota === 0) revisao.lista.push(carta);
+
+  revisao.indice++;
+  revisao.virada = false;
+  desenhaRevisor();
+}
+
+function desenhaFimDaRevisao() {
+  const feitas = revisao ? revisao.indice : 0;
+  const sobra = revisao ? revisao.sobra : [];
+  $('#revisorPasso').textContent = 'Sessão encerrada';
+  $('#cartaFrente').textContent = feitas + (feitas === 1 ? ' carta revisada' : ' cartas revisadas');
+  $('#cartaVerso').textContent = sobra.length
+    ? 'Ainda tem ' + sobra.length + ' esperando, se tu quiser seguir.'
+    : 'Baralho do dia limpo, Davi.';
+  $('#cartaVerso').classList.remove('oculto');
+  $('#cartaDica').classList.add('oculto');
+  $('#cartaMeta').innerHTML = '';
+  $('#notasRevisao').classList.add('oculto');
+  $('#btContinuarAlemTeto').classList.toggle('oculto', !sobra.length);
+  atualizaTudo();
+}
+
+/* ---------- Editor ---------- */
+
+function abreEditor(carta) {
+  cartaEmEdicao = carta || null;
+  $('#tituloEditor').textContent = carta ? 'Editar carta' : 'Nova carta';
+  $('#campoFrente').value = carta ? carta.frente : '';
+  $('#campoVerso').value = carta ? carta.verso : '';
+  $('#campoAssuntoCarta').value = carta ? carta.assunto : ($('#campoAssunto').value.trim() || ultimoAssuntoUsado());
+
+  const degrau = $('#campoDegrau');
+  degrau.innerHTML = ESCADA_CARTAS.map((dias, i) =>
+    '<option value="' + i + '">' + (i + 1) + ' · a cada ' + dias + (dias === 1 ? ' dia' : ' dias') + '</option>'
+  ).join('');
+  degrau.value = String(carta ? (carta.nivel || 0) : 0);
+  $('#campoProxima').value = carta ? carta.proximaEm : chaveHoje();
+  $('#campoAposentada').value = carta && carta.guardada ? '1' : '0';
+  $('#btApagarCarta').classList.toggle('oculto', !carta);
+  $('#btSalvarEOutra').classList.toggle('oculto', !!carta);
+
+  mostraPainelDeCartas('editor');
+  vaiPara('cartas');
+  setTimeout(() => $('#campoFrente').focus(), 60);
+}
+
+/** O assunto do último bloco estudado, pra carta já nascer com contexto. */
+function ultimoAssuntoUsado() {
+  const ultimo = estado.blocos.slice().sort((a, b) => (b.fim || b.inicio) - (a.fim || a.inicio))[0];
+  return ultimo ? ultimo.assunto : '';
+}
+
+function salvaCarta(criarOutra) {
+  const frente = $('#campoFrente').value.trim();
+  const verso = $('#campoVerso').value.trim();
+  if (!frente) { avisa('Carta', 'A frente não pode ficar vazia.'); return; }
+  if (!verso && !temLacuna(frente)) {
+    avisa('Carta', 'Escreve o verso, ou marca uma lacuna com {{chaves}} na frente.');
+    return;
+  }
+
+  const carta = cartaEmEdicao || cartaNova(frente, verso, '');
+  carta.frente = frente;
+  carta.verso = verso;
+  carta.assunto = $('#campoAssuntoCarta').value.trim() || 'Sem assunto';
+  carta.nivel = Number($('#campoDegrau').value) || 0;
+  carta.proximaEm = $('#campoProxima').value || chaveHoje();
+  carta.guardada = $('#campoAposentada').value === '1';
+  if (!cartaEmEdicao) estado.cartas.push(carta);
+  salvaEstado();
+
+  avisa('Carta', cartaEmEdicao ? 'Carta atualizada.' : 'Carta na mesa, Davi.');
+  if (criarOutra && !cartaEmEdicao) {
+    cartaEmEdicao = null;
+    $('#campoFrente').value = '';
+    $('#campoVerso').value = '';
+    $('#campoFrente').focus();
+    atualizaTudo();
+    return;
+  }
+  cartaEmEdicao = null;
+  mostraPainelDeCartas('painel');
+  atualizaTudo();
+}
+
+function apagaCartaAtual() {
+  if (!cartaEmEdicao) return;
+  const alvo = cartaEmEdicao;
+  abreModal({
+    titulo: 'Apagar a carta?',
+    frase: alvo.frente.slice(0, 60),
+    detalhe: 'Some do baralho e das estatísticas de cartas.',
+    botoes: [
+      { texto: 'Apagar', tipo: 'bt-perigo', acao: () => {
+          estado.cartas = estado.cartas.filter((c) => c.id !== alvo.id);
+          salvaEstado();
+          cartaEmEdicao = null;
+          fechaModal();
+          mostraPainelDeCartas('painel');
+          atualizaTudo();
+        } },
+      { texto: 'Cancelar', tipo: '', acao: fechaModal }
+    ]
+  });
+}
+
+/* ---------- Desenho da tela ---------- */
+
+function desenhaCartas() {
+  const fila = filaDeCartas();
+  const baralho = cartasDaCampanha();
+  const dominadas = baralho.filter((c) => (c.nivel || 0) >= ESCADA_CARTAS.length - 1).length;
+
+  $('#cartasHoje').textContent = fila.length;
+  $('#cartasBaralho').textContent = baralho.length;
+  $('#cartasDominadas').textContent = dominadas;
+
+  const btFila = $('#btRevisarFila');
+  btFila.textContent = fila.length ? 'Revisar a fila (' + fila.length + ')' : 'Fila limpa';
+  btFila.disabled = !fila.length;
+
+  if (!estado.cartas.length) {
+    $('#resumoCartas').textContent = 'Nenhuma carta ainda. A primeira sai em dez segundos.';
+  } else if (emRetaFinal()) {
+    $('#resumoCartas').textContent = 'Reta final da campanha: hoje entra o baralho inteiro na fila.';
+  } else if (fila.length) {
+    $('#resumoCartas').textContent = fila.length + (fila.length === 1 ? ' carta pede revisão hoje.' : ' cartas pedem revisão hoje.');
+  } else {
+    const proxima = baralho.slice().sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : 1))[0];
+    $('#resumoCartas').textContent = proxima
+      ? 'Nada vence hoje. A próxima volta em ' + dataCurta(proxima.proximaEm) + '.'
+      : 'Baralho vazio.';
+  }
+
+  desenhaBaralho();
+}
+
+function desenhaBaralho() {
+  const filtros = [
+    { id: 'ativas', rotulo: 'Da campanha' },
+    { id: 'hoje', rotulo: 'Fila de hoje' },
+    { id: 'guardadas', rotulo: 'Guardadas' },
+    { id: 'todas', rotulo: 'Todas' }
+  ];
+  $('#filtrosBaralho').innerHTML = filtros.map((f) =>
+    '<button class="ficha' + (filtroBaralho === f.id ? ' ativa' : '') + '" data-filtro="' + f.id + '">' +
+    f.rotulo + '</button>').join('');
+
+  let lista;
+  if (filtroBaralho === 'hoje') lista = filaDeCartas();
+  else if (filtroBaralho === 'guardadas') lista = estado.cartas.filter((c) => c.guardada);
+  else if (filtroBaralho === 'todas') lista = estado.cartas.slice();
+  else lista = cartasDaCampanha();
+
+  lista = lista.slice().sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : a.proximaEm > b.proximaEm ? 1 : 0));
+
+  $('#resumoBaralho').textContent = lista.length
+    ? lista.length + (lista.length === 1 ? ' carta' : ' cartas') + ' — toca pra editar qualquer coisa.'
+    : 'Nada aqui ainda.';
+
+  $('#listaBaralho').innerHTML = lista.length ? lista.map((c) => {
+    const venceHoje = !c.guardada && c.proximaEm <= chaveHoje();
+    return '<li>' +
+      '<span class="frente" data-abrir="' + c.id + '">' + escapaHTML(c.frente.slice(0, 90)) +
+        '<small>' + escapaHTML(c.assunto) + (c.verso ? ' · ' + escapaHTML(c.verso.slice(0, 40)) : '') + '</small>' +
+      '</span>' +
+      '<span class="selo-degrau' + (venceHoje ? ' hoje' : '') + '">' +
+        (c.guardada ? 'guardada' : (venceHoje ? 'hoje' : dataCurta(c.proximaEm))) +
+      '</span>' +
+      '<button class="bt-editar" data-abrir="' + c.id + '" title="Editar">&#9998;</button>' +
+      '</li>';
+  }).join('') : '<li class="vazio">Nenhuma carta neste filtro.</li>';
+}
+
+/** Bloco de cartas dentro da tela de Progresso. */
+function desenhaProgressoCartas() {
+  // Sem campanha aberta, mostra a última encerrada — senão a tela zeraria
+  // no instante em que o ciclo fecha, que é justo quando o número interessa.
+  const ciclo = cicloAtivo() || ciclosEncerrados()[0] || null;
+  const doCiclo = ciclo
+    ? estado.cartas.filter((c) => c.cicloId === ciclo.id)
+    : estado.cartas.filter((c) => !c.cicloId);
+
+  const revisoes = doCiclo.reduce((soma, c) => soma + (c.vezes || 0), 0);
+  const bem = doCiclo.reduce((soma, c) => soma + (c.mandeiBem || 0), 0);
+
+  $('#progCartasCriadas').textContent = doCiclo.length;
+  $('#progCartasRevisoes').textContent = revisoes;
+  $('#progCartasAcerto').textContent = revisoes ? Math.round((bem / revisoes) * 100) + '%' : '—';
+  $('#progressoCartasResumo').textContent = doCiclo.length
+    ? (ciclo ? ciclo.nome + (ciclo.fimReal ? ' (encerrada) — ' : ' — ') : '') +
+      'o baralho desta campanha, do primeiro dia até agora.'
+    : 'As cartas desta campanha aparecem aqui.';
+
+  const nomes = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    const chave = chaveMais(chaveHoje(), -i);
+    dias.push({ chave: chave, n: estado.revisoesPorDia[chave] || 0 });
+  }
+  const maximo = Math.max(5, ...dias.map((d) => d.n));
+  $('#progCartasBarras').innerHTML = dias.map((d) => {
+    const data = dataDaChave(d.chave);
+    return '<div><small>' + (d.n || '') + '</small>' +
+      '<span class="haste"><i style="height:' + Math.round((d.n / maximo) * 100) + '%"></i></span>' +
+      '<small>' + nomes[data.getDay()] + '</small></div>';
+  }).join('');
+}
+
+/* ---------- Eventos das cartas ---------- */
+
+$('#btRevisarFila').addEventListener('click', () => {
+  const fila = filaDeCartas();
+  const teto = Math.max(1, estado.prefs.tetoCartas || 20);
+  abreRevisor(fila.slice(0, teto), { sobra: fila.slice(teto), contando: true, origem: 'fila' });
+});
+
+$('#btContinuarAlemTeto').addEventListener('click', () => {
+  if (!revisao || !revisao.sobra.length) return;
+  const resto = revisao.sobra;
+  abreRevisor(resto, { contando: true, origem: 'fila' });
+});
+
+$('#btRevisarLivre').addEventListener('click', () => {
+  const daCampanha = cartasDaCampanha();
+  const guardadas = estado.cartas.filter((c) => c.guardada);
+  abreModal({
+    titulo: 'Rever o que tu quiser',
+    frase: 'Treino livre não mexe nas datas da fila.',
+    detalhe: 'Escolhe o que entra. Podes repetir quantas vezes quiser.',
+    botoes: [
+      { texto: 'Baralho da campanha (' + daCampanha.length + ')', tipo: 'bt-azul', acao: () => {
+          fechaModal();
+          abreRevisor(embaralha(daCampanha), { contando: false, origem: 'livre' });
+        } },
+      { texto: 'Campanhas antigas (' + guardadas.length + ')', tipo: '', acao: () => {
+          fechaModal();
+          abreRevisor(embaralha(guardadas), { contando: false, origem: 'livre',
+            vazio: 'Nenhuma campanha encerrada tem cartas ainda.' });
+        } },
+      { texto: 'Cancelar', tipo: 'bt-fantasma', acao: fechaModal }
+    ]
+  });
+});
+
+function embaralha(lista) {
+  const copia = lista.slice();
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const troca = copia[i]; copia[i] = copia[j]; copia[j] = troca;
+  }
+  return copia;
+}
+
+$('#btNovaCarta').addEventListener('click', () => abreEditor(null));
+$('#btSairRevisor').addEventListener('click', fechaRevisor);
+$('#btEditarNoRevisor').addEventListener('click', () => {
+  const carta = cartaAtual();
+  if (carta) abreEditor(carta);
+});
+
+$('#cartaoRevisao').addEventListener('click', () => {
+  if (revisao && cartaAtual()) viraCarta();
+});
+
+$('#notasRevisao').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-nota]');
+  if (bt) respondeNoRevisor(Number(bt.dataset.nota));
+});
+
+$('#btSalvarCarta').addEventListener('click', () => salvaCarta(false));
+$('#btSalvarEOutra').addEventListener('click', () => salvaCarta(true));
+$('#btCancelarCarta').addEventListener('click', () => {
+  cartaEmEdicao = null;
+  mostraPainelDeCartas(revisao ? 'revisor' : 'painel');
+  if (revisao) desenhaRevisor();
+});
+$('#btApagarCarta').addEventListener('click', apagaCartaAtual);
+
+$('#campoVerso').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') { ev.preventDefault(); salvaCarta(true); }
+});
+
+$('#filtrosBaralho').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-filtro]');
+  if (!bt) return;
+  filtroBaralho = bt.dataset.filtro;
+  desenhaBaralho();
+});
+
+$('#listaBaralho').addEventListener('click', (ev) => {
+  const alvo = ev.target.closest('[data-abrir]');
+  if (!alvo) return;
+  const carta = estado.cartas.find((c) => c.id === alvo.dataset.abrir);
+  if (carta) abreEditor(carta);
+});
 
 /* ---- Início ---- */
 function inicia() {
