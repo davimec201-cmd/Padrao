@@ -67,25 +67,39 @@ def _ambiente() -> Environment:
     return Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=False)
 
 
+def cor_do_tema(papel: str, tema: str) -> str:
+    """Valor de um papel de cor no tema pedido. O SVG do título não passa por
+    CSS, então precisa resolver a variável aqui."""
+    override = TOKENS.get("temas", {}).get(tema, {}).get("cor", {})
+    if papel in override:
+        return override[papel]
+    return TOKENS["cor"][papel]["valor"]
+
+
 def caminho_ilustracao(personagem: str) -> tuple[str, bool]:
-    """Devolve (caminho, existe). Sem o personagem, cai na ilustração padrão."""
-    if personagem:
-        arquivo = ASSETS / "ilustracoes" / f"{personagem}.png"
-        if arquivo.exists():
-            return arquivo.as_uri(), True
-    return (ASSETS / "ilustracoes" / "_padrao.png").as_uri(), not personagem
+    """Ilustração de personagem, e se o pedido foi atendido.
+
+    Regra da marca: personagem do Universo TEAnimal só aparece quando o material
+    pede. Sem pedido, devolve vazio — e a capa sai tipográfica. Personagem pedido
+    que não existe também devolve vazio, e o QA registra o caso.
+    """
+    if not personagem.strip():
+        return "", True
+    arquivo = ASSETS / "ilustracoes" / f"{personagem.strip()}.png"
+    if arquivo.exists():
+        return arquivo.as_uri(), True
+    return "", False
 
 
 def montar_blocos(meta: Metadados, blocos: list[Bloco]) -> list[Bloco]:
     """Insere capa, sumário e página final na lista escrita pelo autor."""
     ilustracao, _ = caminho_ilustracao(meta.personagem)
 
-    # quem fala na "voz do personagem" aparece ao lado da própria fala
+    # quem fala na "voz do personagem" aparece ao lado da própria fala — mas só
+    # se o bloco nomeou o personagem (`:::voz mamae_urso`). Sem nome, é só texto.
     for bloco in blocos:
         if bloco.tipo == "voz_personagem":
-            quem = bloco.dados.get("personagem") or meta.personagem
-            arquivo = ASSETS / "ilustracoes" / f"{quem}.png"
-            bloco.dados["ilustracao"] = arquivo.as_uri() if arquivo.exists() else ""
+            bloco.dados["ilustracao"] = caminho_ilustracao(bloco.dados.get("personagem", ""))[0]
 
     capa = Bloco(
         tipo="capa",
@@ -95,8 +109,8 @@ def montar_blocos(meta: Metadados, blocos: list[Bloco]) -> list[Bloco]:
             "titulo_svg": titulo_svg.montar(
                 meta.titulo,
                 float(TOKENS["grid"]["largura_conteudo_mm"]),
-                TOKENS["cor"][TOKENS["tipografia"]["escala"]["capa_titulo"]["contorno"]["cor"]]["valor"],
-                TOKENS["cor"][TOKENS["tipografia"]["escala"]["capa_titulo"]["cor"]]["valor"],
+                cor_do_tema("capa_contorno", meta.tema_valido),
+                cor_do_tema(TOKENS["tipografia"]["escala"]["capa_titulo"]["cor"], meta.tema_valido),
             ),
             "subtitulo": meta.subtitulo,
             "personagem": meta.personagem,
@@ -209,6 +223,7 @@ def gerar_html(
 
     return template.render(
         meta=meta,
+        tema=meta.tema_valido,
         blocos=blocos,
         corpo="\n".join(corpo),
         marca=(ASSETS / "marca" / "peca.png").as_uri(),

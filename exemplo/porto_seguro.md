@@ -1,9 +1,14 @@
 ---
 titulo: Porto Seguro
 subtitulo: Atividades de regulação emocional para prevenir e atravessar crises
-personagem: mamae_urso
-especialidade: Psicóloga especialista em Análise do Comportamento Aplicada (ABA)
 ---
+
+<!-- Personagem e cores lúdicas do TEAnimal são opcionais e só entram se você
+     pedir. Para usar, acrescente ao cabeçalho acima:
+       personagem: mamae_urso
+       tema: teanimal
+     Sem isso, o material sai na paleta institucional (azul, branco, bege) e
+     sem nenhum personagem. -->
 
 :::carta
 Se você abriu este material, é provável que já tenha vivido aquele momento: o
@@ -334,7 +339,7 @@ encontrá-las. Leve este material e o Diário do Detetive para a próxima sessã
 eles transformam sua vivência em dados que aceleram a terapia.
 :::
 
-:::voz mamae_urso
+:::voz
 ### Uma última palavra da Mamãe Urso
 No Vale da Harmonia, ninguém precisa ser sol o tempo todo. Os dias de tempestade
 existem — e passam. O que fica é o abrigo que construímos juntos, um cobertor de

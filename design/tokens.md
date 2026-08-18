@@ -1,4 +1,4 @@
-# Design system TEA Formation — tokens da Fase 0
+# Design system TEA Formation — tokens
 
 **Esqueleto do Porto Seguro, pele das cartilhas.** Este documento explica cada token de
 `design/tokens.json`, de onde ele saiu e o que foi decidido quando as fontes divergiram.
@@ -6,61 +6,80 @@
 Como as cartilhas são exportações rasterizadas do Photoshop, os valores **não** foram lidos de
 metadados: cada página foi renderizada a 100 dpi (2428×3445 px) e amostrada em pixel. A escala
 usada é **11.562 px/mm** sobre A4. Onde aparece "medido", há um número atrás; onde aparece
-"derivado", há uma fórmula; onde aparece "pendente", falta arquivo.
+"derivado", há uma fórmula.
+
+## Três regras que valem para todo material
+
+1. **Paleta institucional por padrão** — azul, branco, bege e navy. As cores do
+   Universo TEAnimal são para público infantil e só entram com `tema: teanimal`.
+2. **Nenhum personagem por padrão** — personagem do TEAnimal só aparece quando o
+   material pede, por `personagem:` no cabeçalho ou por `:::voz <nome>`.
+3. **Supervisão técnica é dado fixo** — Ingrid Ceron, CRP 12/15726, Especialista
+   em autismo (TEA) e em Terapia ABA. Vem de `tokens.json`, não de digitação.
+
+As três estão em `design/tokens.json` → `regras_do_material`, e cada uma tem uma
+verificação no QA.
 
 ---
 
 ## 1. Cores
 
-### Banda 60 — fundos dessaturados
+O sistema tem **dois temas**. O padrão é o institucional; o do Universo TEAnimal
+só entra quando o material pede `tema: teanimal` no cabeçalho.
 
-| Token | Valor | De onde veio |
+### Tema institucional — o padrão
+
+Azul, branco, bege e navy. É a cara da TEA Formation: material técnico, para
+famílias e clínicas, sem o registro infantil.
+
+| Papel | Valor | O que é |
 |---|---|---|
-| `fundo_palco` | `#F9F4E5` | Manual, seção 4 (Paleta.png mede `#F8F3E4` — arredondamento de PNG). Fundo de toda página do e-book. |
-| `fundo_bloco` | `#FFFFFF` | Medido: card branco da CARTILHA_01 p4 é 100% `#FFFFFF` puro, sem tinta. |
-| `fundo_bloco_secundario` | `#F1E9D5` | Derivado: `fundo_palco` escurecido ~4% em L\*. Zebra de tabela e bloco aninhado sobre branco. |
-| `destaque_pedagogico_wash` | `#E6F4FA` | Derivado: azul institucional a 10% sobre branco. Fundo do par objetivo/princípio. |
-| `acento_material_wash` | `#FFF1EC` | Derivado: coral a 10% sobre branco. |
-| `facil_wash` | `#E6F7F1` | Derivado: verde TEAplay a 10% sobre branco. Coluna "Mais fácil". |
-| `desafiador_wash` | `#FFF3F1` | Derivado: coral secundário a 10% sobre branco. Coluna "Mais desafiador". |
-| `atencao_fundo` | `#FDF5E9` | Derivado: amarelo TEAbook a 12% sobre branco. Fundo da `caixa_atencao`. |
+| `fundo_palco` | `#F9F4E5` | creme institucional. Fundo de toda página |
+| `fundo_bloco` | `#FFFFFF` | card branco. Medido: o card da CARTILHA_01 p4 é branco puro |
+| `fundo_bloco_secundario` | `#F1E9D5` | creme escurecido 4%. Zebra de tabela, bloco de apoio |
+| `texto_corpo` / `texto_titulo` | `#1F2D3D` | navy do manual. 12.72:1 sobre creme |
+| `texto_secundario` | `#5A6675` | navy clareado até 5.32:1. Rodapé e notas |
+| `linha_divisoria` | `#E5DCC3` | creme escurecido 10%. Filete e divisória |
+| `destaque_pedagogico` | `#0193C8` | azul institucional. Objetivo e princípio |
+| `destaque_pedagogico_texto` | `#016E96` | azul escurecido até 5.72:1. Rótulos |
+| `destaque_pedagogico_wash` | `#E6F4FA` | azul a 10%. Fundo do par pedagógico |
+| `acento_material` | `#016E96` | tarja da capa e número da ficha, com texto branco |
+| `divisoria_fundo` | `#1F2D3D` | página de abertura de bloco, inteira em navy |
+| `atencao_fundo` / `atencao_texto` | `#1F2D3D` / `#FFFFFF` | caixa de atenção é card escuro: o sinal mais forte do material |
+| `facil_filete` / `desafiador_filete` | `#39A6D8` / `#1F2D3D` | claro para o mais fácil, navy para o mais desafiador |
+| `logo_azul` | `#39A6D8` | peça do logo. Medido no arquivo e nas 4 cartilhas |
 
-### Banda 30 — tons terrosos dos habitantes e texto
+A lógica: **azul é pedagógico, bege é apoio, navy é crítico.** Você lê a página e
+sabe o que é o quê sem precisar do rótulo.
 
-| Token | Valor | De onde veio |
+### Tema TEAnimal — a pedido
+
+Re-aponta só os papéis de acento; estrutura, grid e tipografia não mudam.
+
+| Papel | Institucional | TEAnimal |
 |---|---|---|
-| `texto_corpo` | `#1F2D3D` | Manual, seção 4 ("Seriedade"). 12.72:1 sobre creme. |
-| `texto_secundario` | `#5A6675` | Derivado: `texto_corpo` clareado até 5.32:1 sobre creme. Rodapé e notas. |
-| `linha_divisoria` | `#E0BC95` | **Medido no pelo da Mamãe Urso** (CARTILHA_04 p1, testa). A linha divisória vem de um habitante, não de um cinza inventado. |
-| `habitante_tan` | `#E0BC95` | Medido: pelo claro da Mamãe Urso, CARTILHA_04 p1. |
-| `habitante_caramelo` | `#C89D67` | Medido: blusa da Mamãe Urso, CARTILHA_04 p1. |
-| `habitante_marrom` | `#9B6838` | Medido: pelo escuro da Mamãe Urso, CARTILHA_04 p1. |
-| `habitante_ocre` | `#D88C4A` | Medido: pelo da Professora Canguru, CARTILHA_04 p1. |
-| `habitante_terracota` | `#D25E38` | Medido: juba do Leo, CARTILHA_04 p1. |
+| `acento_material` | `#016E96` azul escuro | `#FF7345` coral |
+| `divisoria_fundo` | `#1F2D3D` navy | `#FF7345` coral |
+| `atencao_fundo` | `#1F2D3D` navy | `#FDF5E9` amarelo a 12% |
+| `facil` / `desafiador` | azul claro / navy | `#00AB6F` verde / `#FF8573` coral claro |
+| `linha_divisoria` | `#E5DCC3` bege | `#E0BC95` pelo da Mamãe Urso |
+| `voz_fundo` | `#F1E9D5` bege | `#FFF1EC` coral a 10% |
 
-Esses cinco tons não estão no manual — eles estão nos personagens, e é deles que sai o
-calor da página sem gastar a cota de cor plena.
+Os tons dos habitantes continuam medidos e disponíveis no tema lúdico: pelo claro
+`#E0BC95`, blusa `#C89D67`, pelo escuro `#9B6838`, canguru `#D88C4A`, juba do Leo
+`#D25E38` (todos da CARTILHA_04 p1).
 
-### Banda 10 — cor plena, reservada ao pedagógico
+### As três regras de cor que o sistema aplica sozinho
 
-| Token | Valor | De onde veio |
-|---|---|---|
-| `destaque_pedagogico` | `#0193C8` | Manual, seção 4. Só preenchimento e filete. |
-| `destaque_pedagogico_texto` | `#016E96` | Derivado: azul escurecido até 5.72:1 sobre branco. É a cor dos rótulos `OBJETIVO TERAPÊUTICO` / `PRINCÍPIO ABA-TCC`. |
-| `acento_material` | `#FF7345` | Manual (TEAnimal). Pill da capa, disco do número da ficha, abertura de bloco. |
-| `logo_azul` | `#39A6D8` | Medido em `simbolo_peca_transparente.png` e nos rodapés das 4 cartilhas (`#38A6D7`). É **outro** azul, não o institucional. |
-| `taxonomia_teabook` `teagame` `teaplay` `secundario` | `#EDAF47` `#5E3D93` `#00AB6F` `#FF8573` | Manual, seção 4/6. Só taxonomia e marcadores. |
+1. **Coral nunca é cor de texto.** `#FF7345` sobre branco dá 2.70:1 — reprova em
+   qualquer tamanho. É preenchimento, com navy por cima (5.19:1).
+2. **Azul institucional com texto branco só em display.** 3.49:1 serve para ≥18pt.
+   Para corpo, o wash claro com navy, ou o azul escurecido `#016E96` (5.72:1).
+3. **Cor de um universo não entra em material do outro.** O QA avisa e diz como
+   pedir o tema certo.
 
-### As duas regras de cor que o sistema aplica sozinho
-
-1. **Coral nunca é cor de texto.** `#FF7345` sobre branco dá 2.70:1 — reprova para qualquer
-   tamanho. Coral é preenchimento; o texto por cima é navy (**5.19:1**, aprova até corpo).
-2. **Azul institucional com texto branco só em display.** `#FFFFFF` sobre `#0193C8` dá 3.49:1:
-   serve para texto ≥18pt (ou ≥14pt bold), não para corpo. Corpo sobre azul usa o wash claro
-   com texto navy (12.45:1).
-
-Isso mantém a paleta exata do manual e ainda assim entrega 4.5:1 em todo texto de corpo — as
-duas exigências, sem escolher entre elas.
+Os 32 pares de texto de corpo × fundo, nos dois temas, ficam ≥ 4.5:1. Isso é
+verificado a cada geração.
 
 ---
 

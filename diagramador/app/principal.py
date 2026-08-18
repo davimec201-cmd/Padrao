@@ -21,6 +21,9 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from . import seguranca
 from .catalogo import Bloco, escolhiveis
 from .pipeline import Entrega, gerar
+from .renderizador import TOKENS
+
+SUPERVISAO = TOKENS["regras_do_material"]["supervisao_tecnica"]
 
 RAIZ = Path(__file__).resolve().parents[2]
 ESTATICO = Path(__file__).resolve().parent / "estatico"
@@ -106,7 +109,18 @@ def _exige_sessao(request: Request) -> None:
 
 
 def _pagina(nome: str) -> HTMLResponse:
-    return HTMLResponse((ESTATICO / nome).read_text(encoding="utf-8"))
+    """Serve a página já com a supervisão técnica registrada preenchida.
+
+    O nome e o CRP da supervisão são dado da marca, não digitação do dia a dia:
+    ficam em design/tokens.json e chegam prontos no formulário.
+    """
+    texto = (ESTATICO / nome).read_text(encoding="utf-8")
+    texto = (
+        texto.replace("{{PSICOLOGA}}", SUPERVISAO["nome"])
+        .replace("{{CRP}}", SUPERVISAO["crp"])
+        .replace("{{ESPECIALIDADE}}", SUPERVISAO["especialidade"])
+    )
+    return HTMLResponse(texto)
 
 
 @app.get("/", response_class=HTMLResponse)

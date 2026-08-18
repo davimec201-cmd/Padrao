@@ -19,24 +19,46 @@ Comece com isto (as linhas entre `---`):
 ```
 ---
 titulo: Porto Seguro
-subtitulo: 12 atividades de regulação emocional para prevenir e atravessar crises
-personagem: mamae_urso
-especialidade: Psicóloga especialista em Análise do Comportamento Aplicada (ABA)
+subtitulo: Atividades de regulação emocional para prevenir e atravessar crises
 ---
 ```
 
-| Campo | Obrigatório | O que é |
-|---|---|---|
-| `titulo` | sim | Título grande da capa |
-| `subtitulo` | sim | Uma linha, curta. Aparece na tarja colorida |
-| `personagem` | não | Quem ilustra a capa (lista abaixo). Sem isso, entra a peça do quebra-cabeça |
-| `especialidade` | não | Vai embaixo do nome da psicóloga na capa |
+Só o título e o subtítulo são obrigatórios. O resto é opcional e **só entra se
+você pedir**:
 
-**Nome da psicóloga e CRP você não escreve aqui** — o app pergunta e preenche
-sozinho, na capa, na carta e na página final.
+| Campo | O que faz |
+|---|---|
+| `titulo` | **obrigatório.** Título grande da capa |
+| `subtitulo` | **obrigatório.** Uma linha, curta. Aparece na tarja |
+| `personagem` | põe um personagem do TEAnimal na capa. **Sem este campo, nenhum personagem aparece** |
+| `tema` | `teanimal` troca a paleta para as cores lúdicas. **Sem este campo, o material sai na paleta institucional** |
+| `especialidade` | linha embaixo do nome da psicóloga na capa |
+
+**Nome da psicóloga e CRP você não escreve aqui** — já vêm preenchidos no app
+com o registro da TEA Formation (Ingrid Ceron, CRP 12/15726) e entram sozinhos
+na capa, na carta e na página final.
+
+### Personagem e cores lúdicas: opcionais, e só a pedido
+
+O padrão do material é **institucional**: azul, branco e bege, sem personagem.
+É assim que ele sai se você não pedir nada.
+
+Quando quiser o universo infantil, peça:
+
+```
+---
+titulo: O Abraço Invisível
+subtitulo: Autonomia corporal e consentimento
+personagem: mamae_urso
+tema: teanimal
+---
+```
 
 Personagens disponíveis: `mamae_urso`, `leo`, `jojo`, `cora`, `pipo`, `marcos`,
 `professora_canguru`, `sr_miau`.
+
+Os dois pedidos são independentes: dá para usar o personagem sem trocar as
+cores, e trocar as cores sem personagem nenhum.
 
 ---
 
@@ -184,11 +206,14 @@ O primeiro `###` (antes de qualquer dica) vira o título do bloco.
 ### `:::voz` — fala do personagem
 
 ```
-:::voz mamae_urso
+:::voz
 ### Uma última palavra da Mamãe Urso
 No Vale da Harmonia, ninguém precisa ser sol o tempo todo.
 :::
 ```
+
+Para que a ilustração do personagem apareça ao lado da fala, escreva o nome dele
+depois da marcação — `:::voz mamae_urso`. Sem o nome, é só o texto.
 
 ### `:::formulario` — página para preencher à mão
 
@@ -224,6 +249,14 @@ acompanhamento profissional.
 
 ---
 
+## 4b. Anotações para você
+
+Comentário de markdown não vai para o PDF:
+
+```
+<!-- lembrar de pedir revisão da Ingrid nesta parte -->
+```
+
 ## 5. O que o sistema faz sozinho
 
 Você **não** escreve nada disso:
@@ -233,6 +266,7 @@ Você **não** escreve nada disso:
 | Capa | Do cabeçalho do arquivo |
 | Sumário com número de página real | Depois da carta, se o material tiver seções |
 | Logo no rodapé de toda página | Sempre, mesma posição |
+| Supervisão técnica (nome, CRP, especialidade) | Do registro da marca, preenchido no app |
 | Fundamentação científica | Na capa e na página final, literal, exatamente duas vezes |
 | Disclaimer legal com nome e CRP | Na página final |
 | Numeração de página | Sempre |

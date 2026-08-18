@@ -90,6 +90,18 @@ def gerar(tokens: dict) -> str:
         "}",
         "",
     ]
+
+    # temas alternativos: só re-apontam papéis de cor. Estrutura, grid e
+    # tipografia não mudam — trocar de tema não é rediagramar.
+    for nome, tema in tokens.get("temas", {}).items():
+        linhas += [
+            f"/* tema {nome}: {tema.get('descricao', '')} */",
+            f'[data-tema="{nome}"] {{',
+        ]
+        for papel, valor in tema["cor"].items():
+            linhas.append(f"  --cor-{var(papel)}: {valor};")
+        linhas += ["}", ""]
+
     return "\n".join(linhas)
 
 

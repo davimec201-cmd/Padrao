@@ -18,12 +18,15 @@ sys.path.insert(0, str(RAIZ / "diagramador"))
 
 from app import qa  # noqa: E402
 from app.catalogo import CATALOGO, escolhiveis  # noqa: E402
+from app.renderizador import TOKENS  # noqa: E402
 from app.classificador import candidatos, classificar  # noqa: E402
 from app.conversao import converter  # noqa: E402
 from app.marcacao import ler  # noqa: E402
 from app.pipeline import gerar  # noqa: E402
 
 EXEMPLO = (RAIZ / "exemplo" / "porto_seguro.md").read_text(encoding="utf-8")
+SUPERVISAO = TOKENS["regras_do_material"]["supervisao_tecnica"]
+NOME, CRP = SUPERVISAO["nome"], SUPERVISAO["crp"]
 
 
 # ------------------------------------------------------------------ marcação
@@ -32,8 +35,10 @@ EXEMPLO = (RAIZ / "exemplo" / "porto_seguro.md").read_text(encoding="utf-8")
 def test_front_matter_e_blocos():
     meta, blocos = ler(EXEMPLO)
     assert meta.titulo == "Porto Seguro"
-    assert meta.personagem == "mamae_urso"
     assert meta.faltando() == []
+    # o exemplo é o modelo que o fundador copia: sai institucional e sem personagem
+    assert not meta.pediu_personagem
+    assert meta.tema_valido == "institucional"
     tipos = [bloco.tipo for bloco in blocos]
     assert tipos[0] == "carta_abertura"
     assert tipos.count("ficha_atividade") == 6
@@ -161,11 +166,81 @@ def test_sem_credencial_o_pdf_sai_do_mesmo_jeito(monkeypatch=None):
     assert all(b.tipo in CATALOGO for b in blocos)
 
 
+# ------------------------------------------------------ regras da marca
+
+
+def test_supervisao_registrada_e_a_da_marca():
+    assert NOME == "Ingrid Ceron"
+    assert CRP == "12/15726"
+    assert "autismo" in SUPERVISAO["especialidade"] and "ABA" in SUPERVISAO["especialidade"]
+
+
+def test_sem_pedido_nenhum_personagem_aparece():
+    entrega = gerar(EXEMPLO, NOME, CRP)
+    assert all(not b.dados.get("ilustracao") for b in entrega.blocos)
+    achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Personagens")
+    assert achado.estado == qa.OK
+    assert "nenhum personagem" in achado.resumo
+
+
+def test_personagem_entra_quando_pedido():
+    fonte = EXEMPLO.replace("subtitulo:", "personagem: mamae_urso\nsubtitulo:", 1)
+    entrega = gerar(fonte, NOME, CRP)
+    capa = next(b for b in entrega.blocos if b.tipo == "capa")
+    assert capa.dados["ilustracao"].endswith("mamae_urso.png")
+    achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Personagens")
+    assert achado.estado == qa.OK and "a pedido" in achado.resumo
+
+
+def test_voz_sem_nome_nao_traz_ilustracao():
+    _, blocos = ler(":::voz\n### Uma palavra\nTexto da fala do personagem aqui.\n:::")
+    assert blocos[0].dados.get("personagem", "") == ""
+
+
+def test_tema_padrao_e_institucional_sem_cor_do_teanimal():
+    entrega = gerar(EXEMPLO, NOME, CRP)
+    achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Cores da paleta")
+    assert achado.estado == qa.OK, achado.detalhes
+    assert "institucional" in achado.resumo
+
+
+def test_tema_teanimal_so_quando_pedido():
+    fonte = EXEMPLO.replace("subtitulo:", "tema: teanimal\nsubtitulo:", 1)
+    meta, _ = ler(fonte)
+    assert meta.tema_valido == "teanimal"
+    entrega = gerar(fonte, NOME, CRP)
+    achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Cores da paleta")
+    assert achado.estado == qa.OK, achado.detalhes
+    assert "teanimal" in achado.resumo
+
+
+def test_tema_desconhecido_cai_no_institucional():
+    meta, _ = ler("---\ntitulo: X\nsubtitulo: Y\ntema: arco_iris\n---\n\n## Seção\n\nTexto.")
+    assert meta.tema_valido == "institucional"
+
+
+def test_qa_avisa_quando_a_supervisao_nao_e_a_registrada():
+    entrega = gerar(EXEMPLO, "Outra Pessoa", "99/99999")
+    achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Supervisão técnica")
+    assert achado.estado == qa.AVISO
+    assert any("Ingrid Ceron" in d for d in achado.detalhes)
+
+
+def test_comentario_do_autor_nao_vai_para_o_pdf():
+    fonte = EXEMPLO.replace("## O que é uma crise", "<!-- nota interna secreta -->\n\n## O que é uma crise")
+    entrega = gerar(fonte, NOME, CRP)
+    import pymupdf
+
+    documento = pymupdf.open(stream=entrega.pdf, filetype="pdf")
+    texto = "".join(pagina.get_text() for pagina in documento)
+    assert "nota interna" not in texto
+
+
 # ---------------------------------------------------------- ponta a ponta
 
 
 def test_ebook_de_exemplo_passa_no_qa():
-    entrega = gerar(EXEMPLO, "Ana Paula Ribeiro", "12/34567")
+    entrega = gerar(EXEMPLO, NOME, CRP)
     relatorio = entrega.relatorio
 
     assert entrega.paginas >= 15
@@ -190,6 +265,8 @@ def test_ebook_de_exemplo_passa_no_qa():
         "Sumário",
         "Texto completo",
         "Contraste",
+        "Personagens",
+        "Supervisão técnica",
     ):
         assert por_nome[verificacao].estado == qa.OK, (
             f"{verificacao}: {por_nome[verificacao].resumo}"
@@ -202,7 +279,7 @@ def test_qa_pega_termo_de_linguagem_proibida():
         "objetivo: Ajudar a criança portadora de autismo",
     )
     assert "portadora" in fonte
-    entrega = gerar(fonte, "Ana Paula Ribeiro", "12/34567")
+    entrega = gerar(fonte, NOME, CRP)
     achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Linguagem")
     assert achado.estado == qa.AVISO
     assert any("portador" in d for d in achado.detalhes)
@@ -210,18 +287,20 @@ def test_qa_pega_termo_de_linguagem_proibida():
 
 def test_qa_pega_placeholder_nao_preenchido():
     fonte = EXEMPLO.replace("Com carinho,", "Com carinho, [nome]")
-    entrega = gerar(fonte, "Ana Paula Ribeiro", "12/34567")
+    entrega = gerar(fonte, NOME, CRP)
     achado = next(
         a for a in entrega.relatorio.achados if a.verificacao == "Placeholders preenchidos"
     )
     assert achado.estado == qa.CRITICO
 
 
-def test_personagem_inexistente_usa_ilustracao_padrao():
-    fonte = EXEMPLO.replace("personagem: mamae_urso", "personagem: dragao_roxo")
-    entrega = gerar(fonte, "Ana Paula Ribeiro", "12/34567")
+def test_personagem_inexistente_sai_sem_ilustracao_e_avisa():
+    fonte = EXEMPLO.replace("subtitulo:", "personagem: dragao_roxo\nsubtitulo:", 1)
+    entrega = gerar(fonte, NOME, CRP)
     achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Ilustrações")
     assert achado.estado == qa.AVISO
+    capa = next(b for b in entrega.blocos if b.tipo == "capa")
+    assert capa.dados["ilustracao"] == ""
     assert entrega.pdf[:4] == b"%PDF"
 
 
@@ -251,7 +330,7 @@ observar: {recheio}
 def test_ficha_longa_cabe_reduzindo_a_escala():
     # ~1.4x a maior ficha real: precisa caber em uma página só, com redução
     recheio = " ".join(["Uma frase de tamanho médio para encher a ficha de teste."] * 4)
-    entrega = gerar(_ficha_de_teste(recheio), "Ana Paula Ribeiro", "12/34567")
+    entrega = gerar(_ficha_de_teste(recheio), NOME, CRP)
     achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Fichas inteiras")
     assert achado.estado != qa.CRITICO, achado.detalhes
 
@@ -260,7 +339,7 @@ def test_ficha_impossivel_e_reportada_em_vez_de_quebrar_calada():
     # conteúdo que não cabe em uma página em escala nenhuma: o sistema não
     # inventa layout — ele reduz até o limite e depois avisa, com o que fazer
     recheio = " ".join(["Uma frase de tamanho médio para encher a ficha de teste."] * 14)
-    entrega = gerar(_ficha_de_teste(recheio), "Ana Paula Ribeiro", "12/34567")
+    entrega = gerar(_ficha_de_teste(recheio), NOME, CRP)
     achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Fichas inteiras")
     assert achado.estado == qa.CRITICO
     assert any("encurte o texto" in d for d in achado.detalhes)

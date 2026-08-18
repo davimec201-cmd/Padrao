@@ -1,4 +1,4 @@
-<section class="capa">
+<section class="capa {{ 'capa-com-personagem' if bloco.dados.ilustracao else 'capa-tipografica' }}">
   <div class="capa-texto">
     {{ bloco.dados.titulo_svg }}
     {% if bloco.dados.subtitulo %}<p class="capa-subtitulo">{{ bloco.dados.subtitulo }}</p>{% endif %}
@@ -6,6 +6,10 @@
 
   {% if bloco.dados.ilustracao %}
     <img class="capa-ilustracao" src="{{ bloco.dados.ilustracao }}" alt="">
+  {% else %}
+    <div class="capa-selo">
+      <img src="{{ marca }}" alt="">
+    </div>
   {% endif %}
 
   <footer class="capa-rodape">

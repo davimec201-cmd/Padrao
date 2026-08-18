@@ -20,6 +20,7 @@ from .catalogo import CATALOGO, POR_DIRETIVA, Bloco
 
 # ----------------------------------------------------------------- inline
 
+_COMENTARIO = re.compile(r"<!--.*?-->", re.DOTALL)
 _NEGRITO = re.compile(r"\*\*(.+?)\*\*", re.DOTALL)
 _ITALICO = re.compile(r"(?<![\*\w])\*([^*\n]+?)\*(?!\*)")
 _CODIGO = re.compile(r"`([^`\n]+?)`")
@@ -66,6 +67,9 @@ def normalizar(texto: str) -> str:
 # ------------------------------------------------------------- front matter
 
 
+TEMAS_VALIDOS = ("institucional", "teanimal")
+
+
 @dataclass
 class Metadados:
     titulo: str = ""
@@ -74,9 +78,20 @@ class Metadados:
     psicologa: str = ""
     crp: str = ""
     especialidade: str = ""
+    tema: str = "institucional"
 
     def faltando(self) -> list[str]:
         return [campo for campo in ("titulo", "subtitulo") if not getattr(self, campo)]
+
+    @property
+    def tema_valido(self) -> str:
+        """Tema desconhecido cai no institucional — o padrão da marca."""
+        return self.tema if self.tema in TEMAS_VALIDOS else "institucional"
+
+    @property
+    def pediu_personagem(self) -> bool:
+        """Personagem só entra quando o material pede. Sem pedido, nenhum."""
+        return bool(self.personagem.strip())
 
 
 def ler_front_matter(fonte: str) -> tuple[Metadados, str, int]:
@@ -551,9 +566,18 @@ def blocos_de_markdown_solto(pedaco: Pedaco) -> list[Bloco]:
     return blocos
 
 
+def sem_comentarios(fonte: str) -> str:
+    """Tira os comentários `<!-- ... -->` — anotação sua, não conteúdo do e-book.
+
+    As linhas viram vazias em vez de sumirem, para o número de linha continuar
+    batendo com o arquivo que você escreveu.
+    """
+    return _COMENTARIO.sub(lambda casa: "\n" * casa.group(0).count("\n"), fonte)
+
+
 def ler(fonte: str) -> tuple[Metadados, list[Bloco]]:
     """Ponto de entrada: markdown → metadados + blocos tipados."""
-    meta, corpo, linha_inicial = ler_front_matter(fonte)
+    meta, corpo, linha_inicial = ler_front_matter(sem_comentarios(fonte))
     blocos: list[Bloco] = []
 
     for pedaco in separar_pedacos(corpo, linha_inicial):

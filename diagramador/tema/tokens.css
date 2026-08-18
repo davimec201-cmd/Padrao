@@ -1,5 +1,5 @@
 /* GERADO por diagramador/ferramentas/gerar_tokens_css.py — não editar à mão.
-   Fonte: design/tokens.json v1.1.0 */
+   Fonte: design/tokens.json v2.0.0 */
 
 :root {
   /* ---- cor ---- */
@@ -11,26 +11,28 @@
   --cor-texto-titulo: #1F2D3D;
   --cor-texto-secundario: #5A6675;
   --cor-texto-sobre-cor: #FFFFFF;
-  --cor-linha-divisoria: #E0BC95;
-  --cor-habitante-tan: #E0BC95;
-  --cor-habitante-caramelo: #C89D67;
-  --cor-habitante-marrom: #9B6838;
-  --cor-habitante-ocre: #D88C4A;
-  --cor-habitante-terracota: #D25E38;
+  --cor-linha-divisoria: #E5DCC3;
   --cor-destaque-pedagogico: #0193C8;
   --cor-destaque-pedagogico-texto: #016E96;
   --cor-destaque-pedagogico-wash: #E6F4FA;
-  --cor-acento-material: #FF7345;
-  --cor-acento-material-wash: #FFF1EC;
+  --cor-acento-material: #016E96;
+  --cor-acento-material-texto: #FFFFFF;
+  --cor-acento-material-wash: #F1E9D5;
+  --cor-divisoria-fundo: #1F2D3D;
+  --cor-divisoria-texto: #FFFFFF;
+  --cor-facil-wash: #F1E9D5;
+  --cor-facil-filete: #39A6D8;
+  --cor-desafiador-wash: #F1E9D5;
+  --cor-desafiador-filete: #1F2D3D;
+  --cor-observar-fundo: #FFFFFF;
+  --cor-observar-filete: #0193C8;
+  --cor-atencao-fundo: #1F2D3D;
+  --cor-atencao-filete: #0193C8;
+  --cor-voz-fundo: #F1E9D5;
+  --cor-voz-filete: #0193C8;
+  --cor-capa-contorno: #39A6D8;
   --cor-logo-azul: #39A6D8;
-  --cor-taxonomia-teabook: #EDAF47;
-  --cor-taxonomia-teagame: #5E3D93;
-  --cor-taxonomia-teaplay: #00AB6F;
-  --cor-taxonomia-secundario: #FF8573;
-  --cor-facil-wash: #E6F7F1;
-  --cor-desafiador-wash: #FFF3F1;
-  --cor-atencao-fundo: #FDF5E9;
-  --cor-atencao-filete: #EDAF47;
+  --cor-atencao-texto: #FFFFFF;
 
   /* ---- tipografia: famílias ---- */
   --fonte-display: 'Poppins', sans-serif;
@@ -121,4 +123,26 @@
   --logo-altura: 4.6mm;
   --logo-base: 12mm;
   --capa-contorno: 0.075em;
+}
+
+/* tema teanimal: Paleta lúdica do Universo TEAnimal. Só entra quando o material pede `tema: teanimal` no cabeçalho. */
+[data-tema="teanimal"] {
+  --cor-linha-divisoria: #E0BC95;
+  --cor-acento-material: #FF7345;
+  --cor-acento-material-texto: #1F2D3D;
+  --cor-acento-material-wash: #FFF1EC;
+  --cor-divisoria-fundo: #FF7345;
+  --cor-divisoria-texto: #1F2D3D;
+  --cor-facil-wash: #E6F7F1;
+  --cor-facil-filete: #00AB6F;
+  --cor-desafiador-wash: #FFF3F1;
+  --cor-desafiador-filete: #FF8573;
+  --cor-observar-fundo: #F1E9D5;
+  --cor-observar-filete: #C89D67;
+  --cor-atencao-fundo: #FDF5E9;
+  --cor-atencao-filete: #EDAF47;
+  --cor-voz-fundo: #FFF1EC;
+  --cor-voz-filete: #FF7345;
+  --cor-capa-contorno: #FF7345;
+  --cor-atencao-texto: #1F2D3D;
 }

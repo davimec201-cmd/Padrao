@@ -28,8 +28,21 @@ CRITICO = "falha"
 AVISO = "aviso"
 OK = "ok"
 
-PALETA = {dados["valor"].upper() for dados in TOKENS["cor"].values()}
-PALETA |= {"#FFFFFF", "#000000"}
+def _cores_do_tema(tema: str) -> set[str]:
+    """Valores de cor válidos num tema: os papéis resolvidos + a paleta base."""
+    valores = {
+        (TOKENS.get("temas", {}).get(tema, {}).get("cor", {}).get(papel) or dados["valor"]).upper()
+        for papel, dados in TOKENS["cor"].items()
+    }
+    familia = "teanimal" if tema == "teanimal" else "institucional"
+    for grupo in ("institucional", familia):
+        valores |= {c["valor"].upper() for c in TOKENS["paleta"][grupo].values()}
+    return valores | {"#FFFFFF", "#000000"}
+
+
+PALETA_POR_TEMA = {tema: _cores_do_tema(tema) for tema in ("institucional", "teanimal")}
+PALETA = PALETA_POR_TEMA["institucional"] | PALETA_POR_TEMA["teanimal"]
+SUPERVISAO = TOKENS["regras_do_material"]["supervisao_tecnica"]
 PROIBIDOS = TOKENS["linguagem"]["proibido"]
 FAMILIAS_ESPERADAS = ("Poppins", "Manrope")
 
@@ -127,9 +140,9 @@ def _rgb(hexa: str) -> tuple[int, int, int]:
 _PALETA_RGB = [_rgb(h) for h in sorted(PALETA)]
 
 
-def _mais_proximo(cor: tuple[int, int, int]) -> tuple[str, float]:
+def _mais_proximo(cor: tuple[int, int, int], entre: set[str] | None = None) -> tuple[str, float]:
     melhor, distancia = "", 10**9
-    for alvo in sorted(PALETA):
+    for alvo in sorted(entre if entre is not None else PALETA):
         r, g, b = _rgb(alvo)
         d = (cor[0] - r) ** 2 + (cor[1] - g) ** 2 + (cor[2] - b) ** 2
         if d < distancia:
@@ -137,15 +150,18 @@ def _mais_proximo(cor: tuple[int, int, int]) -> tuple[str, float]:
     return melhor, distancia**0.5
 
 
-def _e_mistura_de_tokens(cor: tuple[int, int, int], tolerancia: float) -> bool:
+def _e_mistura_de_tokens(
+    cor: tuple[int, int, int], tolerancia: float, entre: set[str] | None = None
+) -> bool:
     """A cor está na reta entre duas cores da paleta?
 
     Serrilhado de borda e sobreposição translúcida produzem exatamente isso: a
     mistura de dois tokens. Misturar dois tokens não cria cor nova — inventar um
     terceiro tom, sim. É essa a diferença que o guardião da paleta precisa ver.
     """
-    for indice, primeira in enumerate(_PALETA_RGB):
-        for segunda in _PALETA_RGB[indice + 1 :]:
+    lista = [_rgb(h) for h in sorted(entre)] if entre is not None else _PALETA_RGB
+    for indice, primeira in enumerate(lista):
+        for segunda in lista[indice + 1 :]:
             direcao = tuple(b - a for a, b in zip(primeira, segunda))
             tamanho = sum(componente * componente for componente in direcao)
             if not tamanho:
@@ -353,7 +369,7 @@ def fontes_embutidas(doc: pymupdf.Document) -> Achado:
     )
 
 
-def cores_da_paleta(doc: pymupdf.Document, tolerancia: int = 12) -> Achado:
+def cores_da_paleta(doc: pymupdf.Document, tema: str = "institucional", tolerancia: int = 12) -> Achado:
     """Nenhuma cor fora da paleta — o guardião do padrão de marca.
 
     As áreas de ilustração ficam de fora: são arte aprovada, com paleta própria, e
@@ -362,7 +378,9 @@ def cores_da_paleta(doc: pymupdf.Document, tolerancia: int = 12) -> Achado:
     """
     import numpy as np
 
+    permitidas = PALETA_POR_TEMA.get(tema, PALETA_POR_TEMA["institucional"])
     fora: dict[str, int] = {}
+    de_outro_tema: dict[str, int] = {}
     paginas: list[int] = []
 
     for numero, pagina in enumerate(doc, start=1):
@@ -397,11 +415,16 @@ def cores_da_paleta(doc: pymupdf.Document, tolerancia: int = 12) -> Achado:
             if quantos / total < 0.004:  # serrilhado e sombra ficam de fora
                 continue
             cor = ((valor >> 16) & 255, (valor >> 8) & 255, valor & 255)
-            _, distancia = _mais_proximo(cor)
-            if distancia <= tolerancia or _e_mistura_de_tokens(cor, tolerancia):
+            _, distancia = _mais_proximo(cor, permitidas)
+            if distancia <= tolerancia or _e_mistura_de_tokens(cor, tolerancia, permitidas):
                 continue
             chave = f"pág. {numero}: {_hex(cor)} ({quantos / total:.1%} da página)"
-            fora[chave] = quantos
+            # cor da marca, mas do outro universo: é desvio de tema, não de paleta
+            _, distancia_marca = _mais_proximo(cor)
+            if distancia_marca <= tolerancia or _e_mistura_de_tokens(cor, tolerancia):
+                de_outro_tema[chave] = quantos
+            else:
+                fora[chave] = quantos
             paginas.append(numero)
 
     if fora:
@@ -413,7 +436,17 @@ def cores_da_paleta(doc: pymupdf.Document, tolerancia: int = 12) -> Achado:
             paginas,
             critico=True,
         )
-    return Achado("Cores da paleta", OK, "toda cor de página vem dos tokens")
+    if de_outro_tema:
+        outro = "TEAnimal" if tema == "institucional" else "institucional"
+        return Achado(
+            "Cores da paleta",
+            AVISO,
+            f"{len(de_outro_tema)} cor(es) do universo {outro} em material {tema}",
+            sorted(de_outro_tema, key=lambda c: -de_outro_tema[c])
+            + [f"para usar essa paleta, escreva `tema: {outro.lower()}` no cabeçalho"],
+            paginas,
+        )
+    return Achado("Cores da paleta", OK, f"toda cor vem dos tokens do tema {tema}")
 
 
 def logo_em_toda_pagina(doc: pymupdf.Document) -> Achado:
@@ -560,7 +593,8 @@ def texto_completo(fonte: str, textos: list[str], meta=None) -> Achado:
     """
     do_pdf = _colado(" ".join(textos))
 
-    limpo = re.sub(r"^---.*?^---", "", fonte, flags=re.S | re.M)  # front matter
+    limpo = re.sub(r"<!--.*?-->", " ", fonte, flags=re.S)  # comentários do autor
+    limpo = re.sub(r"^---.*?^---", "", limpo, flags=re.S | re.M)  # front matter
     limpo = re.sub(r"^:::.*$", "", limpo, flags=re.M)  # linhas de diretiva
     if meta is not None:
         limpo = limpo.replace("{psicologa}", meta.psicologa or "")
@@ -624,7 +658,10 @@ def linguagem(fonte: str, textos: list[str]) -> Achado:
 
 
 def contraste_dos_tokens() -> Achado:
-    """Contraste do texto de corpo, calculado sobre os tokens congelados."""
+    """Contraste do texto de corpo, calculado sobre os tokens congelados.
+
+    Roda nos dois temas: trocar de tema não pode baixar a legibilidade.
+    """
 
     def luminancia(hexa: str) -> float:
         def canal(valor: int) -> float:
@@ -638,7 +675,7 @@ def contraste_dos_tokens() -> Achado:
         a, b = luminancia(frente), luminancia(fundo)
         return (max(a, b) + 0.05) / (min(a, b) + 0.05)
 
-    cor = {nome: dados["valor"] for nome, dados in TOKENS["cor"].items()}
+    # (texto, fundo) por papel — o texto de corpo de cada bloco sobre o seu fundo
     pares = [
         ("texto_corpo", "fundo_palco"),
         ("texto_corpo", "fundo_bloco"),
@@ -647,18 +684,30 @@ def contraste_dos_tokens() -> Achado:
         ("texto_corpo", "acento_material_wash"),
         ("texto_corpo", "facil_wash"),
         ("texto_corpo", "desafiador_wash"),
-        ("texto_corpo", "atencao_fundo"),
-        ("texto_corpo", "acento_material"),
+        ("texto_corpo", "observar_fundo"),
+        ("texto_corpo", "voz_fundo"),
+        ("atencao_texto", "atencao_fundo"),
+        ("acento_material_texto", "acento_material"),
+        ("divisoria_texto", "divisoria_fundo"),
         ("texto_secundario", "fundo_palco"),
         ("destaque_pedagogico_texto", "fundo_bloco"),
         ("destaque_pedagogico_texto", "destaque_pedagogico_wash"),
         ("texto_sobre_cor", "destaque_pedagogico_texto"),
     ]
+
     reprovados = []
-    for frente, fundo in pares:
-        valor = razao(cor[frente], cor[fundo])
-        if valor < 4.5:
-            reprovados.append(f"{frente} sobre {fundo}: {valor:.2f}:1")
+    conferidos = 0
+    for tema in ("institucional", "teanimal"):
+        override = TOKENS.get("temas", {}).get(tema, {}).get("cor", {})
+
+        def cor(papel: str, override=override) -> str:
+            return override.get(papel) or TOKENS["cor"][papel]["valor"]
+
+        for frente, fundo in pares:
+            valor = razao(cor(frente), cor(fundo))
+            conferidos += 1
+            if valor < 4.5:
+                reprovados.append(f"[{tema}] {frente} sobre {fundo}: {valor:.2f}:1")
 
     if reprovados:
         return Achado(
@@ -668,20 +717,79 @@ def contraste_dos_tokens() -> Achado:
             reprovados,
             critico=True,
         )
-    return Achado("Contraste", OK, f"{len(pares)} pares de texto de corpo ≥ 4.5:1")
+    return Achado("Contraste", OK, f"{conferidos} pares de texto de corpo ≥ 4.5:1 nos dois temas")
+
+
+def personagens(resultado: ResultadoRender, meta) -> Achado:
+    """Personagem do Universo TEAnimal só aparece quando o material pede.
+
+    É regra de marca, não preferência: sem `personagem:` no cabeçalho e sem
+    `:::voz <nome>`, o material sai sem nenhum personagem.
+    """
+    usados: list[str] = []
+    for bloco in resultado.blocos:
+        if bloco.dados.get("ilustracao"):
+            quem = bloco.dados.get("personagem", "") or "?"
+            onde = "capa" if bloco.tipo == "capa" else bloco.rotulo.lower()
+            usados.append(f"{quem} na {onde}")
+
+    pedidos = bool(meta and meta.pediu_personagem) or any(
+        bloco.tipo == "voz_personagem" and bloco.dados.get("personagem")
+        for bloco in resultado.blocos
+    )
+
+    if usados and not pedidos:
+        return Achado(
+            "Personagens",
+            CRITICO,
+            "personagem apareceu sem o material pedir",
+            usados,
+            critico=True,
+        )
+    if usados:
+        return Achado("Personagens", OK, "usados a pedido: " + ", ".join(usados))
+    return Achado("Personagens", OK, "nenhum personagem — o padrão da marca")
+
+
+def supervisao_tecnica(textos: list[str], meta) -> Achado:
+    """O nome e o CRP registrados são os que devem sair no material."""
+    nome, crp = (meta.psicologa if meta else ""), (meta.crp if meta else "")
+    divergencias = []
+    if normalizar(nome) != normalizar(SUPERVISAO["nome"]):
+        divergencias.append(f"nome: “{nome}” — o registrado é “{SUPERVISAO['nome']}”")
+    if crp.strip() != SUPERVISAO["crp"]:
+        divergencias.append(f"CRP: “{crp}” — o registrado é “{SUPERVISAO['crp']}”")
+
+    juntos = _colado(" ".join(textos))
+    if nome and _colado(nome) not in juntos:
+        divergencias.append("o nome não aparece no PDF")
+    if crp and _colado(crp) not in juntos:
+        divergencias.append("o CRP não aparece no PDF")
+
+    if divergencias:
+        return Achado(
+            "Supervisão técnica",
+            AVISO,
+            "confira: a supervisão não é a registrada",
+            divergencias,
+        )
+    return Achado(
+        "Supervisão técnica",
+        OK,
+        f"{SUPERVISAO['nome']} — CRP {SUPERVISAO['crp']}, como registrado",
+    )
 
 
 def ilustracoes(resultado: ResultadoRender) -> Achado:
     faltando: list[str] = []
     for bloco in resultado.blocos:
-        if bloco.tipo != "capa":
+        personagem = (bloco.dados.get("personagem") or "").strip()
+        if not personagem or bloco.tipo not in {"capa", "voz_personagem"}:
             continue
-        personagem = bloco.dados.get("personagem", "")
-        caminho = RAIZ / "assets" / "ilustracoes" / f"{personagem}.png"
-        if personagem and not caminho.exists():
+        if not (RAIZ / "assets" / "ilustracoes" / f"{personagem}.png").exists():
             faltando.append(
-                f"personagem “{personagem}” não existe em assets/ilustracoes — "
-                "a capa usou a ilustração padrão"
+                f"“{personagem}” não existe em assets/ilustracoes — o material saiu "
+                "sem essa ilustração"
             )
     if faltando:
         return Achado("Ilustrações", AVISO, "ilustração pedida não existe", faltando)
@@ -729,7 +837,7 @@ def verificar(
         ("Conferindo linhas soltas", lambda: orfas_e_viuvas(resultado, documento_layout)),
         ("Conferindo fontes", lambda: fontes_embutidas(doc)),
         ("Conferindo contraste", contraste_dos_tokens),
-        ("Conferindo a paleta", lambda: cores_da_paleta(doc)),
+        ("Conferindo a paleta", lambda: cores_da_paleta(doc, meta.tema_valido if meta else "institucional")),
         ("Conferindo o logo", lambda: logo_em_toda_pagina(doc)),
         ("Conferindo a fundamentação", lambda: fundamentacao_literal(textos)),
         ("Conferindo o disclaimer", lambda: disclaimer_presente(textos)),
@@ -737,7 +845,9 @@ def verificar(
         ("Conferindo o sumário", lambda: sumario_confere(resultado, textos)),
         ("Conferindo o texto completo", lambda: texto_completo(fonte_markdown, textos, meta)),
         ("Conferindo a linguagem", lambda: linguagem(fonte_markdown, textos)),
+        ("Conferindo personagens", lambda: personagens(resultado, meta)),
         ("Conferindo ilustrações", lambda: ilustracoes(resultado)),
+        ("Conferindo a supervisão técnica", lambda: supervisao_tecnica(textos, meta)),
         ("Conferindo a classificação", lambda: classificacao(resultado_classificador, resultado.blocos)),
     ]
 

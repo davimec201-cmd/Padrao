@@ -9,6 +9,17 @@ TEA Formation, pronto para vender. Feito para usar do navegador do tablet.
 - Como colocar no ar: [`../DEPLOY.md`](../DEPLOY.md)
 - De onde veio cada decisão visual: [`../design/tokens.md`](../design/tokens.md)
 
+## Três regras de marca que o sistema garante
+
+1. **Personagem só a pedido.** Sem `personagem:` no cabeçalho ou `:::voz <nome>`,
+   o material sai sem nenhum personagem do TEAnimal — a capa fica tipográfica.
+2. **Paleta institucional por padrão.** Azul, branco e bege. As cores lúdicas
+   entram com `tema: teanimal`.
+3. **Supervisão técnica registrada.** Ingrid Ceron, CRP 12/15726 — vem de
+   `design/tokens.json` e já chega preenchida na interface.
+
+As três têm verificação no QA. Detalhes em [`../CLAUDE.md`](../CLAUDE.md).
+
 ## O princípio
 
 **Renderizador determinístico, não gerador de design.**

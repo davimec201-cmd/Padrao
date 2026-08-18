@@ -190,6 +190,10 @@ design foi medido uma vez nas cartilhas aprovadas e congelado em
 `design/tokens.json`; em produção o LLM só classifica trecho em tipo de bloco —
 não escolhe cor, fonte, espaçamento nem hierarquia. Layout é CSS escrito à mão.
 
+Por padrão o material sai na paleta institucional (azul, branco, bege) e **sem
+personagem**: as cores e os personagens do Universo TEAnimal são opcionais e só
+entram quando o markdown pede. Abre no tablet e no computador.
+
 | Documento | Para quê |
 |---|---|
 | [`FORMATO.md`](FORMATO.md) | como escrever o markdown de um e-book |

@@ -31,7 +31,7 @@
   padding: 3.6mm 8mm;
   border-radius: var(--raio-pill);
   background: var(--cor-acento-material);
-  color: var(--cor-texto-corpo);
+  color: var(--cor-acento-material-texto);
   font-family: var(--fonte-titulo);
   font-size: var(--capa-subtitulo-tamanho);
   line-height: var(--capa-subtitulo-entrelinha);
@@ -48,6 +48,26 @@
   max-width: 118mm;
   width: auto;
 }
+
+/* capa sem personagem — o padrão. Fica tipográfica: título, tarja, e a peça da
+   marca centrada no espaço que a ilustração ocuparia. Nada de personagem do
+   Universo TEAnimal sem o material pedir. */
+.capa-selo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 46mm;
+  height: 146mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.capa-selo img {
+  width: 42mm;
+  height: auto;
+  opacity: 0.9;
+}
+.capa-tipografica .capa-texto { top: 42mm; }
 
 .capa-rodape {
   position: absolute;
@@ -224,14 +244,17 @@
   border-left: var(--filete) solid var(--cor-atencao-filete);
   border-radius: 0 var(--raio-card) var(--raio-card) 0;
   background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao-texto);
   break-inside: avoid;
 }
 
 .caixa-atencao .rotulo {
-  color: var(--cor-texto-corpo);
+  color: var(--cor-atencao-texto);
   display: block;
   margin-bottom: var(--esp-xs);
+  opacity: 0.85;
 }
+.caixa-atencao p { color: var(--cor-atencao-texto); }
 
 .caixa-atencao p {
   font-size: var(--corpo-pequeno-tamanho);
@@ -248,7 +271,7 @@
   flex-direction: column;
   justify-content: center;
   min-height: 225mm;
-  color: var(--cor-texto-corpo);
+  color: var(--cor-divisoria-texto);
 }
 
 .abertura-bloco .numero {
@@ -256,19 +279,19 @@
   font-size: var(--numero-bloco-tamanho);
   line-height: var(--numero-bloco-entrelinha);
   font-weight: var(--numero-bloco-peso);
-  color: var(--cor-texto-corpo);
+  color: var(--cor-divisoria-texto);
   margin-bottom: var(--esp-sm);
 }
 
 .abertura-bloco h1 {
   font-size: 34pt;
-  color: var(--cor-texto-corpo);
+  color: var(--cor-divisoria-texto);
 }
 
 .abertura-bloco .frase {
   margin-top: var(--esp-md);
   padding-top: var(--esp-sm);
-  border-top: var(--filete) solid var(--cor-texto-corpo);
+  border-top: var(--filete) solid var(--cor-divisoria-texto);
   max-width: 110mm;
   font-family: var(--fonte-leitura);
   font-size: 13pt;
@@ -303,7 +326,7 @@
   padding: 0 3mm;
   border-radius: var(--raio-pill);
   background: var(--cor-acento-material);
-  color: var(--cor-texto-corpo);
+  color: var(--cor-acento-material-texto);
   font-family: var(--fonte-display);
   font-size: var(--numero-ficha-tamanho);
   font-weight: var(--numero-ficha-peso);
@@ -389,12 +412,12 @@
 
 .ficha-niveis .facil {
   background: var(--cor-facil-wash);
-  border-left: var(--filete) solid var(--cor-taxonomia-teaplay);
+  border-left: var(--filete) solid var(--cor-facil-filete);
   border-radius: 0 var(--raio-card) var(--raio-card) 0;
 }
 .ficha-niveis .desafiador {
   background: var(--cor-desafiador-wash);
-  border-left: var(--filete) solid var(--cor-taxonomia-secundario);
+  border-left: var(--filete) solid var(--cor-desafiador-filete);
   border-radius: 0 var(--raio-card) var(--raio-card) 0;
 }
 
@@ -412,9 +435,10 @@
 
 .ficha-observar {
   padding: var(--esp-sm) var(--esp-md);
-  border-left: var(--filete) solid var(--cor-habitante-caramelo);
+  border-left: var(--filete) solid var(--cor-observar-filete);
   border-radius: 0 var(--raio-card) var(--raio-card) 0;
-  background: var(--cor-fundo-bloco-secundario);
+  background: var(--cor-observar-fundo);
+  box-shadow: var(--sombra-card);
   break-inside: avoid;
 }
 
@@ -491,8 +515,6 @@
 .encerramento .voz-personagem {
   margin-top: var(--esp-lg);
   padding: var(--esp-md);
-  border-radius: var(--raio-card);
-  background: var(--cor-acento-material-wash);
   break-inside: avoid;
 }
 .encerramento .voz-personagem .rotulo { display: block; margin-bottom: var(--esp-xs); }
@@ -552,7 +574,7 @@
   margin-bottom: var(--esp-sm);
   border-radius: var(--raio-card);
   background: var(--cor-fundo-bloco);
-  border-left: var(--filete) solid var(--cor-habitante-caramelo);
+  border-left: var(--filete) solid var(--cor-destaque-pedagogico);
   break-inside: avoid;
 }
 .dica h3 { margin: 0 0 var(--esp-xs); }
@@ -585,7 +607,7 @@
   left: 0;
   font-family: var(--fonte-titulo);
   font-weight: 700;
-  color: var(--cor-acento-material);
+  color: var(--cor-destaque-pedagogico-texto);
 }
 
 /* ============================================ ajuste de encaixe da ficha
@@ -632,7 +654,7 @@
 .citacao {
   margin: var(--esp-md) 0;
   padding-left: var(--esp-md);
-  border-left: var(--filete) solid var(--cor-habitante-tan);
+  border-left: var(--filete) solid var(--cor-linha-divisoria);
   font-size: 12.5pt;
   line-height: 1.5;
   color: var(--cor-texto-corpo);
@@ -647,8 +669,9 @@
   gap: var(--esp-md);
   margin: var(--esp-lg) 0;
   padding: var(--esp-md);
-  border-radius: var(--raio-card);
-  background: var(--cor-acento-material-wash);
+  border-radius: 0 var(--raio-card) var(--raio-card) 0;
+  border-left: var(--filete) solid var(--cor-voz-filete);
+  background: var(--cor-voz-fundo);
   break-inside: avoid;
 }
 .voz-personagem .voz-ilustracao {

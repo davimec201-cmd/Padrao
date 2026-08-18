@@ -392,3 +392,69 @@ details.tudo summary {
 @media (prefers-color-scheme: dark) {
   /* o material é claro; a interface acompanha para a miniatura não mentir */
 }
+
+/* ============================================================== desktop
+   A interface nasceu para o dedo no tablet; no computador ela usa a tela em
+   vez de esticar a coluna. Alvos de toque continuam do mesmo tamanho — mouse
+   também acerta alvo grande, e o tablet segue sendo o uso principal. */
+
+@media (min-width: 1024px) {
+  .folha {
+    max-width: 1180px;
+    padding: 28px 32px 80px;
+  }
+
+  header.marca { padding: 4px 0 24px; }
+  header.marca h1 { font-size: 22px; }
+
+  /* entrada em duas colunas: conteúdo à esquerda, supervisão e ação à direita */
+  #entrada {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr);
+    grid-template-areas:
+      "conteudo supervisao"
+      "conteudo acao"
+      "conteudo vazio";
+    align-content: start;
+    gap: 0 24px;
+  }
+  #entrada > .cartao:first-of-type { grid-area: conteudo; }
+  #entrada > .cartao:nth-of-type(2) { grid-area: supervisao; }
+  #entrada > #erro-entrada,
+  #entrada > #gerar { grid-area: acao; }
+  #entrada > #erro-entrada:not(.escondido) + #gerar { margin-top: 12px; }
+  #painel-texto textarea { min-height: 340px; }
+
+  /* resultado: relatório fica ao lado das páginas, sem obrigar rolagem */
+  #resultado {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(0, 1.9fr);
+    grid-template-areas:
+      "resumo paginas"
+      "relatorio paginas";
+    align-items: start;
+    gap: 0 24px;
+  }
+  #resultado > .cartao:nth-of-type(1) { grid-area: resumo; }
+  #resultado > .cartao:nth-of-type(2) { grid-area: relatorio; position: sticky; top: 20px; }
+  #resultado > .cartao:nth-of-type(3) { grid-area: paginas; }
+
+  .paginas { grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); }
+
+  /* no computador dá para mostrar o rótulo inteiro do tipo de bloco */
+  .pagina-cartao select { font-size: 14.5px; }
+
+  .barra-acao { position: static; background: none; }
+}
+
+@media (min-width: 1500px) {
+  .folha { max-width: 1400px; }
+  .paginas { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+}
+
+/* ponteiro fino: dá para usar hover sem confundir quem usa toque */
+@media (hover: hover) and (pointer: fine) {
+  button:hover, .botao:hover { filter: brightness(1.08); }
+  .pagina-cartao:hover { box-shadow: 0 4px 16px rgba(31, 45, 61, 0.14); }
+  .links a:hover { text-decoration: underline; }
+}

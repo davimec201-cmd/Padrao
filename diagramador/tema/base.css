@@ -114,7 +114,7 @@
    O fundo vem da @page (e não de um bloco de sangria) justamente para o rodapé
    e o número de página continuarem existindo. */
 @page abertura {
-  background: var(--cor-acento-material);
+  background: var(--cor-divisoria-fundo);
 }
 
 /* ------------------------------------------------------- base do documento */
