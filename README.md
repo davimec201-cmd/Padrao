@@ -140,10 +140,10 @@ instalado, funciona 100% offline.
 |---|---|
 | **Timer** | Foco de 15, 25, 30 ou 50 min (padrão 30) e pausa fixa de 5 min, livre. Iniciar, pausar, retomar, zerar, pular. |
 | **Relógio real** | O tempo vem de `Date.now()`, nunca de contagem de ticks: com a tela apagada ou o app em segundo plano o bloco não atrasa, e um bloco que terminou com o app fechado é fechado na volta com o horário certo. |
-| **Alarme** | Gerado na hora com Web Audio API, sem arquivo de som. Vibra quando o aparelho tem vibração. Wake Lock mantém a tela acesa durante o bloco, onde houver suporte. |
+| **Alarme** | Gerado com Web Audio API, sem arquivo de som. As notas do fim são agendadas na linha do tempo do áudio já na largada do bloco, com um som inaudível em laço, para tocarem com a tela bloqueada — desligável nos ajustes do bloco. Vibra quando o aparelho tem vibração, e o Wake Lock mantém a tela acesa durante o bloco, onde houver suporte. |
 | **Ciclos** | Nome, início e fim previsto. Todo bloco entra automaticamente no ciclo ativo. Ao encerrar, as estatísticas congelam e o ciclo vai para a Estante. |
 | **Assunto** | Campo com autocompletar pelos assuntos do ciclo atual e atalho para os 5 últimos. Fica visível durante o bloco. |
-| **Histórico** | Hoje, últimos 7 dias em barras, lista completa com opção de apagar registro, exportar e importar tudo em JSON. |
+| **Histórico** | Hoje, últimos 7 dias em barras, lista completa com opção de corrigir o assunto ou apagar o registro, exportar e importar tudo em JSON. |
 | **Progresso** | Mapa de calor anual, estante de ciclos, comparação em tempo real com o ciclo anterior, contador vitalício de horas com marcos de 100/250/500/1000h e recordes pessoais. |
 
 Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
@@ -152,8 +152,9 @@ murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
 #### Onde os dados ficam
 
 No `localStorage` daquele aparelho, com aviso e fallback em memória se o
-navegador bloquear ou a cota encher. Backup e restauração em JSON pela aba
-Histórico.
+navegador bloquear ou a cota encher. Na abertura o app chama
+`navigator.storage.persist()`, para o sistema não descartar os dados quando o
+aparelho ficar sem espaço. Backup e restauração em JSON pela aba Histórico.
 
 **Rodar:** abrir `copeiro/index.html` no navegador, ou instalar pelo GitHub
 Pages (passo a passo abaixo).

@@ -218,6 +218,11 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 .lista .assunto{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .lista .dur{font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
 .lista .ciclo{font-size:.78rem;color:var(--fraco)}
+.divisor{border:0;border-top:1px solid var(--linha);margin:16px 0 0}
+.bt-editar{
+  min-height:40px;width:40px;border-radius:10px;border:1px solid var(--linha);
+  background:var(--branco);color:var(--azul);font-weight:700;cursor:pointer;flex:0 0 auto;
+}
 .bt-apagar{
   min-height:40px;width:40px;border-radius:10px;border:1px solid var(--linha);
   background:var(--branco);color:#B3261E;font-weight:700;cursor:pointer;flex:0 0 auto;
@@ -412,6 +417,11 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
             <button class="ficha ativa" data-min="30">30 min</button>
             <button class="ficha" data-min="50">50 min</button>
           </div>
+          <hr class="divisor">
+          <div class="fichas" style="margin-top:16px">
+            <button class="ficha" id="fichaAlarmeFundo">Alarme em segundo plano</button>
+          </div>
+          <p class="sub" id="subAlarmeFundo" style="margin-top:8px"></p>
         </div>
 
         <div class="cartao">
@@ -718,7 +728,7 @@ function estadoNovo() {
     ciclos: [],        // {id, nome, inicio, fimPrevisto, fimReal|null, congelado|null}
     recordes: { dia: 0, semana: 0, sequencia: 0 },
     marcosVistos: [],  // marcos do contador vitalício já comemorados
-    prefs: { duracao: 30 },
+    prefs: { duracao: 30, alarmeFundo: true },
     timer: null        // bloco em andamento (sobrevive a fechar o app)
   };
 }
@@ -741,6 +751,19 @@ function carregaEstado() {
 
 function salvaEstado() {
   Armazem.gravar(estado);
+}
+
+/**
+ * Pede ao navegador que trate os dados como permanentes. Sem isso o Android
+ * pode descartar o localStorage sozinho quando o aparelho fica sem espaço,
+ * levando a estante junto. É um pedido: o navegador pode recusar.
+ */
+async function pedePersistencia() {
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      if (!(await navigator.storage.persisted())) await navigator.storage.persist();
+    }
+  } catch (erro) { /* sem suporte: segue com o comportamento padrão */ }
 }
 
 /** Ciclo em andamento (sem data de encerramento), se houver. */
@@ -923,9 +946,19 @@ function fala(situacao, dados) {
    Alarme gerado na hora com Web Audio API — nenhum arquivo de som, então
    funciona offline sem baixar nada. O contexto só é criado depois de um
    toque do usuário, que é o que o Android exige.
+
+   Alarme em segundo plano: as notas do fim do bloco são AGENDADAS na linha
+   do tempo do áudio já na largada. Áudio agendado toca sozinho, sem depender
+   do JavaScript rodando — que o Android congela com a tela bloqueada. Para o
+   sistema não suspender o áudio junto com a página, um som inaudível fica
+   em laço enquanto o bloco corre. Isso custa bateria e pode pausar música de
+   outro app, então é desligável nos ajustes do bloco.
    ================================================================== */
 
 let audio = null;
+let alarmeAgendado = null;   // {hora, fontes:[]} — alarme já marcado no relógio do áudio
+let manutencao = null;       // <audio> inaudível que segura a página viva
+let urlManutencao = null;
 
 function garanteAudio() {
   try {
@@ -941,10 +974,8 @@ function garanteAudio() {
   return audio;
 }
 
-/** Uma nota curta com envelope suave (sem estalo). */
-function nota(freq, atraso, duracao, volume) {
-  if (!audio) return;
-  const t0 = audio.currentTime + atraso;
+/** Uma nota curta com envelope suave (sem estalo), marcada para o instante t0. */
+function nota(freq, t0, duracao, volume) {
   const osc = audio.createOscillator();
   const ganho = audio.createGain();
   osc.type = 'triangle';
@@ -955,23 +986,134 @@ function nota(freq, atraso, duracao, volume) {
   osc.connect(ganho).connect(audio.destination);
   osc.start(t0);
   osc.stop(t0 + duracao + 0.05);
+  return osc;
 }
 
 /**
- * Toca o alarme.
- * 'foco'  -> toque de gol: três notas subindo, repetidas.
+ * Monta o alarme a partir do instante t0 do relógio do áudio.
+ * 'foco'  -> toque de gol: quatro notas subindo, repetidas.
  * 'pausa' -> chamada de volta: duas notas curtas, mais secas.
  */
-function alarme(tipo) {
-  if (!garanteAudio()) return;
+function montaAlarme(tipo, t0) {
+  const fontes = [];
   if (tipo === 'foco') {
     const seq = [523.25, 659.25, 783.99, 1046.5];
-    seq.forEach((f, i) => nota(f, i * 0.16, 0.30, 0.32));
-    seq.forEach((f, i) => nota(f, 0.95 + i * 0.16, 0.30, 0.28));
+    seq.forEach((f, i) => fontes.push(nota(f, t0 + i * 0.16, 0.30, 0.32)));
+    seq.forEach((f, i) => fontes.push(nota(f, t0 + 0.95 + i * 0.16, 0.30, 0.28)));
   } else {
-    nota(659.25, 0.00, 0.22, 0.28);
-    nota(523.25, 0.28, 0.30, 0.26);
+    fontes.push(nota(659.25, t0, 0.22, 0.28));
+    fontes.push(nota(523.25, t0 + 0.28, 0.30, 0.26));
   }
+  return fontes;
+}
+
+/** Toca o alarme agora. */
+function alarme(tipo) {
+  if (!garanteAudio()) return;
+  try { montaAlarme(tipo, audio.currentTime); } catch (erro) { /* sem som, segue */ }
+}
+
+/**
+ * Agenda o alarme do bloco em andamento no relógio do áudio.
+ * O tempo que falta é sempre recalculado por Date.now(), e se o contexto de
+ * áudio ainda estiver travado (o Android só libera depois de um toque), a
+ * marcação espera ele destravar em vez de sair errada.
+ */
+function agendaAlarmeDoTimer() {
+  cancelaAlarmeAgendado();
+  const t = estado.timer;
+  if (!t || t.pausadoEm || !estado.prefs.alarmeFundo) return;
+  if (!garanteAudio()) return;
+
+  const marcar = () => {
+    const atual = estado.timer;
+    if (!atual || atual.pausadoEm || alarmeAgendado) return;
+    if (!audio || audio.state !== 'running') return;
+    try {
+      const hora = audio.currentTime + Math.max(0, restanteMs(atual) / 1000);
+      alarmeAgendado = { hora: hora, fontes: montaAlarme(atual.modo, hora) };
+      ligaManutencao();
+    } catch (erro) {
+      alarmeAgendado = null;
+    }
+  };
+
+  if (audio.state === 'running') { marcar(); return; }
+  try {
+    const p = audio.resume();
+    if (p && p.then) p.then(marcar).catch(() => {});
+  } catch (erro) { /* fica pro próximo toque */ }
+}
+
+function cancelaAlarmeAgendado() {
+  if (alarmeAgendado) {
+    alarmeAgendado.fontes.forEach((osc) => {
+      try { osc.stop(); osc.disconnect(); } catch (erro) { /* já parou */ }
+    });
+    alarmeAgendado = null;
+  }
+  desligaManutencao();
+}
+
+/**
+ * O alarme agendado está soando (ou começa em instantes)?
+ * O relógio do áudio congela junto com o contexto suspenso, então
+ * currentTime bem antes da hora marcada significa que o som não saiu — e aí
+ * o app toca ao voltar, em vez de deixar o fim do bloco passar em silêncio.
+ */
+function alarmeAgendadoSoando() {
+  return !!(alarmeAgendado && audio && audio.state === 'running'
+            && audio.currentTime >= alarmeAgendado.hora - 0.3);
+}
+
+/**
+ * Toca o alarme do fim do bloco.
+ * Se o agendado já está tocando, sai de fininho: solta a referência sem parar
+ * as notas (parar cortaria o som no meio) e só desliga a manutenção depois
+ * que o toque terminar.
+ */
+function tocaAlarmeDoFim(tipo, silencioso) {
+  if (alarmeAgendadoSoando()) {
+    alarmeAgendado = null;
+    setTimeout(desligaManutencao, 3000);
+    return;
+  }
+  cancelaAlarmeAgendado();
+  if (silencioso) return;
+  alarme(tipo);
+}
+
+/** WAV de um segundo, amplitude 1 de 32767: inaudível, mas não é silêncio digital. */
+function wavInaudivel() {
+  if (urlManutencao) return urlManutencao;
+  const taxa = 8000, quadros = taxa;
+  const buf = new ArrayBuffer(44 + quadros * 2);
+  const v = new DataView(buf);
+  const texto = (p, t) => { for (let i = 0; i < t.length; i++) v.setUint8(p + i, t.charCodeAt(i)); };
+  texto(0, 'RIFF');  v.setUint32(4, 36 + quadros * 2, true);
+  texto(8, 'WAVE');  texto(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, taxa, true); v.setUint32(28, taxa * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  texto(36, 'data'); v.setUint32(40, quadros * 2, true);
+  for (let i = 0; i < quadros; i++) v.setInt16(44 + i * 2, 1, true);
+  urlManutencao = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  return urlManutencao;
+}
+
+function ligaManutencao() {
+  try {
+    if (!manutencao) {
+      manutencao = new Audio(wavInaudivel());
+      manutencao.loop = true;
+    }
+    const p = manutencao.play();
+    if (p && p.catch) p.catch(() => { /* sem permissão de tocar ainda */ });
+  } catch (erro) { /* sem som de manutenção: o alarme ainda toca na volta */ }
+}
+
+function desligaManutencao() {
+  try { if (manutencao) manutencao.pause(); } catch (erro) { /* ignora */ }
 }
 
 /** Vibração, quando o aparelho tiver. */
@@ -1046,6 +1188,7 @@ function comecaBloco(modo, minutos, assunto) {
   };
   salvaEstado();
   garanteAudio();                     // aproveita o toque do usuário
+  agendaAlarmeDoTimer();
   pedeTravaTela();
   ligaDesenho();
   desenhaTimer();
@@ -1061,6 +1204,7 @@ function pausaTimer() {
   if (!estado.timer || estado.timer.pausadoEm) return;
   estado.timer.pausadoEm = Date.now();
   salvaEstado();
+  cancelaAlarmeAgendado();
   soltaTravaTela();
   desenhaTimer();
 }
@@ -1072,6 +1216,7 @@ function retomaTimer() {
   t.pausadoEm = null;
   salvaEstado();
   garanteAudio();
+  agendaAlarmeDoTimer();
   pedeTravaTela();
   ligaDesenho();
   desenhaTimer();
@@ -1081,6 +1226,7 @@ function retomaTimer() {
 function zeraTimer() {
   estado.timer = null;
   salvaEstado();
+  cancelaAlarmeAgendado();
   soltaTravaTela();
   desligaDesenho();
   desenhaTimer();
@@ -1095,6 +1241,7 @@ function zeraTimer() {
 function pulaBloco() {
   const t = estado.timer;
   if (!t) return;
+  cancelaAlarmeAgendado();
 
   if (t.modo === 'pausa') {
     estado.timer = null;
@@ -1140,7 +1287,8 @@ function terminaBloco(silencioso) {
     desligaDesenho();
     desenhaTimer();
     atualizaTudo();
-    if (!silencioso) { alarme('pausa'); vibra([200, 100, 200]); }
+    tocaAlarmeDoFim('pausa', silencioso);
+    if (!silencioso) vibra([200, 100, 200]);
     abreModal({
       titulo: 'Fim da pausa',
       frase: fala('fimPausa'),
@@ -1168,7 +1316,8 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
   });
   salvaEstado();
 
-  if (!silencioso) { alarme('foco'); vibra([300, 120, 300, 120, 500]); }
+  tocaAlarmeDoFim('foco', silencioso);
+  if (!silencioso) vibra([300, 120, 300, 120, 500]);
 
   const quebrados = atualizaRecordes(antes.recordes);
   const marcosNovos = verificaMarcos();
@@ -1213,7 +1362,11 @@ function retomaTimerSalvo() {
     terminaBloco(true);               // sem alarme: já passou faz tempo
     return;
   }
-  if (!t.pausadoEm) { ligaDesenho(); pedeTravaTela(); }
+  if (!t.pausadoEm) {
+    ligaDesenho();
+    pedeTravaTela();
+    agendaAlarmeDoTimer();   // reagenda o que faltava do bloco
+  }
 }
 
 /* ========================= 8. ESTATÍSTICAS ==========================
@@ -1538,6 +1691,15 @@ function desenhaFoco() {
     f.classList.toggle('ativa', Number(f.dataset.min) === estado.prefs.duracao);
   });
 
+  // Ajuste do alarme em segundo plano
+  const ligado = !!estado.prefs.alarmeFundo;
+  const ficha = $('#fichaAlarmeFundo');
+  ficha.classList.toggle('ativa', ligado);
+  ficha.textContent = 'Alarme em segundo plano: ' + (ligado ? 'ligado' : 'desligado');
+  $('#subAlarmeFundo').textContent = ligado
+    ? 'Um som inaudível fica tocando durante o bloco pro alarme soar com a tela bloqueada. Se atrapalhar música de outro app, desliga aqui.'
+    : 'Com a tela bloqueada, o alarme só sai quando tu voltar pro app. O tempo do bloco segue certo do mesmo jeito.';
+
   desenhaAssuntos();
 }
 
@@ -1586,7 +1748,8 @@ function desenhaHistorico() {
   $('#listaHoje').innerHTML = doDia.length ? doDia.map((b) => (
     '<li><span class="hora">' + horaDoDia(b.fim || b.inicio) + '</span>' +
     '<span class="assunto">' + escapaHTML(b.assunto) + '</span>' +
-    '<span class="dur">' + fmtDuracao(b.minutos) + '</span></li>'
+    '<span class="dur">' + fmtDuracao(b.minutos) + '</span>' +
+    '<button class="bt-editar" data-editar="' + b.id + '" title="Trocar o assunto">&#9998;</button></li>'
   )).join('') : '<li class="vazio">A lista de hoje começa no próximo bloco.</li>';
 
   desenhaSemana();
@@ -1642,10 +1805,44 @@ function desenhaListaTudo() {
       '<span class="assunto">' + escapaHTML(b.assunto) +
       (b.cicloNome ? '<br><span class="ciclo">' + escapaHTML(b.cicloNome) + '</span>' : '') +
       '</span><span class="dur">' + fmtDuracao(b.minutos) + '</span>' +
+      '<button class="bt-editar" data-editar="' + b.id + '" title="Trocar o assunto">&#9998;</button>' +
       '<button class="bt-apagar" data-apagar="' + b.id + '" title="Apagar registro">✕</button></li>';
   }).join('') : '<li class="vazio">O histórico completo aparece aqui.</li>';
 
   $('#btMaisRegistros').classList.toggle('oculto', todos.length <= quantosMostrar);
+}
+
+/**
+ * Corrige o assunto de um registro. Erro de digitação não deveria custar os
+ * minutos estudados, então dá pra trocar o texto sem apagar o bloco.
+ */
+function editaAssunto(id) {
+  const bloco = estado.blocos.find((b) => b.id === id);
+  if (!bloco) return;
+  const quando = bloco.fim || bloco.inicio;
+  abreModal({
+    titulo: 'Trocar o assunto',
+    frase: fmtDuracao(bloco.minutos) + ' em ' + dataCurta(chaveDia(quando)) + ', às ' + horaDoDia(quando),
+    detalhe: '<label class="rot" for="modalEntrada">Assunto</label>' +
+             '<input type="text" id="modalEntrada" list="listaAssuntos" maxlength="60" value="' +
+             escapaHTML(bloco.assunto) + '">',
+    botoes: [
+      { texto: 'Salvar', tipo: 'bt-azul', acao: () => {
+          const novo = $('#modalEntrada').value.trim();
+          if (!novo) { avisa('Assunto', 'Escreve alguma coisa, Davi.'); return; }
+          bloco.assunto = novo;
+          salvaEstado();
+          fechaModal();
+          atualizaTudo();
+          avisa('Histórico', 'Assunto corrigido.');
+        } },
+      { texto: 'Cancelar', tipo: '', acao: fechaModal }
+    ]
+  });
+  setTimeout(() => {
+    const campo = $('#modalEntrada');
+    if (campo) { campo.focus(); campo.select(); }
+  }, 60);
 }
 
 /* ---------- Tela Progresso ---------- */
@@ -1948,6 +2145,15 @@ $('#fichasDuracao').addEventListener('click', (ev) => {
   if (!estado.timer) desenhaTimer();
 });
 
+/* ---- Alarme em segundo plano ---- */
+$('#fichaAlarmeFundo').addEventListener('click', () => {
+  estado.prefs.alarmeFundo = !estado.prefs.alarmeFundo;
+  salvaEstado();
+  if (estado.prefs.alarmeFundo) agendaAlarmeDoTimer();
+  else cancelaAlarmeAgendado();
+  desenhaFoco();
+});
+
 /* ---- Assunto ---- */
 $('#campoAssunto').addEventListener('input', () => { if (!estado.timer) desenhaTimer(); });
 $('#campoAssunto').addEventListener('keydown', (ev) => {
@@ -2030,7 +2236,14 @@ function encerraCiclo(ciclo) {
 }
 
 /* ---- Histórico: apagar registro e ver mais ---- */
+$('#listaHoje').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-editar]');
+  if (bt) editaAssunto(bt.dataset.editar);
+});
+
 $('#listaTudo').addEventListener('click', (ev) => {
+  const editar = ev.target.closest('[data-editar]');
+  if (editar) { editaAssunto(editar.dataset.editar); return; }
   const bt = ev.target.closest('[data-apagar]');
   if (!bt) return;
   const id = bt.dataset.apagar;
@@ -2126,7 +2339,11 @@ $('#arquivoImportar').addEventListener('change', (ev) => {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   desenhaTimer();                     // fecha o bloco se o tempo acabou fora
-  if (timerRodando()) { ligaDesenho(); pedeTravaTela(); }
+  if (timerRodando()) {
+    ligaDesenho();
+    pedeTravaTela();
+    agendaAlarmeDoTimer();            // o relógio do áudio pode ter parado: remarca
+  }
   if (diaAtualDaTela !== chaveHoje()) { diaAtualDaTela = chaveHoje(); desenhaSaudacao(); atualizaTudo(); }
 });
 
@@ -2152,6 +2369,7 @@ setInterval(() => {
 /* ---- Início ---- */
 function inicia() {
   carregaEstado();
+  pedePersistencia();             // pede ao Android pra não descartar os dados
   sincronizaMarcasEmSilencio();   // acerta recordes/marcos sem comemorar coisa velha
   desenhaSaudacao();
   atualizaTudo();
@@ -2162,7 +2380,7 @@ function inicia() {
   document.addEventListener('pointerdown', garanteAudioUmaVez, { once: true });
 }
 
-function garanteAudioUmaVez() { garanteAudio(); }
+function garanteAudioUmaVez() { garanteAudio(); agendaAlarmeDoTimer(); }
 
 inicia();
 
