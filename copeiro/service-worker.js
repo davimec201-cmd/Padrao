@@ -9,7 +9,7 @@
    service worker novo instala, limpa os caches antigos e assume o controle.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v4';
+const VERSAO = 'copeiro-v5';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */
@@ -41,6 +41,19 @@ self.addEventListener('activate', (evento) => {
         chaves.filter((chave) => chave !== VERSAO).map((chave) => caches.delete(chave))
       ))
       .then(() => self.clients.claim())
+  );
+});
+
+/* ---- Toque na notificação: traz o app pra frente ---- */
+self.addEventListener('notificationclick', (evento) => {
+  evento.notification.close();
+  evento.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((janelas) => {
+      for (const janela of janelas) {
+        if ('focus' in janela) return janela.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow('./index.html');
+    })
   );
 });
 
