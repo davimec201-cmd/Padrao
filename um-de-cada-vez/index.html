@@ -1,0 +1,940 @@
+<title>Um de Cada Vez</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+/* ---------------------------------------------------------------
+   TOKENS
+   Tema claro definido no :root puro. O tema escuro só REDEFINE
+   os tokens, nunca cores soltas dentro de um bloco de media.
+   --------------------------------------------------------------- */
+:root {
+  --chao:        #EFF2F1;
+  --superficie:  #FFFFFF;
+  --superficie2: #E7ECEA;
+  --tinta:       #16211F;
+  --tinta-fraca: #5B6B66;
+  --tinta-tenue: #8A9994;
+  --linha:       #D5DEDB;
+  --acento:      #0E6E62;
+  --acento-forte:#0A574D;
+  --acento-tenue:#D6E8E4;
+  --atencao:     #A85B26;
+  --sombra:      0 1px 2px rgba(22,33,31,.05), 0 8px 24px -12px rgba(22,33,31,.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --chao:        #101615;
+    --superficie:  #18211F;
+    --superficie2: #202B28;
+    --tinta:       #E6EDEA;
+    --tinta-fraca: #9AAAA5;
+    --tinta-tenue: #6B7C77;
+    --linha:       #26332F;
+    --acento:      #4FC0AC;
+    --acento-forte:#7BD6C5;
+    --acento-tenue:#17302B;
+    --atencao:     #D89361;
+    --sombra:      0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  --chao:        #101615;
+  --superficie:  #18211F;
+  --superficie2: #202B28;
+  --tinta:       #E6EDEA;
+  --tinta-fraca: #9AAAA5;
+  --tinta-tenue: #6B7C77;
+  --linha:       #26332F;
+  --acento:      #4FC0AC;
+  --acento-forte:#7BD6C5;
+  --acento-tenue:#17302B;
+  --atencao:     #D89361;
+  --sombra:      0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--chao);
+  color: var(--tinta);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Tipografia de apoio */
+.rotulo {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------
+   ESTRUTURA
+   --------------------------------------------------------------- */
+.topo {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--linha);
+  background: var(--chao);
+  position: sticky; top: 0; z-index: 5;
+}
+.marca {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 19px; font-weight: 600; letter-spacing: -.01em;
+  color: var(--tinta);
+}
+.nav { display: flex; gap: 4px; }
+.nav button {
+  font: inherit; font-size: 15px;
+  background: none; border: none; color: var(--tinta-fraca);
+  padding: 10px 14px; min-height: 44px;
+  border-radius: 8px; cursor: pointer;
+}
+.nav button:hover { background: var(--superficie2); color: var(--tinta); }
+.nav button[aria-current="page"] { background: var(--acento-tenue); color: var(--acento); font-weight: 600; }
+
+main { padding: 0 20px 80px; }
+.palco {           /* centro focal: uma decisão por vez */
+  max-width: 640px; margin: 0 auto;
+  min-height: 62vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 28px; text-align: center;
+  padding: 48px 0;
+}
+.folha {           /* páginas de lista/formulário */
+  max-width: 820px; margin: 0 auto; padding: 32px 0 0;
+  display: flex; flex-direction: column; gap: 28px;
+}
+
+/* ---------------------------------------------------------------
+   CARTÃO FOCAL
+   --------------------------------------------------------------- */
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-radius: 18px;
+  box-shadow: var(--sombra);
+  padding: 40px 32px;
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.cartao .materia { color: var(--acento); }
+.assunto {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(30px, 6vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+  margin: 0;
+}
+.contexto { color: var(--tinta-fraca); font-size: 15px; margin: 0; }
+
+/* ---------------------------------------------------------------
+   BOTÕES
+   --------------------------------------------------------------- */
+.botao {
+  font: inherit; font-weight: 600; font-size: 18px;
+  background: var(--acento); color: var(--chao);
+  border: none; border-radius: 12px;
+  padding: 16px 40px; min-height: 56px;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease;
+}
+.botao:hover { background: var(--acento-forte); }
+.botao:active { transform: scale(.98); }
+.botao.calmo {
+  background: var(--superficie); color: var(--tinta);
+  border: 1px solid var(--linha);
+  font-size: 16px; font-weight: 500; padding: 12px 22px; min-height: 48px;
+}
+.botao.calmo:hover { background: var(--superficie2); }
+.discreto {
+  font: inherit; font-size: 15px;
+  background: none; border: none; color: var(--tinta-fraca);
+  cursor: pointer; padding: 10px 12px; min-height: 44px;
+  border-radius: 8px;
+  text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: var(--linha);
+}
+.discreto:hover { color: var(--tinta); }
+.discreto.perigo:hover { color: var(--atencao); }
+.linha-acoes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center; }
+
+/* ---------------------------------------------------------------
+   PROGRESSO DO DIA — finito, sem contador de culpa
+   --------------------------------------------------------------- */
+.progresso { display: flex; align-items: center; gap: 12px; }
+.pontos { display: flex; gap: 7px; }
+.ponto {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 1.5px solid var(--linha); background: transparent;
+}
+.ponto.cheio { background: var(--acento); border-color: var(--acento); }
+
+/* ---------------------------------------------------------------
+   SESSÃO — modo foco
+   --------------------------------------------------------------- */
+.barra-tempo { height: 3px; background: var(--linha); border-radius: 2px; overflow: hidden; width: 100%; }
+.barra-tempo > i { display: block; height: 100%; background: var(--acento); width: 0; transition: width 1s linear; }
+.sessao-topo {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; width: 100%;
+}
+.passos { display: flex; gap: 8px; align-items: center; }
+.passo-marca {
+  font-family: "IBM Plex Mono", monospace; font-size: 12px;
+  padding: 5px 10px; border-radius: 999px;
+  border: 1px solid var(--linha); color: var(--tinta-tenue);
+}
+.passo-marca[data-ativo="sim"] { background: var(--acento-tenue); border-color: var(--acento-tenue); color: var(--acento); }
+.passo-marca[data-feito="sim"] { color: var(--tinta-fraca); }
+
+textarea.resumo {
+  font: inherit; font-size: 17px; line-height: 1.7;
+  width: 100%; min-height: 46vh; resize: vertical;
+  padding: 20px;
+  background: var(--superficie); color: var(--tinta);
+  border: 1px solid var(--linha); border-radius: 14px;
+}
+textarea.resumo::placeholder { color: var(--tinta-tenue); }
+
+.instrucao {
+  background: var(--superficie); border: 1px solid var(--linha);
+  border-left: 3px solid var(--acento);
+  border-radius: 12px; padding: 24px 26px;
+  text-align: left; max-width: 560px;
+}
+.instrucao p { margin: 0 0 12px; }
+.instrucao p:last-child { margin-bottom: 0; }
+.instrucao strong { font-weight: 600; }
+
+.avaliacao { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; }
+.avaliacao button {
+  font: inherit; font-size: 17px; text-align: left;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--superficie); color: var(--tinta);
+  border: 1px solid var(--linha); border-radius: 12px;
+  padding: 16px 20px; min-height: 60px; cursor: pointer;
+}
+.avaliacao button:hover { border-color: var(--acento); background: var(--acento-tenue); }
+.avaliacao small { color: var(--tinta-fraca); font-size: 13px; }
+
+/* ---------------------------------------------------------------
+   MATERIAL
+   --------------------------------------------------------------- */
+.secao-titulo {
+  font-family: "Fraunces", Georgia, serif; font-weight: 600;
+  font-size: 26px; letter-spacing: -.01em; margin: 0;
+}
+.adicionar {
+  display: grid; gap: 10px;
+  grid-template-columns: minmax(0,1fr) minmax(0,1.6fr) auto;
+  background: var(--superficie); border: 1px solid var(--linha);
+  border-radius: 14px; padding: 14px;
+}
+@media (max-width: 640px) { .adicionar { grid-template-columns: 1fr; } }
+
+input[type="text"], input[type="number"], input[type="search"] {
+  font: inherit; font-size: 16px;
+  padding: 12px 14px; min-height: 48px;
+  background: var(--chao); color: var(--tinta);
+  border: 1px solid var(--linha); border-radius: 10px;
+  width: 100%;
+}
+input::placeholder { color: var(--tinta-tenue); }
+
+.grupo { display: flex; flex-direction: column; gap: 8px; }
+.grupo > .rotulo { padding-left: 2px; }
+.item {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; text-align: left; font: inherit;
+  background: var(--superficie); color: var(--tinta);
+  border: 1px solid var(--linha); border-radius: 12px;
+  padding: 14px 18px; min-height: 60px; cursor: pointer;
+}
+.item:hover { border-color: var(--acento); }
+.item .titulo { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.selo {
+  font-family: "IBM Plex Mono", monospace; font-size: 12px;
+  padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--linha); color: var(--tinta-fraca);
+}
+.selo.agora { background: var(--acento-tenue); border-color: var(--acento-tenue); color: var(--acento); }
+.nivel { display: flex; gap: 3px; }
+.nivel i { width: 5px; height: 5px; border-radius: 50%; background: var(--linha); }
+.nivel i.on { background: var(--acento); }
+
+.vazio {
+  text-align: center; color: var(--tinta-fraca);
+  padding: 40px 20px; border: 1px dashed var(--linha); border-radius: 14px;
+}
+
+/* ---------------------------------------------------------------
+   AJUSTES
+   --------------------------------------------------------------- */
+.campo { display: flex; flex-direction: column; gap: 6px; max-width: 320px; }
+.campo label { font-size: 14px; color: var(--tinta-fraca); }
+.bloco {
+  background: var(--superficie); border: 1px solid var(--linha);
+  border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 16px;
+}
+.aviso { font-size: 14px; color: var(--tinta-fraca); max-width: 60ch; }
+
+.recado {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  background: var(--tinta); color: var(--chao);
+  padding: 12px 20px; border-radius: 999px; font-size: 15px;
+  box-shadow: var(--sombra); z-index: 20;
+  opacity: 0; pointer-events: none; transition: opacity .2s ease;
+}
+.recado.ver { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<header class="topo">
+  <div class="marca">Um de Cada Vez</div>
+  <nav class="nav" id="nav">
+    <button data-tela="agora">Agora</button>
+    <button data-tela="material">Material</button>
+    <button data-tela="ajustes">Ajustes</button>
+  </nav>
+</header>
+
+<main id="app"></main>
+<div class="recado" id="recado" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ===============================================================
+   ARMAZENAMENTO
+   Guarda no próprio aparelho. Se o navegador bloquear, cai para
+   memória — o app continua funcionando, mas avisa nos Ajustes.
+   =============================================================== */
+const CHAVE = "umdecadavez.v1";
+let memoria = null;
+
+function podeGravar() {
+  try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); return true; }
+  catch (e) { return false; }
+}
+const GRAVA = podeGravar();
+
+function carregar() {
+  if (!GRAVA) return memoria || padrao();
+  try {
+    const bruto = localStorage.getItem(CHAVE);
+    if (!bruto) return padrao();
+    const dados = JSON.parse(bruto);
+    return Object.assign(padrao(), dados);
+  } catch (e) { return padrao(); }
+}
+function salvar() {
+  memoria = estado;
+  if (!GRAVA) return;
+  try { localStorage.setItem(CHAVE, JSON.stringify(estado)); }
+  catch (e) { recado("Não consegui salvar — memória do navegador cheia."); }
+}
+function padrao() {
+  return { topicos: [], historico: {}, config: { metaDiaria: 4, minutosSessao: 25 } };
+}
+
+/* ===============================================================
+   DATAS E REVISÃO ESPAÇADA
+   Intervalos em dias. "Travei" volta ao começo, "Quase" mantém o
+   nível, "Mandei bem" avança. Sem contagem de atraso em lugar
+   nenhum: atrasado é só o que vem primeiro na fila.
+   =============================================================== */
+const INTERVALOS = [1, 3, 7, 16, 35, 70];
+
+const hoje = () => new Date().toISOString().slice(0, 10);
+function maisDias(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function diasEntre(aISO, bISO) {
+  return Math.round((new Date(bISO) - new Date(aISO)) / 86400000);
+}
+function porExtenso(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+}
+function quandoVolta(iso) {
+  const d = diasEntre(hoje(), iso);
+  if (d <= 0) return "agora";
+  if (d === 1) return "amanhã";
+  return "em " + d + " dias";
+}
+function desdeUltima(t) {
+  if (!t.ultimaEm) return "material novo";
+  const d = diasEntre(t.ultimaEm, hoje());
+  if (d === 0) return "estudado hoje";
+  if (d === 1) return "estudado ontem";
+  return "estudado há " + d + " dias";
+}
+
+/* ===============================================================
+   ESTADO
+   =============================================================== */
+let estado = carregar();
+let tela = "agora";
+let indiceFila = 0;      // qual da fila está em foco (o botão "trocar" gira)
+let sessao = null;       // { topicoId, passo, restam, timerId, texto }
+let editandoId = null;
+let busca = "";
+
+function fila() {
+  return estado.topicos
+    .filter(t => t.proximaEm <= hoje())
+    .sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : a.proximaEm > b.proximaEm ? 1 : a.nivel - b.nivel));
+}
+function feitosHoje() { return estado.historico[hoje()] || 0; }
+function acharTopico(id) { return estado.topicos.find(t => t.id === id); }
+
+/* ===============================================================
+   AJUDANTES DE DOM
+   Monta elementos em vez de colar HTML — assim o texto que você
+   digita nunca é interpretado como código.
+   =============================================================== */
+function el(tag, props, filhos) {
+  const n = document.createElement(tag);
+  if (props) for (const k in props) {
+    if (k === "class") n.className = props[k];
+    else if (k === "texto") n.textContent = props[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), props[k]);
+    else if (props[k] !== null && props[k] !== undefined) n.setAttribute(k, props[k]);
+  }
+  (filhos || []).forEach(f => { if (f) n.appendChild(f); });
+  return n;
+}
+let recadoTimer = null;
+function recado(texto) {
+  const r = document.getElementById("recado");
+  r.textContent = texto;
+  r.classList.add("ver");
+  clearTimeout(recadoTimer);
+  recadoTimer = setTimeout(() => r.classList.remove("ver"), 2600);
+}
+
+/* ===============================================================
+   TELA: AGORA — uma decisão na tela, nunca uma lista
+   =============================================================== */
+function telaAgora() {
+  const palco = el("div", { class: "palco" });
+  const f = fila();
+
+  palco.appendChild(el("div", { class: "rotulo", texto: porExtenso(hoje()) }));
+
+  if (estado.topicos.length === 0) {
+    palco.appendChild(el("div", { class: "cartao" }, [
+      el("h1", { class: "assunto", texto: "Comece pelo material" }),
+      el("p", { class: "contexto", texto: "Adicione um assunto — matéria e título. O resumo você escreve depois, durante a sessão." }),
+      el("button", { class: "botao", onclick: () => irPara("material") }, [document.createTextNode("Adicionar material")]),
+      el("button", { class: "discreto", texto: "ver funcionando com exemplos", onclick: exemplos })
+    ]));
+    return palco;
+  }
+
+  if (f.length === 0) {
+    const proximo = estado.topicos.slice().sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : 1))[0];
+    palco.appendChild(el("div", { class: "cartao" }, [
+      el("h1", { class: "assunto", texto: "Você está em dia" }),
+      el("p", { class: "contexto", texto: "Nada vence hoje. O próximo é " + proximo.titulo + ", " + quandoVolta(proximo.proximaEm) + "." }),
+      el("button", { class: "botao calmo", texto: "Estudar mesmo assim", onclick: () => comecar(proximo.id) })
+    ]));
+    palco.appendChild(progressoDoDia());
+    return palco;
+  }
+
+  if (indiceFila >= f.length) indiceFila = 0;
+  const t = f[indiceFila];
+
+  const cartao = el("div", { class: "cartao" }, [
+    el("div", { class: "rotulo materia", texto: t.materia || "sem matéria" }),
+    el("h1", { class: "assunto", texto: t.titulo }),
+    el("p", { class: "contexto", texto: desdeUltima(t) + " · nível " + t.nivel }),
+    el("button", { class: "botao", texto: "Começar", onclick: () => comecar(t.id) })
+  ]);
+
+  const acoes = el("div", { class: "linha-acoes" });
+  if (f.length > 1) {
+    acoes.appendChild(el("button", {
+      class: "discreto", texto: "trocar",
+      onclick: () => { indiceFila = (indiceFila + 1) % f.length; render(); }
+    }));
+  }
+  acoes.appendChild(el("button", {
+    class: "discreto", texto: "deixar pra amanhã",
+    onclick: () => { t.proximaEm = maisDias(1); salvar(); recado("Guardado pra amanhã."); render(); }
+  }));
+  cartao.appendChild(acoes);
+
+  palco.appendChild(cartao);
+  palco.appendChild(progressoDoDia());
+  return palco;
+}
+
+function progressoDoDia() {
+  const meta = estado.config.metaDiaria;
+  const feitos = feitosHoje();
+  const pontos = el("div", { class: "pontos" });
+  for (let i = 0; i < meta; i++) {
+    pontos.appendChild(el("i", { class: "ponto" + (i < feitos ? " cheio" : "") }));
+  }
+  const texto = feitos >= meta
+    ? "meta do dia batida" + (feitos > meta ? " · +" + (feitos - meta) : "")
+    : feitos + " de " + meta + " hoje";
+  return el("div", { class: "progresso" }, [pontos, el("span", { class: "rotulo", texto: texto })]);
+}
+
+/* ===============================================================
+   SESSÃO — espelha o método: transcrever, explicar, avaliar
+   =============================================================== */
+function comecar(id) {
+  const t = acharTopico(id);
+  if (!t) return;
+  sessao = { topicoId: id, passo: 0, restam: estado.config.minutosSessao * 60, timerId: null, texto: t.resumo || "" };
+  sessao.timerId = setInterval(tique, 1000);
+  tela = "sessao";
+  render();
+}
+function encerrarSessao() {
+  if (sessao && sessao.timerId) clearInterval(sessao.timerId);
+  sessao = null;
+  tela = "agora";
+  render();
+}
+function tique() {
+  if (!sessao) return;
+  sessao.restam--;
+  const total = estado.config.minutosSessao * 60;
+  const rel = document.getElementById("relogio");
+  const barra = document.getElementById("barra");
+  if (rel) rel.textContent = formatarTempo(sessao.restam);
+  if (barra) barra.style.width = Math.min(100, ((total - sessao.restam) / total) * 100) + "%";
+  if (sessao.restam === 0) recado("25 minutos. Pode parar aqui ou seguir — você decide.");
+}
+function formatarTempo(s) {
+  const neg = s < 0;
+  s = Math.abs(s);
+  const m = Math.floor(s / 60);
+  return (neg ? "+" : "") + String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+}
+
+function telaSessao() {
+  const t = acharTopico(sessao.topicoId);
+  if (!t) { encerrarSessao(); return el("div"); }
+
+  const palco = el("div", { class: "palco" });
+  palco.style.justifyContent = "flex-start";
+  palco.style.minHeight = "auto";
+
+  // Cabeçalho da sessão: onde estou, quanto falta, como saio
+  const marcas = el("div", { class: "passos" });
+  ["transcrever", "explicar", "avaliar"].forEach((nome, i) => {
+    marcas.appendChild(el("span", {
+      class: "passo-marca", texto: nome,
+      "data-ativo": sessao.passo === i ? "sim" : "nao",
+      "data-feito": sessao.passo > i ? "sim" : "nao"
+    }));
+  });
+  palco.appendChild(el("div", { class: "sessao-topo" }, [
+    marcas,
+    el("div", { class: "linha-acoes" }, [
+      el("span", { class: "mono rotulo", id: "relogio", texto: formatarTempo(sessao.restam) }),
+      el("button", { class: "discreto", texto: "sair", onclick: sairComGuardar })
+    ])
+  ]));
+  const barra = el("div", { class: "barra-tempo" }, [el("i", { id: "barra" })]);
+  palco.appendChild(barra);
+
+  palco.appendChild(el("div", { class: "rotulo materia", texto: t.materia || "sem matéria" }));
+  palco.appendChild(el("h1", { class: "assunto", texto: t.titulo }));
+
+  if (sessao.passo === 0) {
+    const area = el("textarea", {
+      class: "resumo",
+      placeholder: "Transcreva o resumo aqui. Escrever é o estudo — não é só copiar pra ter guardado.",
+      oninput: e => { sessao.texto = e.target.value; }
+    });
+    area.value = sessao.texto;
+    palco.appendChild(area);
+    palco.appendChild(el("button", {
+      class: "botao", texto: "Terminei de transcrever",
+      onclick: () => { t.resumo = sessao.texto; salvar(); sessao.passo = 1; render(); }
+    }));
+    setTimeout(() => area.focus(), 30);
+  }
+
+  if (sessao.passo === 1) {
+    palco.appendChild(el("div", { class: "instrucao" }, [
+      el("p", {}, [
+        document.createTextNode("Agora "),
+        el("strong", { texto: "explique em voz alta" }),
+        document.createTextNode(", do começo ao fim, como se estivesse ensinando alguém que não sabe nada do assunto.")
+      ]),
+      el("p", { texto: "Sem olhar o texto. Onde você travar ou enrolar é exatamente o que ainda não está sabido — é essa a informação que a gente quer." })
+    ]));
+    palco.appendChild(el("button", { class: "botao", texto: "Já expliquei", onclick: () => { sessao.passo = 2; render(); } }));
+    palco.appendChild(el("button", { class: "discreto", texto: "deixa eu olhar o texto de novo", onclick: () => { sessao.passo = 0; render(); } }));
+  }
+
+  if (sessao.passo === 2) {
+    palco.appendChild(el("p", { class: "contexto", texto: "Como foi explicar?" }));
+    const opcoes = [
+      { nome: "Travei", desc: "não saiu, ou saiu com buraco grande", nota: 0 },
+      { nome: "Quase", desc: "saiu, mas engasguei em partes", nota: 1 },
+      { nome: "Mandei bem", desc: "expliquei inteiro, sem travar", nota: 2 }
+    ];
+    const caixa = el("div", { class: "avaliacao" });
+    opcoes.forEach(o => {
+      caixa.appendChild(el("button", { onclick: () => avaliar(o.nota) }, [
+        el("span", { texto: o.nome }),
+        el("small", { texto: o.desc + " · volta " + quandoVolta(previsao(t, o.nota)) })
+      ]));
+    });
+    palco.appendChild(caixa);
+  }
+
+  return palco;
+}
+
+function sairComGuardar() {
+  const t = acharTopico(sessao.topicoId);
+  if (t && sessao.passo === 0) { t.resumo = sessao.texto; salvar(); }
+  encerrarSessao();
+}
+
+function previsao(t, nota) {
+  let nivel = t.nivel;
+  if (nota === 0) nivel = 0;
+  else if (nota === 2) nivel = Math.min(nivel + 1, INTERVALOS.length - 1);
+  return maisDias(INTERVALOS[nivel]);
+}
+
+function avaliar(nota) {
+  const t = acharTopico(sessao.topicoId);
+  if (!t) return encerrarSessao();
+  if (nota === 0) t.nivel = 0;
+  else if (nota === 2) t.nivel = Math.min(t.nivel + 1, INTERVALOS.length - 1);
+  t.proximaEm = maisDias(INTERVALOS[t.nivel]);
+  t.ultimaEm = hoje();
+  estado.historico[hoje()] = feitosHoje() + 1;
+  salvar();
+  indiceFila = 0;
+  recado("Volta " + quandoVolta(t.proximaEm) + ".");
+  encerrarSessao();
+}
+
+/* ===============================================================
+   TELA: MATERIAL
+   =============================================================== */
+function telaMaterial() {
+  const folha = el("div", { class: "folha" });
+  folha.appendChild(el("h1", { class: "secao-titulo", texto: "Material" }));
+
+  // Adicionar rápido
+  const listaMaterias = [...new Set(estado.topicos.map(t => t.materia).filter(Boolean))];
+  const dl = el("datalist", { id: "materias" });
+  listaMaterias.forEach(m => dl.appendChild(el("option", { value: m })));
+
+  const campoMateria = el("input", { type: "text", placeholder: "Matéria", list: "materias" });
+  const campoTitulo = el("input", { type: "text", placeholder: "Assunto (ex: antiarrítmicos classe I)" });
+  const adicionar = () => {
+    const titulo = campoTitulo.value.trim();
+    if (!titulo) { campoTitulo.focus(); return; }
+    estado.topicos.push({
+      id: "t" + Date.now() + Math.random().toString(36).slice(2, 6),
+      materia: campoMateria.value.trim(),
+      titulo: titulo,
+      resumo: "",
+      nivel: 0,
+      criadoEm: hoje(),
+      ultimaEm: null,
+      proximaEm: hoje()
+    });
+    salvar();
+    campoTitulo.value = "";
+    recado("Na fila de hoje.");
+    render();
+    setTimeout(() => { const i = document.querySelector(".adicionar input[placeholder^='Assunto']"); if (i) i.focus(); }, 30);
+  };
+  campoTitulo.addEventListener("keydown", e => { if (e.key === "Enter") adicionar(); });
+
+  folha.appendChild(el("div", { class: "adicionar" }, [
+    campoMateria, campoTitulo, dl,
+    el("button", { class: "botao calmo", texto: "Adicionar", onclick: adicionar })
+  ]));
+
+  if (estado.topicos.length === 0) {
+    folha.appendChild(el("div", { class: "vazio", texto: "Nada aqui ainda. O primeiro assunto entra na fila de hoje automaticamente." }));
+    return folha;
+  }
+
+  // Busca
+  if (estado.topicos.length > 6) {
+    const b = el("input", { type: "search", placeholder: "Buscar assunto ou matéria", oninput: e => { busca = e.target.value.toLowerCase(); render(); } });
+    b.value = busca;
+    folha.appendChild(b);
+  }
+
+  // Agrupado por matéria
+  const filtrados = estado.topicos.filter(t =>
+    !busca || (t.titulo + " " + t.materia).toLowerCase().includes(busca)
+  );
+  const grupos = {};
+  filtrados.forEach(t => {
+    const k = t.materia || "Sem matéria";
+    (grupos[k] = grupos[k] || []).push(t);
+  });
+
+  Object.keys(grupos).sort((a, b) => a.localeCompare(b, "pt-BR")).forEach(nome => {
+    const g = el("div", { class: "grupo" });
+    g.appendChild(el("div", { class: "rotulo", texto: nome + " · " + grupos[nome].length }));
+    grupos[nome]
+      .sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : 1))
+      .forEach(t => {
+        const vence = t.proximaEm <= hoje();
+        const nivel = el("span", { class: "nivel" });
+        for (let i = 0; i < INTERVALOS.length; i++) nivel.appendChild(el("i", { class: i < t.nivel ? "on" : "" }));
+        g.appendChild(el("button", { class: "item", onclick: () => { editandoId = t.id; tela = "editor"; render(); } }, [
+          el("span", { class: "titulo", texto: t.titulo }),
+          nivel,
+          el("span", { class: "selo" + (vence ? " agora" : ""), texto: quandoVolta(t.proximaEm) })
+        ]));
+      });
+    folha.appendChild(g);
+  });
+
+  if (filtrados.length === 0) folha.appendChild(el("div", { class: "vazio", texto: "Nada com esse nome." }));
+  return folha;
+}
+
+/* ===============================================================
+   TELA: EDITOR DE UM ASSUNTO
+   =============================================================== */
+function telaEditor() {
+  const t = acharTopico(editandoId);
+  if (!t) { tela = "material"; return telaMaterial(); }
+
+  const folha = el("div", { class: "folha" });
+  folha.appendChild(el("button", { class: "discreto", texto: "← voltar pro material", onclick: () => { tela = "material"; render(); } }));
+
+  const cMateria = el("input", { type: "text", placeholder: "Matéria" });
+  cMateria.value = t.materia || "";
+  const cTitulo = el("input", { type: "text", placeholder: "Assunto" });
+  cTitulo.value = t.titulo;
+  const cResumo = el("textarea", { class: "resumo", placeholder: "Seu resumo transcrito." });
+  cResumo.value = t.resumo || "";
+
+  const guardar = () => {
+    t.materia = cMateria.value.trim();
+    t.titulo = cTitulo.value.trim() || t.titulo;
+    t.resumo = cResumo.value;
+    salvar();
+    recado("Salvo.");
+  };
+  [cMateria, cTitulo, cResumo].forEach(c => c.addEventListener("blur", guardar));
+
+  folha.appendChild(el("div", { class: "bloco" }, [
+    el("div", { class: "campo" }, [el("label", { texto: "Matéria" }), cMateria]),
+    el("div", { class: "campo" }, [el("label", { texto: "Assunto" }), cTitulo])
+  ]));
+  folha.appendChild(cResumo);
+
+  folha.appendChild(el("div", { class: "linha-acoes" }, [
+    el("button", { class: "botao", texto: "Estudar agora", onclick: () => { guardar(); comecar(t.id); } }),
+    el("button", { class: "botao calmo", texto: "Salvar", onclick: guardar }),
+    el("button", {
+      class: "discreto", texto: "voltar pra fila de hoje",
+      onclick: () => { t.proximaEm = hoje(); salvar(); recado("Está na fila de hoje."); render(); }
+    }),
+    el("button", {
+      class: "discreto perigo", texto: "apagar assunto",
+      onclick: () => {
+        if (!confirm("Apagar \"" + t.titulo + "\" e o resumo dele? Não dá pra desfazer.")) return;
+        estado.topicos = estado.topicos.filter(x => x.id !== t.id);
+        salvar(); tela = "material"; recado("Apagado."); render();
+      }
+    })
+  ]));
+
+  folha.appendChild(el("p", { class: "aviso", texto: desdeUltima(t) + " · nível " + t.nivel + " · volta " + quandoVolta(t.proximaEm) }));
+  return folha;
+}
+
+/* ===============================================================
+   TELA: AJUSTES
+   =============================================================== */
+function telaAjustes() {
+  const folha = el("div", { class: "folha" });
+  folha.appendChild(el("h1", { class: "secao-titulo", texto: "Ajustes" }));
+
+  const meta = el("input", { type: "number", min: "1", max: "20" });
+  meta.value = estado.config.metaDiaria;
+  meta.addEventListener("change", () => {
+    estado.config.metaDiaria = Math.max(1, Math.min(20, Number(meta.value) || 4));
+    meta.value = estado.config.metaDiaria; salvar(); render();
+  });
+
+  const dur = el("input", { type: "number", min: "5", max: "120", step: "5" });
+  dur.value = estado.config.minutosSessao;
+  dur.addEventListener("change", () => {
+    estado.config.minutosSessao = Math.max(5, Math.min(120, Number(dur.value) || 25));
+    dur.value = estado.config.minutosSessao; salvar();
+  });
+
+  folha.appendChild(el("div", { class: "bloco" }, [
+    el("div", { class: "campo" }, [el("label", { texto: "Assuntos por dia" }), meta]),
+    el("div", { class: "campo" }, [el("label", { texto: "Minutos por sessão" }), dur]),
+    el("p", { class: "aviso", texto: "A meta existe pra ter fim visível, não pra cobrar. Passar dela é bônus; não bater não gera nenhum aviso." })
+  ]));
+
+  const entrada = el("input", { type: "file", accept: ".json,application/json" });
+  entrada.style.display = "none";
+  entrada.addEventListener("change", async () => {
+    const arq = entrada.files[0];
+    if (!arq) return;
+    try {
+      const dados = JSON.parse(await arq.text());
+      if (!Array.isArray(dados.topicos)) throw new Error("formato");
+      if (!confirm("Restaurar o backup substitui tudo que está aqui agora. Continuar?")) return;
+      estado = Object.assign(padrao(), dados);
+      salvar(); recado("Backup restaurado."); render();
+    } catch (e) { recado("Esse arquivo não é um backup do Um de Cada Vez."); }
+    entrada.value = "";
+  });
+
+  folha.appendChild(el("div", { class: "bloco" }, [
+    el("div", { class: "rotulo", texto: "Backup" }),
+    el("p", { class: "aviso", texto: GRAVA
+      ? "Seus resumos ficam gravados neste aparelho, neste navegador. Limpar os dados do navegador apaga tudo. Baixe um backup de vez em quando — e é assim que você leva os resumos pra outro aparelho."
+      : "Atenção: este navegador não está deixando gravar nada. O que você escrever some ao fechar a página. Baixe um backup antes de sair." }),
+    el("div", { class: "linha-acoes" }, [
+      el("button", { class: "botao calmo", texto: "Baixar backup", onclick: baixarBackup }),
+      el("button", { class: "botao calmo", texto: "Restaurar backup", onclick: () => entrada.click() })
+    ]),
+    entrada
+  ]));
+
+  folha.appendChild(el("div", { class: "bloco" }, [
+    el("div", { class: "rotulo", texto: "Zona sem volta" }),
+    el("button", {
+      class: "discreto perigo", texto: "apagar tudo",
+      onclick: () => {
+        if (!confirm("Apagar TODOS os assuntos e resumos? Não dá pra desfazer.")) return;
+        estado = padrao(); salvar(); recado("Tudo apagado."); render();
+      }
+    })
+  ]));
+
+  return folha;
+}
+
+async function baixarBackup() {
+  const conteudo = JSON.stringify(estado, null, 2);
+  const nome = "um-de-cada-vez-" + hoje() + ".json";
+  const downloads = await window.claude?.use?.("downloads").catch(() => null);
+  if (downloads) {
+    try {
+      await downloads.save({ filename: nome, data: conteudo });
+      recado("Backup salvo.");
+      return;
+    } catch (e) {
+      if (e && e.code === "declined") return;
+      // qualquer outro código: cai pro caminho manual abaixo
+    }
+  }
+  // Sem a capacidade de salvar: mostra o conteúdo pra copiar à mão
+  const w = window.open("", "_blank");
+  if (w) {
+    w.document.write("<pre style='white-space:pre-wrap;font:14px monospace;padding:16px'></pre>");
+    w.document.querySelector("pre").textContent = conteudo;
+    recado("Copie esse texto e salve num arquivo .json");
+  } else {
+    recado("Não consegui abrir o backup aqui.");
+  }
+}
+
+/* ===============================================================
+   EXEMPLOS — só pra ver funcionando; dá pra apagar tudo depois
+   =============================================================== */
+function exemplos() {
+  const base = [
+    ["Farmacologia", "Antiarrítmicos classe I", 0, 0],
+    ["Fisiologia", "Curva de dissociação da hemoglobina", 1, -2],
+    ["Semiologia", "Sopros cardíacos — como diferenciar", 0, 0]
+  ];
+  base.forEach(([materia, titulo, nivel, dias], i) => {
+    estado.topicos.push({
+      id: "ex" + Date.now() + i,
+      materia, titulo, resumo: "", nivel,
+      criadoEm: hoje(),
+      ultimaEm: dias < 0 ? maisDias(dias) : null,
+      proximaEm: hoje()
+    });
+  });
+  salvar();
+  recado("Três exemplos. Apague quando quiser, em Material.");
+  render();
+}
+
+/* ===============================================================
+   ROTEADOR
+   =============================================================== */
+function irPara(nova) {
+  if (sessao && nova !== "sessao") sairComGuardar();
+  tela = nova;
+  render();
+}
+function render() {
+  const app = document.getElementById("app");
+  app.textContent = "";
+  let conteudo;
+  if (tela === "sessao" && sessao) conteudo = telaSessao();
+  else if (tela === "material") conteudo = telaMaterial();
+  else if (tela === "editor") conteudo = telaEditor();
+  else if (tela === "ajustes") conteudo = telaAjustes();
+  else { tela = "agora"; conteudo = telaAgora(); }
+  app.appendChild(conteudo);
+
+  const atual = tela === "editor" ? "material" : tela === "sessao" ? "agora" : tela;
+  document.querySelectorAll("#nav button").forEach(b => {
+    if (b.dataset.tela === atual) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
+
+  if (tela === "sessao") {
+    const total = estado.config.minutosSessao * 60;
+    const barra = document.getElementById("barra");
+    if (barra) barra.style.width = Math.min(100, ((total - sessao.restam) / total) * 100) + "%";
+  }
+}
+
+document.getElementById("nav").addEventListener("click", e => {
+  const b = e.target.closest("button[data-tela]");
+  if (b) irPara(b.dataset.tela);
+});
+
+render();
+</script>
