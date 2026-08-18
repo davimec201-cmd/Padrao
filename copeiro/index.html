@@ -1,0 +1,2178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D80BF">
+<meta name="description" content="Pomodoro de estudo do Davi: ciclos, estante de campanhas e histórico. Funciona offline.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Copeiro">
+<title>Copeiro — Pomodoro do Davi</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icone-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icone-192.png">
+<style>
+/* =======================================================================
+   IDENTIDADE TRICOLOR
+   Fundo claro para leitura longa; azul celeste, azul escuro e preto nos
+   elementos de destaque. As faixas diagonais são acento, nunca fundo de
+   tela inteira.
+   ======================================================================= */
+:root{
+  --azul:#0D80BF;
+  --azul2:#1E7FC2;
+  --escuro:#0A2A43;
+  --preto:#111111;
+  --branco:#FFFFFF;
+  --fundo:#F3F6F9;
+  --card:#FFFFFF;
+  --linha:#E1E8EF;
+  --texto:#0A2A43;
+  --fraco:#5C6E80;
+  --sombra:0 2px 10px rgba(10,42,67,.07);
+  --raio:16px;
+  --toque:56px;              /* altura mínima de alvo de toque no tablet */
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--fundo);
+  color:var(--texto);
+  font-family:"Segoe UI",Roboto,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px;
+  line-height:1.45;
+  -webkit-text-size-adjust:100%;
+  padding-bottom:32px;
+  overscroll-behavior-y:contain;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+h1,h2,h3{margin:0;line-height:1.2}
+.oculto{display:none !important}
+
+/* ---------- Faixas tricolores diagonais (CSS puro) ---------- */
+.faixas{
+  height:10px;
+  background:repeating-linear-gradient(
+    135deg,
+    var(--azul)   0px, var(--azul)   22px,
+    var(--preto) 22px, var(--preto)  44px,
+    var(--branco)44px, var(--branco) 66px
+  );
+}
+.faixas-fina{height:6px}
+.faixas-larga{
+  height:16px;
+  background:repeating-linear-gradient(
+    135deg,
+    var(--azul)   0px, var(--azul)   30px,
+    var(--preto) 30px, var(--preto)  60px,
+    var(--branco)60px, var(--branco) 90px
+  );
+}
+
+/* ---------- Cabeçalho ---------- */
+.cabecalho{
+  background:var(--card);
+  border-bottom:1px solid var(--linha);
+  position:sticky; top:0; z-index:30;
+  box-shadow:var(--sombra);
+}
+.cabecalho-linha{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  padding:12px clamp(14px,3vw,28px);
+}
+.marca{display:flex; align-items:center; gap:12px; min-width:0}
+/* Losango com faixas diagonais — mesma ideia do ícone do app */
+.losango{
+  width:34px;height:34px;flex:0 0 auto;transform:rotate(45deg);
+  border:2px solid var(--escuro);border-radius:5px;overflow:hidden;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--branco) 0px, var(--branco) 8px,
+    var(--azul)   8px, var(--azul)  16px,
+    var(--preto) 16px, var(--preto) 24px,
+    var(--azul)  24px, var(--azul)  32px
+  );
+}
+.marca h1{font-size:1.15rem;letter-spacing:.3px}
+.marca p{margin:1px 0 0;font-size:.9rem;color:var(--fraco)}
+.cabecalho-info{margin-left:auto;text-align:right;font-size:.86rem;color:var(--fraco)}
+.cabecalho-info b{color:var(--escuro)}
+
+/* ---------- Abas ---------- */
+.abas{
+  display:flex;gap:8px;overflow-x:auto;
+  padding:10px clamp(14px,3vw,28px);
+  background:var(--card);border-bottom:1px solid var(--linha);
+  position:sticky;top:0;z-index:20;
+  scrollbar-width:none;
+}
+.abas::-webkit-scrollbar{display:none}
+.abas button{
+  flex:1 0 auto;min-height:48px;padding:0 20px;
+  border:1px solid var(--linha);border-radius:999px;background:var(--fundo);
+  color:var(--fraco);font-weight:600;cursor:pointer;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+.abas button.ativa{background:var(--azul);border-color:var(--azul);color:var(--branco)}
+
+/* ---------- Estrutura ---------- */
+main{max-width:1180px;margin:0 auto;padding:18px clamp(12px,3vw,28px)}
+.tela{animation:entra .22s ease}
+@keyframes entra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.cartao{
+  background:var(--card);border:1px solid var(--linha);border-radius:var(--raio);
+  box-shadow:var(--sombra);padding:18px;margin-bottom:16px;overflow:hidden;
+}
+.cartao > h2{font-size:1.05rem;margin-bottom:4px}
+.cartao > h2 + p.sub{margin:0 0 14px;color:var(--fraco);font-size:.9rem}
+p.sub{color:var(--fraco);font-size:.9rem}
+.grade2{display:grid;gap:16px}
+@media (min-width:820px){.grade2{grid-template-columns:1fr 1fr}}
+
+/* ---------- Botões ---------- */
+.bt{
+  min-height:var(--toque);padding:0 22px;border-radius:14px;border:1px solid var(--linha);
+  background:var(--card);color:var(--escuro);font-weight:700;cursor:pointer;
+  transition:transform .12s ease,background .18s ease,box-shadow .18s ease;
+}
+.bt:active{transform:scale(.97)}
+.bt-azul{background:var(--azul);border-color:var(--azul);color:var(--branco);box-shadow:0 4px 14px rgba(13,128,191,.28)}
+.bt-escuro{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
+.bt-grande{min-height:68px;font-size:1.15rem;padding:0 34px}
+.bt-fantasma{background:transparent}
+.bt-perigo{color:#B3261E;border-color:#F0C9C6;background:#FFF6F5}
+.bt:disabled{opacity:.42;cursor:default;box-shadow:none}
+.linha-bts{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ---------- Campos ---------- */
+label.rot{display:block;font-size:.85rem;font-weight:600;color:var(--fraco);margin-bottom:6px}
+input[type=text],input[type=date],input[type=number],select{
+  width:100%;min-height:var(--toque);padding:0 14px;border:1px solid var(--linha);
+  border-radius:12px;background:var(--branco);
+}
+input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
+  outline:3px solid rgba(13,128,191,.35);outline-offset:1px;border-color:var(--azul)
+}
+.campos{display:grid;gap:12px}
+@media (min-width:720px){.campos-3{grid-template-columns:1fr 1fr auto;align-items:end}}
+
+/* ---------- Fichas (chips) ---------- */
+.fichas{display:flex;flex-wrap:wrap;gap:8px}
+.ficha{
+  min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--linha);
+  background:var(--fundo);color:var(--escuro);font-weight:600;cursor:pointer;
+}
+.ficha.ativa{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
+.ficha-assunto{background:var(--branco);font-weight:500;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- Timer ---------- */
+.painel-foco{display:grid;gap:16px}
+@media (orientation:landscape) and (min-width:900px){
+  .painel-foco{grid-template-columns:minmax(360px,.95fr) 1fr;align-items:start}
+}
+.relogio{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0 4px}
+.anel{position:relative;width:min(74vw,340px);aspect-ratio:1}
+.anel svg{width:100%;height:100%;transform:rotate(-90deg)}
+.anel .trilho{fill:none;stroke:#E8EEF4;stroke-width:11}
+.anel .progresso{
+  fill:none;stroke:var(--azul);stroke-width:11;stroke-linecap:round;
+  transition:stroke-dashoffset .4s linear,stroke .3s ease;
+}
+.anel.pausa .progresso{stroke:var(--escuro)}
+.anel-centro{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;text-align:center;padding:0 12px;
+}
+.tempo{
+  font-size:clamp(3.1rem,13vw,4.6rem);font-weight:800;letter-spacing:-1px;
+  font-variant-numeric:tabular-nums;color:var(--escuro);line-height:1;
+}
+.modo-rot{font-size:.82rem;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--azul)}
+.anel.pausa .modo-rot{color:var(--escuro)}
+.assunto-atual{
+  font-size:1rem;font-weight:600;color:var(--escuro);max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.piscando{animation:pisca 1.6s ease-in-out infinite}
+@keyframes pisca{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ---------- Resumo / números ---------- */
+.numeros{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+.numero{background:var(--fundo);border:1px solid var(--linha);border-radius:14px;padding:12px 14px}
+.numero b{display:block;font-size:1.7rem;line-height:1.1;color:var(--escuro);font-variant-numeric:tabular-nums}
+.numero span{font-size:.8rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.6px}
+.numero.destaque{background:linear-gradient(180deg,#EAF5FC,#F7FBFE);border-color:#C9E3F3}
+
+/* ---------- Listas ---------- */
+.lista{list-style:none;margin:0;padding:0}
+.lista li{
+  display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--linha);
+}
+.lista li:last-child{border-bottom:0}
+.lista .hora{font-variant-numeric:tabular-nums;color:var(--fraco);font-size:.88rem;min-width:52px}
+.lista .assunto{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.lista .dur{font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
+.lista .ciclo{font-size:.78rem;color:var(--fraco)}
+.bt-apagar{
+  min-height:40px;width:40px;border-radius:10px;border:1px solid var(--linha);
+  background:var(--branco);color:#B3261E;font-weight:700;cursor:pointer;flex:0 0 auto;
+}
+.vazio{color:var(--fraco);font-size:.94rem;padding:10px 2px}
+
+/* ---------- Gráfico de barras da semana ---------- */
+.semana{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:8px}
+.dia{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.barra-caixa{flex:1;width:100%;display:flex;align-items:flex-end}
+.barra{
+  width:100%;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--azul2),var(--azul));
+  min-height:3px;transition:height .5s cubic-bezier(.22,.8,.3,1);
+}
+.dia.hoje .barra{background:linear-gradient(180deg,var(--escuro),#14405F)}
+.dia small{font-size:.72rem;color:var(--fraco);text-align:center;line-height:1.2}
+.dia .valor{font-size:.78rem;font-weight:700;color:var(--escuro);font-variant-numeric:tabular-nums}
+
+/* ---------- Mapa de calor anual ---------- */
+.calor-rolagem{overflow-x:auto;padding-bottom:6px}
+.calor{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);gap:3px}
+.calor i{
+  width:14px;height:14px;border-radius:3px;background:#EAF0F5;display:block;
+  border:1px solid rgba(10,42,67,.05);
+}
+.calor i.n1{background:#BEDFF1}
+.calor i.n2{background:#7CC0E4}
+.calor i.n3{background:#2E90C9}
+.calor i.n4{background:#0D80BF}
+.calor i.n5{background:#0A2A43}
+.calor i.futuro{background:transparent;border-color:transparent}
+.meses span{white-space:nowrap;overflow:visible}
+.meses{display:grid;grid-auto-flow:column;gap:3px;font-size:.68rem;color:var(--fraco);margin-bottom:4px;height:14px}
+.legenda-calor{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--fraco);margin-top:10px}
+.legenda-calor i{width:14px;height:14px;border-radius:3px;display:block}
+
+/* ---------- Gráfico de comparação ---------- */
+.tela-canvas{width:100%;height:230px;display:block}
+.legenda{display:flex;gap:18px;flex-wrap:wrap;font-size:.85rem;color:var(--fraco);margin-top:8px}
+.legenda span{display:flex;align-items:center;gap:7px}
+.legenda i{width:22px;height:4px;border-radius:2px;display:block}
+
+/* ---------- Marcos do contador vitalício ---------- */
+.marcos{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.marco{
+  padding:8px 14px;border-radius:999px;border:1px solid var(--linha);
+  background:var(--fundo);font-weight:700;font-size:.9rem;color:var(--fraco);
+}
+.marco.batido{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
+
+/* ---------- Estante de ciclos ---------- */
+.estante{display:grid;gap:16px}
+@media (min-width:760px){.estante{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}
+.trofeu{
+  position:relative;background:var(--card);border:1px solid var(--linha);
+  border-radius:var(--raio);box-shadow:var(--sombra);overflow:hidden;
+  padding:18px 18px 16px 26px;
+}
+/* Borda tricolor diagonal no objeto da estante */
+.trofeu::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:14px;
+  background:repeating-linear-gradient(
+    135deg,
+    var(--azul)   0px, var(--azul)   14px,
+    var(--preto) 14px, var(--preto)  28px,
+    var(--branco)28px, var(--branco) 42px
+  );
+  border-right:1px solid var(--linha);
+}
+.trofeu h3{font-size:1.1rem}
+.trofeu .periodo{font-size:.85rem;color:var(--fraco);margin:2px 0 12px}
+.trofeu .num-linha{display:flex;flex-wrap:wrap;gap:16px}
+.trofeu .num-linha div b{display:block;font-size:1.35rem;color:var(--escuro);font-variant-numeric:tabular-nums;line-height:1.1}
+.trofeu .num-linha div span{font-size:.74rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.5px}
+.prateleira{height:10px;border-radius:0 0 var(--raio) var(--raio);background:linear-gradient(90deg,var(--escuro),var(--azul));margin-top:14px}
+
+/* ---------- Aviso de armazenamento ---------- */
+.aviso-armazem{
+  background:#FFF4E5;border-bottom:1px solid #F3D9B0;color:#7A4E00;
+  padding:10px 16px;font-size:.9rem;text-align:center;
+}
+
+/* ---------- Modal (bloco concluído / confirmações) ---------- */
+.modal{
+  position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+  background:rgba(10,42,67,.55);padding:18px;backdrop-filter:blur(2px);
+}
+.modal-caixa{
+  background:var(--card);border-radius:20px;max-width:520px;width:100%;
+  overflow:hidden;box-shadow:0 18px 50px rgba(10,42,67,.35);
+  animation:sobe .25s cubic-bezier(.22,.9,.3,1);
+}
+@keyframes sobe{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+.modal-corpo{padding:22px}
+.modal-corpo h2{font-size:1.35rem;margin-bottom:6px}
+.modal-corpo .frase{font-size:1.05rem;color:var(--azul);font-weight:700;margin:0 0 14px}
+.modal-corpo .detalhe{color:var(--fraco);font-size:.94rem;margin:0 0 18px}
+.modal-corpo .linha-bts{margin-top:6px}
+
+/* ---------- Avisos flutuantes (recorde, marco) ---------- */
+.toaster{position:fixed;left:0;right:0;bottom:16px;z-index:70;display:flex;flex-direction:column;
+  align-items:center;gap:10px;pointer-events:none;padding:0 14px}
+.aviso{
+  pointer-events:auto;background:var(--card);border:1px solid #BFE0F2;border-radius:14px;
+  padding:12px 18px;max-width:520px;box-shadow:0 0 0 3px rgba(13,128,191,.14),0 10px 26px rgba(10,42,67,.18);
+  animation:sobe .25s ease;font-weight:600;
+}
+.aviso b{display:block;font-size:.76rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--azul)}
+.aviso.brilho{animation:sobe .25s ease, brilha 2.4s ease-in-out 2}
+@keyframes brilha{
+  0%,100%{box-shadow:0 0 0 3px rgba(13,128,191,.14),0 10px 26px rgba(10,42,67,.18)}
+  50%{box-shadow:0 0 0 7px rgba(13,128,191,.26),0 10px 30px rgba(13,128,191,.32)}
+}
+
+/* Respeita quem prefere menos movimento */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- Aviso só aparece se o localStorage estiver cheio ou indisponível -->
+<div id="avisoArmazem" class="aviso-armazem oculto"></div>
+
+<header class="cabecalho">
+  <div class="faixas"></div>
+  <div class="cabecalho-linha">
+    <div class="marca">
+      <span class="losango" aria-hidden="true"></span>
+      <div>
+        <h1>Copeiro</h1>
+        <p id="saudacao">Bora, Davi.</p>
+      </div>
+    </div>
+    <div class="cabecalho-info" id="infoCabecalho"></div>
+  </div>
+</header>
+
+<nav class="abas" id="abas" aria-label="Telas do app">
+  <button class="ativa" data-tela="foco">Foco</button>
+  <button data-tela="historico">Histórico</button>
+  <button data-tela="progresso">Progresso</button>
+  <button data-tela="estante">Estante</button>
+</nav>
+
+<main>
+
+  <!-- ================= TELA: FOCO ================= -->
+  <section class="tela" id="tela-foco">
+    <div class="painel-foco">
+
+      <div class="cartao">
+        <div class="relogio">
+          <div class="anel" id="anel">
+            <svg viewBox="0 0 200 200" aria-hidden="true">
+              <circle class="trilho" cx="100" cy="100" r="88"></circle>
+              <circle class="progresso" id="arcoProgresso" cx="100" cy="100" r="88"
+                      stroke-dasharray="552.92" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="anel-centro">
+              <div class="modo-rot" id="modoRotulo">Pronto</div>
+              <div class="tempo" id="tempoTexto" aria-live="off">30:00</div>
+              <div class="assunto-atual" id="assuntoAtual">Escolhe o assunto</div>
+            </div>
+          </div>
+
+          <div class="linha-bts" style="justify-content:center">
+            <button class="bt bt-azul bt-grande" id="btPrincipal">Começar</button>
+            <button class="bt" id="btZerar">Zerar</button>
+            <button class="bt" id="btPular">Pular</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="cartao">
+          <h2>Assunto do bloco</h2>
+          <p class="sub">O que entra em campo agora?</p>
+          <input type="text" id="campoAssunto" list="listaAssuntos" maxlength="60"
+                 placeholder="Ex.: Farmacologia — antibióticos" autocomplete="off" enterkeyhint="done">
+          <datalist id="listaAssuntos"></datalist>
+          <div class="fichas" id="assuntosRecentes" style="margin-top:12px"></div>
+        </div>
+
+        <div class="cartao">
+          <h2>Duração do foco</h2>
+          <p class="sub">Pausa é fixa: 5 minutos, e só se tu quiser.</p>
+          <div class="fichas" id="fichasDuracao">
+            <button class="ficha" data-min="15">15 min</button>
+            <button class="ficha" data-min="25">25 min</button>
+            <button class="ficha ativa" data-min="30">30 min</button>
+            <button class="ficha" data-min="50">50 min</button>
+          </div>
+        </div>
+
+        <div class="cartao">
+          <h2>Hoje</h2>
+          <p class="sub" id="fraseHoje"></p>
+          <div class="numeros">
+            <div class="numero destaque"><b id="hojeMin">0</b><span>minutos</span></div>
+            <div class="numero"><b id="hojeBlocos">0</b><span>blocos</span></div>
+            <div class="numero"><b id="hojeSeq">0</b><span>dias seguidos</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= TELA: HISTÓRICO ================= -->
+  <section class="tela oculto" id="tela-historico">
+    <div class="cartao">
+      <h2>Blocos de hoje</h2>
+      <p class="sub" id="resumoHoje"></p>
+      <ul class="lista" id="listaHoje"></ul>
+    </div>
+
+    <div class="cartao">
+      <h2>Últimos 7 dias</h2>
+      <p class="sub" id="resumoSemana"></p>
+      <div class="semana" id="graficoSemana"></div>
+    </div>
+
+    <div class="cartao">
+      <h2>Tudo que foi copado</h2>
+      <p class="sub" id="resumoTudo"></p>
+      <ul class="lista" id="listaTudo"></ul>
+      <div class="linha-bts" style="margin-top:14px">
+        <button class="bt bt-fantasma" id="btMaisRegistros">Mostrar mais</button>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Backup</h2>
+      <p class="sub">Tudo fica só neste tablet. Exporta de vez em quando pra não perder a campanha.</p>
+      <div class="linha-bts">
+        <button class="bt bt-escuro" id="btExportar">Exportar JSON</button>
+        <button class="bt" id="btImportar">Importar JSON</button>
+        <input type="file" id="arquivoImportar" accept="application/json,.json" class="oculto">
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TELA: PROGRESSO ================= -->
+  <section class="tela oculto" id="tela-progresso">
+
+    <div class="cartao">
+      <h2>Contador vitalício</h2>
+      <p class="sub">Desde o primeiro bloco. Isso aqui nunca zera.</p>
+      <div class="numeros">
+        <div class="numero destaque"><b id="vitalicioHoras">0h</b><span>horas copadas</span></div>
+        <div class="numero"><b id="vitalicioBlocos">0</b><span>blocos</span></div>
+        <div class="numero"><b id="vitalicioDias">0</b><span>dias com estudo</span></div>
+      </div>
+      <div class="marcos" id="marcos"></div>
+      <p class="sub" id="proximoMarco" style="margin-top:12px"></p>
+    </div>
+
+    <div class="cartao">
+      <h2>Campanha atual x campanha anterior</h2>
+      <p class="sub" id="comparacaoResumo">Cadastra um ciclo na Estante pra ligar a comparação.</p>
+      <canvas class="tela-canvas" id="canvasComparacao"></canvas>
+      <div class="legenda">
+        <span><i style="background:#0D80BF"></i> ciclo atual</span>
+        <span><i style="background:#111111"></i> ciclo anterior</span>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Mapa do ano</h2>
+      <p class="sub" id="resumoCalor"></p>
+      <div class="calor-rolagem">
+        <div id="mesesCalor" class="meses"></div>
+        <div class="calor" id="mapaCalor"></div>
+      </div>
+      <div class="legenda-calor">
+        <span>menos</span>
+        <i style="background:#EAF0F5;border:1px solid rgba(10,42,67,.05)"></i>
+        <i style="background:#BEDFF1"></i><i style="background:#7CC0E4"></i>
+        <i style="background:#2E90C9"></i><i style="background:#0D80BF"></i>
+        <i style="background:#0A2A43"></i>
+        <span>mais</span>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Recordes pessoais</h2>
+      <p class="sub">Marcas tuas. Só sobem.</p>
+      <div class="numeros">
+        <div class="numero"><b id="recDia">0</b><span>melhor dia (min)</span></div>
+        <div class="numero"><b id="recSemana">0</b><span>melhor semana (min)</span></div>
+        <div class="numero"><b id="recSeq">0</b><span>maior sequência</span></div>
+      </div>
+      <p class="sub" id="recDetalhe" style="margin-top:12px"></p>
+    </div>
+
+  </section>
+
+  <!-- ================= TELA: ESTANTE ================= -->
+  <section class="tela oculto" id="tela-estante">
+
+    <div class="cartao">
+      <div class="faixas faixas-fina" style="margin:-18px -18px 14px"></div>
+      <h2>Campanha em andamento</h2>
+      <p class="sub" id="cicloResumo"></p>
+      <div id="cicloFormBox">
+        <div class="campos campos-3">
+          <div>
+            <label class="rot" for="cicloNome">Nome do ciclo</label>
+            <input type="text" id="cicloNome" maxlength="50" placeholder="Ex.: Ciclo 3 — Cardio">
+          </div>
+          <div>
+            <label class="rot" for="cicloInicio">Início</label>
+            <input type="date" id="cicloInicio">
+          </div>
+          <div>
+            <label class="rot" for="cicloFim">Fim previsto</label>
+            <input type="date" id="cicloFim">
+          </div>
+        </div>
+        <div class="linha-bts" style="margin-top:14px">
+          <button class="bt bt-azul" id="btSalvarCiclo">Salvar ciclo</button>
+          <button class="bt bt-perigo oculto" id="btEncerrarCiclo">Levantar a taça (encerrar)</button>
+        </div>
+      </div>
+      <div class="numeros oculto" id="cicloNumeros" style="margin-top:16px"></div>
+    </div>
+
+    <div class="cartao">
+      <h2>Estante de ciclos</h2>
+      <p class="sub" id="estanteResumo"></p>
+      <div class="estante" id="estante"></div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- Modal reaproveitado: bloco concluído, fim de pausa e confirmações -->
+<div class="modal oculto" id="modal">
+  <div class="modal-caixa">
+    <div class="faixas faixas-larga" id="modalFaixas"></div>
+    <div class="modal-corpo">
+      <h2 id="modalTitulo"></h2>
+      <p class="frase" id="modalFrase"></p>
+      <p class="detalhe" id="modalDetalhe"></p>
+      <div class="linha-bts" id="modalBotoes"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toaster" id="toaster"></div>
+
+<script>
+/* =========================================================================
+   COPEIRO — Pomodoro de estudo do Davi
+   App de um arquivo só: sem framework, sem CDN, sem build.
+   Tudo em português, dividido em blocos numerados.
+
+   1. Utilidades          6. Wake Lock (tela acesa)
+   2. Armazenamento       7. Motor do timer
+   3. Estado              8. Estatísticas
+   4. Vozes do app        9. Telas e desenho
+   5. Áudio (alarme)     10. Eventos e início
+   ========================================================================= */
+
+/* ============================ 1. UTILIDADES ============================ */
+
+const DIA_MS = 86400000;
+const DURACOES = [15, 25, 30, 50];   // blocos de foco disponíveis
+const PAUSA_MIN = 5;                 // pausa fixa
+const MARCOS = [100, 250, 500, 1000];// marcos do contador vitalício, em horas
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+const doisDig = (n) => String(n).padStart(2, '0');
+
+/** Chave de dia no fuso local: 'AAAA-MM-DD'. */
+function chaveDia(ts) {
+  const d = new Date(ts);
+  return d.getFullYear() + '-' + doisDig(d.getMonth() + 1) + '-' + doisDig(d.getDate());
+}
+
+/** Data (meia-noite local) a partir da chave 'AAAA-MM-DD'. */
+function dataDaChave(chave) {
+  const [a, m, d] = chave.split('-').map(Number);
+  return new Date(a, m - 1, d);
+}
+
+/** Diferença em dias inteiros entre duas chaves de dia. */
+function diasEntre(chaveA, chaveB) {
+  return Math.round((dataDaChave(chaveB) - dataDaChave(chaveA)) / DIA_MS);
+}
+
+/** Chave de dia deslocada em N dias. */
+function chaveMais(chave, n) {
+  const d = dataDaChave(chave);
+  d.setDate(d.getDate() + n);
+  return chaveDia(d.getTime());
+}
+
+const chaveHoje = () => chaveDia(Date.now());
+
+/** 'AAAA-MM-DD' -> '12 de mar' */
+function dataCurta(chave) {
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const d = dataDaChave(chave);
+  return d.getDate() + ' de ' + meses[d.getMonth()];
+}
+
+/** Minutos -> '1h20' ou '45min' */
+function fmtDuracao(min) {
+  min = Math.round(min);
+  if (min < 60) return min + 'min';
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? h + 'h' + doisDig(m) : h + 'h';
+}
+
+/** Minutos -> horas com uma casa ('12,5h') */
+function fmtHoras(min) {
+  const h = min / 60;
+  const txt = (h >= 100 ? Math.round(h) : Math.round(h * 10) / 10);
+  return String(txt).replace('.', ',') + 'h';
+}
+
+function horaDoDia(ts) {
+  const d = new Date(ts);
+  return doisDig(d.getHours()) + ':' + doisDig(d.getMinutes());
+}
+
+function idNovo() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function escapaHTML(txt) {
+  return String(txt).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+/* ========================== 2. ARMAZENAMENTO ==========================
+   localStorage pode estar cheio (cota) ou bloqueado (modo privado, permissão
+   negada). Nesses casos o app continua funcionando com os dados em memória e
+   avisa o Davi na faixa do topo — nada de tela branca.
+   ===================================================================== */
+
+const CHAVE_DADOS = 'copeiro.v1';
+
+const Armazem = {
+  ok: true,
+  memoria: null,
+
+  ler() {
+    try {
+      const bruto = localStorage.getItem(CHAVE_DADOS);
+      return bruto ? JSON.parse(bruto) : null;
+    } catch (erro) {
+      this.ok = false;
+      mostraAvisoArmazem('Não consegui ler os dados salvos neste aparelho. O app funciona, mas o histórico desta sessão pode não ser guardado.');
+      return this.memoria;
+    }
+  },
+
+  gravar(obj) {
+    this.memoria = obj;               // cópia viva, serve de reserva
+    try {
+      localStorage.setItem(CHAVE_DADOS, JSON.stringify(obj));
+      if (!this.ok) { this.ok = true; escondeAvisoArmazem(); }
+      return true;
+    } catch (erro) {
+      this.ok = false;
+      const cheio = erro && /quota|exceed/i.test(erro.name + ' ' + erro.message);
+      mostraAvisoArmazem(cheio
+        ? 'A memória do navegador encheu. Exporta o histórico em JSON e apaga registros antigos pra voltar a salvar.'
+        : 'Não estou conseguindo salvar neste aparelho. Exporta o JSON pra não perder o que foi copado hoje.');
+      return false;
+    }
+  }
+};
+
+function mostraAvisoArmazem(texto) {
+  const el = $('#avisoArmazem');
+  el.textContent = texto;
+  el.classList.remove('oculto');
+}
+function escondeAvisoArmazem() {
+  $('#avisoArmazem').classList.add('oculto');
+}
+
+/* ============================== 3. ESTADO ============================== */
+
+function estadoNovo() {
+  return {
+    versao: 1,
+    blocos: [],        // {id, inicio, fim, minutos, assunto, cicloId, cicloNome}
+    ciclos: [],        // {id, nome, inicio, fimPrevisto, fimReal|null, congelado|null}
+    recordes: { dia: 0, semana: 0, sequencia: 0 },
+    marcosVistos: [],  // marcos do contador vitalício já comemorados
+    prefs: { duracao: 30 },
+    timer: null        // bloco em andamento (sobrevive a fechar o app)
+  };
+}
+
+let estado = estadoNovo();
+
+function carregaEstado() {
+  const salvo = Armazem.ler();
+  if (!salvo || typeof salvo !== 'object') return;
+  const base = estadoNovo();
+  estado = Object.assign(base, salvo);
+  // Defesa contra arquivo antigo ou importação incompleta
+  estado.blocos = Array.isArray(salvo.blocos) ? salvo.blocos : [];
+  estado.ciclos = Array.isArray(salvo.ciclos) ? salvo.ciclos : [];
+  estado.recordes = Object.assign(base.recordes, salvo.recordes || {});
+  estado.marcosVistos = Array.isArray(salvo.marcosVistos) ? salvo.marcosVistos : [];
+  estado.prefs = Object.assign(base.prefs, salvo.prefs || {});
+  if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
+}
+
+function salvaEstado() {
+  Armazem.gravar(estado);
+}
+
+/** Ciclo em andamento (sem data de encerramento), se houver. */
+function cicloAtivo() {
+  return estado.ciclos.find((c) => !c.fimReal) || null;
+}
+
+/** Ciclos já encerrados, do mais novo pro mais antigo. */
+function ciclosEncerrados() {
+  return estado.ciclos.filter((c) => c.fimReal)
+    .slice().sort((a, b) => (a.fimReal < b.fimReal ? 1 : -1));
+}
+
+/* ============================ 4. VOZES DO APP ============================
+   Textos originais, no vocabulário da arquibancada tricolor. Nada de letra
+   de canto, hino ou música de torcida. Sorteados sem repetir o anterior.
+   ===================================================================== */
+
+const VOZ = {
+  manha: [
+    'Bom dia, Davi. Dia de copar.',
+    'Levanta que a bola vai rolar, Davi.',
+    'Manhã limpa, Davi: começa o jogo.',
+    'Café tomado? Então bora copar.',
+    'Primeiro tempo começando, Davi.',
+    'Davi, o dia é teu. Entra pegando.',
+    'Manhã de sangue azul, Davi.',
+    'Aquece que hoje tem, Davi.',
+    'Bom dia, copeiro. Escala o time.',
+    'Davi, qual assunto entra primeiro?'
+  ],
+  tarde: [
+    'Boa tarde, Davi. Segundo tempo.',
+    'Tarde de copar, Davi.',
+    'É no meio da tarde que o jogo se decide.',
+    'Bora, Davi: tarde rende.',
+    'Tricolor não amarela na tarde, Davi.',
+    'Tem tempo, Davi. Bota um bloco na conta.',
+    'Boa tarde, copeiro. Entra em campo.',
+    'Sol alto e assunto na mesa, Davi.',
+    'Tarde é hora de virar o jogo, Davi.',
+    'Davi, escolhe o assunto que eu boto o relógio.'
+  ],
+  noite: [
+    'Boa noite, Davi. Ainda dá pra copar.',
+    'Jogo noturno, Davi. Arena cheia.',
+    'Noite é de tricolor, Davi.',
+    'Um bloco à noite já muda o placar, Davi.',
+    'Davi, luz acesa e cabeça no jogo.',
+    'Boa noite, copeiro. Bora fechar bem.',
+    'Fim de dia, Davi: acréscimo também vale gol.',
+    'Noite calma, assunto escolhido, Davi.',
+    'Um tempo só e tu fecha o dia copado, Davi.',
+    'Quem copa à noite dorme tranquilo, Davi.'
+  ],
+  madrugada: [
+    'Madrugada, Davi. Se entrar, entra inteiro.',
+    'Vira a noite com raça, Davi.',
+    'Davi, madrugada é jogo de mata-mata.',
+    'Silêncio total: hora boa de copar.',
+    'Tricolor na madruga também é tricolor, Davi.',
+    'Tarde da noite e tu firme. Respeito, Davi.',
+    'Um bloco curto agora e cama, Davi.',
+    'Davi, madrugada rende quando ninguém atrapalha.'
+  ],
+  jaEstudouHoje: [
+    'Davi, já tem {min} no placar hoje.',
+    'Placar aberto, Davi. Amplia.',
+    'Tu já copou hoje, Davi. Mais um?',
+    'Tá ganhando o dia, Davi. Segura o resultado.',
+    'O dia já é teu, Davi. Cava mais um gol.',
+    'Mais um bloco e vira goleada, Davi.',
+    'Dia copeiro esse, Davi.',
+    'Tá com a bola, Davi. Não devolve.',
+    'Bom ritmo, Davi. Mantém a pressão.',
+    'Já entrou em campo hoje. Bora pro próximo tempo, Davi.'
+  ],
+  retomada: [
+    'Voltou, Davi. Time completo de novo.',
+    'Que bom te ver, Davi. Bola no centro.',
+    'Recomeço vale campanha inteira, Davi.',
+    'Tá de volta, copeiro. Só isso importa.',
+    'Davi, jogo de volta começa agora.',
+    'Sem olhar retrospecto, Davi: hoje é hoje.',
+    'Voltar é o mais difícil, e tu já fez, Davi.',
+    'A arquibancada tava te esperando, Davi.',
+    'De volta ao gramado, Davi. Devagar e firme.',
+    'Jogo novo, Davi. Placar zerado pra todo mundo.'
+  ],
+  iniciaBloco: [
+    'Bloco rolando, Davi. Foco em {assunto}.',
+    'Apitou. {assunto} é o adversário de agora.',
+    'Tamo em campo, Davi.',
+    'Vai, Davi: {min} de raça.',
+    'Cabeça no jogo, {assunto} na mesa.',
+    'Entrou o tricolor. Sem moleza, Davi.',
+    'Marca em cima do {assunto}, Davi.',
+    'Bola rolando. Boa, copeiro.',
+    'Silêncio na arena, Davi. Concentra.',
+    'Agora é jogo, Davi.'
+  ],
+  concluiBloco: [
+    'Bloco copado, Davi.',
+    '{min} no bolso, Davi.',
+    'Isso é copar, Davi.',
+    'Golaço. {assunto} anotado.',
+    'Trabalho feito, copeiro.',
+    'Mais um pra campanha, Davi.',
+    'Sangue azul, Davi. Fechou bonito.',
+    'Placar mexido, Davi.',
+    'Esse bloco vale ponto na tabela, Davi.',
+    'Copou. Agora respira.'
+  ],
+  fimPausa: [
+    'Pausa encerrada, Davi. Volta pro jogo.',
+    'Intervalo acabou. Bora, copeiro.',
+    'Segundo tempo, Davi.',
+    'Água tomada? Então volta.',
+    'Time em campo de novo, Davi.',
+    'O juiz chamou, Davi.',
+    'Fim do intervalo. Cabeça fria, sangue azul.',
+    'Pronto pra mais um, Davi?',
+    'Descanso pago. Vamo copar.',
+    'Volta com tudo, Davi.'
+  ],
+  recorde: [
+    'Recorde novo, Davi. Puro tricolor.',
+    'Tu passou de ti mesmo, Davi.',
+    'Marca batida. Isso é ser copeiro.',
+    'Recorde novo na conta, Davi.',
+    'Nunca tinha copado tanto assim, Davi.',
+    'História nova escrita, Davi.',
+    'Tabela atualizada: o recorde é teu, Davi.',
+    'Melhor que qualquer dia anterior, Davi.',
+    'Recorde caiu. Sangue azul.',
+    'Anota aí, Davi: recorde novo.'
+  ],
+  encerraCiclo: [
+    'Taça levantada, Davi. {nome} encerrado.',
+    'Campanha fechada. Vai pra estante, Davi.',
+    'Mais um título na sala, Davi.',
+    'Fim de campanha. Foi copeira.',
+    '{nome} fica na estante pra sempre, Davi.',
+    'Acabou o mata-mata, Davi. Tu passou.',
+    'Ciclo encerrado com raça, Davi.',
+    'Troféu guardado. Bora pro próximo, Davi.',
+    'Essa campanha ninguém tira de ti, Davi.',
+    'Taça na mão. Descansa, copeiro.'
+  ],
+  marco: [
+    '{h}h de estudo, Davi. Marco batido.',
+    'Davi, {h}h na vitrine.',
+    '{h}h copadas. Isso não é sorte.',
+    'Marco de {h}h, Davi. Respeito.',
+    'Tu chegou nas {h}h, Davi.',
+    '{h}h de sangue azul.',
+    '{h}h acumuladas. Campanha grande, Davi.',
+    'Bateu {h}h, copeiro.',
+    '{h}h. A estante agradece, Davi.',
+    'Marco novo: {h}h, Davi.'
+  ]
+};
+
+const ultimaFalada = {};
+
+/** Sorteia uma frase da situação, evitando repetir a última, e troca {chaves}. */
+function fala(situacao, dados) {
+  const lista = VOZ[situacao] || [''];
+  let escolha = lista[Math.floor(Math.random() * lista.length)];
+  if (lista.length > 1 && escolha === ultimaFalada[situacao]) {
+    escolha = lista[(lista.indexOf(escolha) + 1) % lista.length];
+  }
+  ultimaFalada[situacao] = escolha;
+  return escolha.replace(/\{(\w+)\}/g, (todo, chave) => (
+    dados && dados[chave] !== undefined ? dados[chave] : todo
+  ));
+}
+
+/* ======================== 5. ÁUDIO (ALARME) ========================
+   Alarme gerado na hora com Web Audio API — nenhum arquivo de som, então
+   funciona offline sem baixar nada. O contexto só é criado depois de um
+   toque do usuário, que é o que o Android exige.
+   ================================================================== */
+
+let audio = null;
+
+function garanteAudio() {
+  try {
+    if (!audio) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      audio = new Ctx();
+    }
+    if (audio.state === 'suspended') audio.resume();
+  } catch (erro) {
+    audio = null;
+  }
+  return audio;
+}
+
+/** Uma nota curta com envelope suave (sem estalo). */
+function nota(freq, atraso, duracao, volume) {
+  if (!audio) return;
+  const t0 = audio.currentTime + atraso;
+  const osc = audio.createOscillator();
+  const ganho = audio.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, t0);
+  ganho.gain.setValueAtTime(0.0001, t0);
+  ganho.gain.exponentialRampToValueAtTime(volume, t0 + 0.02);
+  ganho.gain.exponentialRampToValueAtTime(0.0001, t0 + duracao);
+  osc.connect(ganho).connect(audio.destination);
+  osc.start(t0);
+  osc.stop(t0 + duracao + 0.05);
+}
+
+/**
+ * Toca o alarme.
+ * 'foco'  -> toque de gol: três notas subindo, repetidas.
+ * 'pausa' -> chamada de volta: duas notas curtas, mais secas.
+ */
+function alarme(tipo) {
+  if (!garanteAudio()) return;
+  if (tipo === 'foco') {
+    const seq = [523.25, 659.25, 783.99, 1046.5];
+    seq.forEach((f, i) => nota(f, i * 0.16, 0.30, 0.32));
+    seq.forEach((f, i) => nota(f, 0.95 + i * 0.16, 0.30, 0.28));
+  } else {
+    nota(659.25, 0.00, 0.22, 0.28);
+    nota(523.25, 0.28, 0.30, 0.26);
+  }
+}
+
+/** Vibração, quando o aparelho tiver. */
+function vibra(padrao) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(padrao);
+  } catch (erro) { /* sem vibração, segue o jogo */ }
+}
+
+/* ==================== 6. WAKE LOCK (TELA ACESA) ====================
+   Mantém a tela do tablet acesa durante o bloco, quando o navegador
+   suportar. Sem suporte, o app funciona igual — o timer é por relógio.
+   ================================================================== */
+
+let travaTela = null;
+
+async function pedeTravaTela() {
+  if (!('wakeLock' in navigator) || travaTela) return;
+  try {
+    travaTela = await navigator.wakeLock.request('screen');
+    travaTela.addEventListener('release', () => { travaTela = null; });
+  } catch (erro) {
+    travaTela = null;   // negado ou bateria fraca: sem drama
+  }
+}
+
+async function soltaTravaTela() {
+  try { if (travaTela) await travaTela.release(); } catch (erro) { /* ignora */ }
+  travaTela = null;
+}
+
+/* ========================= 7. MOTOR DO TIMER =========================
+   Regra de ouro: o tempo vem SEMPRE de Date.now(), nunca de contagem de
+   ticks. O setInterval só redesenha a tela. Com o tablet bloqueado ou o
+   app em segundo plano o relógio segue certo, e ao voltar o app acerta
+   tudo — inclusive fecha um bloco que terminou enquanto estava fora.
+   =================================================================== */
+
+let intervaloDesenho = null;
+
+/** Milissegundos já rodados do bloco atual, descontando o tempo pausado. */
+function decorridoMs(t) {
+  const agora = t.pausadoEm || Date.now();
+  return Math.max(0, agora - t.inicio - t.pausaAcum);
+}
+
+/** Milissegundos que faltam. */
+function restanteMs(t) {
+  return t.duracaoMs - decorridoMs(t);
+}
+
+function duracaoPadraoMs() {
+  return estado.prefs.duracao * 60000;
+}
+
+function timerRodando() {
+  return !!(estado.timer && !estado.timer.pausadoEm);
+}
+
+/** Começa um bloco de foco ou uma pausa. */
+function comecaBloco(modo, minutos, assunto) {
+  const ciclo = cicloAtivo();
+  estado.timer = {
+    modo: modo,                       // 'foco' | 'pausa'
+    duracaoMs: minutos * 60000,
+    assunto: modo === 'foco' ? (assunto || 'Estudo') : 'Pausa',
+    inicio: Date.now(),
+    pausadoEm: null,
+    pausaAcum: 0,
+    cicloId: ciclo ? ciclo.id : null,
+    cicloNome: ciclo ? ciclo.nome : null
+  };
+  salvaEstado();
+  garanteAudio();                     // aproveita o toque do usuário
+  pedeTravaTela();
+  ligaDesenho();
+  desenhaTimer();
+
+  if (modo === 'foco') {
+    avisa('Em campo', fala('iniciaBloco', {
+      assunto: estado.timer.assunto, min: fmtDuracao(minutos)
+    }));
+  }
+}
+
+function pausaTimer() {
+  if (!estado.timer || estado.timer.pausadoEm) return;
+  estado.timer.pausadoEm = Date.now();
+  salvaEstado();
+  soltaTravaTela();
+  desenhaTimer();
+}
+
+function retomaTimer() {
+  const t = estado.timer;
+  if (!t || !t.pausadoEm) return;
+  t.pausaAcum += Date.now() - t.pausadoEm;
+  t.pausadoEm = null;
+  salvaEstado();
+  garanteAudio();
+  pedeTravaTela();
+  ligaDesenho();
+  desenhaTimer();
+}
+
+/** Zera: descarta o bloco atual sem registrar nada. */
+function zeraTimer() {
+  estado.timer = null;
+  salvaEstado();
+  soltaTravaTela();
+  desligaDesenho();
+  desenhaTimer();
+  atualizaTudo();
+}
+
+/**
+ * Pula o bloco.
+ * No foco, o tempo já rodado (a partir de 1 minuto) vira registro: é
+ * duração real, não duração planejada.
+ */
+function pulaBloco() {
+  const t = estado.timer;
+  if (!t) return;
+
+  if (t.modo === 'pausa') {
+    estado.timer = null;
+    salvaEstado();
+    soltaTravaTela();
+    desligaDesenho();
+    desenhaTimer();
+    atualizaTudo();
+    return;
+  }
+
+  const minutos = Math.floor(decorridoMs(t) / 60000);
+  const inicio = t.inicio;
+  estado.timer = null;
+  soltaTravaTela();
+  desligaDesenho();
+
+  if (minutos >= 1) {
+    fechaBlocoDeFoco(inicio, Date.now(), minutos, t.assunto, t.cicloId, t.cicloNome, true);
+  } else {
+    salvaEstado();
+    desenhaTimer();
+    atualizaTudo();
+  }
+}
+
+/** Chamado quando o relógio chega a zero. */
+function terminaBloco(silencioso) {
+  const t = estado.timer;
+  if (!t) return;
+  const fimReal = t.inicio + t.pausaAcum + t.duracaoMs;
+
+  if (t.modo === 'foco') {
+    estado.timer = null;
+    soltaTravaTela();
+    desligaDesenho();
+    fechaBlocoDeFoco(t.inicio, fimReal, Math.round(t.duracaoMs / 60000),
+                     t.assunto, t.cicloId, t.cicloNome, false, silencioso);
+  } else {
+    estado.timer = null;
+    salvaEstado();
+    soltaTravaTela();
+    desligaDesenho();
+    desenhaTimer();
+    atualizaTudo();
+    if (!silencioso) { alarme('pausa'); vibra([200, 100, 200]); }
+    abreModal({
+      titulo: 'Fim da pausa',
+      frase: fala('fimPausa'),
+      detalhe: 'Cinco minutos pagos. Escolhe o próximo assunto e volta pro jogo.',
+      botoes: [{ texto: 'Bora', tipo: 'bt-azul', acao: fechaModal }]
+    });
+  }
+}
+
+/**
+ * Registra o bloco no histórico e cuida do que vem junto:
+ * alarme, recordes, marcos e a tela de bloco concluído.
+ */
+function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, parcial, silencioso) {
+  const antes = { recordes: Object.assign({}, estado.recordes) };
+
+  estado.blocos.push({
+    id: idNovo(),
+    inicio: inicio,
+    fim: fim,
+    minutos: minutos,
+    assunto: assunto || 'Estudo',
+    cicloId: cicloId || null,
+    cicloNome: cicloNome || null
+  });
+  salvaEstado();
+
+  if (!silencioso) { alarme('foco'); vibra([300, 120, 300, 120, 500]); }
+
+  const quebrados = atualizaRecordes(antes.recordes);
+  const marcosNovos = verificaMarcos();
+
+  desenhaTimer();
+  atualizaTudo();
+
+  abreModal({
+    titulo: parcial ? 'Bloco encerrado antes' : fmtDuracao(minutos) + ' de foco',
+    frase: fala('concluiBloco', { min: fmtDuracao(minutos), assunto: assunto }),
+    detalhe: fmtDuracao(minutos) + ' em ' + escapaHTML(assunto) +
+             (cicloNome ? ' — ' + escapaHTML(cicloNome) : '') +
+             '. Hoje: ' + fmtDuracao(minutosDoDia(chaveHoje())) + '.',
+    botoes: [
+      { texto: 'Pausa de 5 min', tipo: 'bt-azul', acao: () => { fechaModal(); comecaBloco('pausa', PAUSA_MIN); } },
+      { texto: 'Direto pro próximo', tipo: '', acao: () => { fechaModal(); vaiPara('foco'); $('#campoAssunto').focus(); } }
+    ]
+  });
+
+  quebrados.forEach((texto) => avisa('Recorde', fala('recorde') + ' ' + texto, true));
+  marcosNovos.forEach((h) => avisa('Marco', fala('marco', { h: h }), true));
+}
+
+function ligaDesenho() {
+  if (intervaloDesenho) return;
+  intervaloDesenho = setInterval(desenhaTimer, 250);
+}
+function desligaDesenho() {
+  clearInterval(intervaloDesenho);
+  intervaloDesenho = null;
+}
+
+/**
+ * Retoma o estado do timer ao abrir o app.
+ * Se o bloco terminou enquanto o app estava fechado, ele é fechado agora
+ * com o horário real de término — nada de tempo perdido.
+ */
+function retomaTimerSalvo() {
+  const t = estado.timer;
+  if (!t) return;
+  if (restanteMs(t) <= 0) {
+    terminaBloco(true);               // sem alarme: já passou faz tempo
+    return;
+  }
+  if (!t.pausadoEm) { ligaDesenho(); pedeTravaTela(); }
+}
+
+/* ========================= 8. ESTATÍSTICAS ==========================
+   Tudo é calculado a partir da lista de blocos — não existe número
+   guardado que possa ficar dessincronizado do histórico.
+   =================================================================== */
+
+/** Mapa {'AAAA-MM-DD': minutos} de uma lista de blocos. */
+function mapaMinutos(blocos) {
+  const mapa = {};
+  (blocos || estado.blocos).forEach((b) => {
+    const chave = chaveDia(b.fim || b.inicio);
+    mapa[chave] = (mapa[chave] || 0) + b.minutos;
+  });
+  return mapa;
+}
+
+function minutosDoDia(chave) {
+  return estado.blocos.reduce((soma, b) => (
+    chaveDia(b.fim || b.inicio) === chave ? soma + b.minutos : soma
+  ), 0);
+}
+
+function blocosDoDia(chave) {
+  return estado.blocos
+    .filter((b) => chaveDia(b.fim || b.inicio) === chave)
+    .sort((a, b) => (b.fim || b.inicio) - (a.fim || a.inicio));
+}
+
+function totalMinutos() {
+  return estado.blocos.reduce((soma, b) => soma + b.minutos, 0);
+}
+
+/** Dias com pelo menos um bloco, em ordem. */
+function diasComEstudo(mapa) {
+  return Object.keys(mapa || mapaMinutos()).sort();
+}
+
+/** Maior sequência de dias seguidos com pelo menos um bloco. */
+function maiorSequencia(mapa) {
+  const dias = diasComEstudo(mapa);
+  let melhor = 0, atual = 0, anterior = null;
+  dias.forEach((d) => {
+    atual = (anterior && diasEntre(anterior, d) === 1) ? atual + 1 : 1;
+    if (atual > melhor) melhor = atual;
+    anterior = d;
+  });
+  return melhor;
+}
+
+/** Sequência viva: conta se o último dia estudado é hoje ou ontem. */
+function sequenciaAtual(mapa) {
+  mapa = mapa || mapaMinutos();
+  const dias = diasComEstudo(mapa);
+  if (!dias.length) return 0;
+  const ultimo = dias[dias.length - 1];
+  const distancia = diasEntre(ultimo, chaveHoje());
+  if (distancia > 1) return 0;
+  let conta = 1, cursor = ultimo;
+  while (mapa[chaveMais(cursor, -1)]) { conta++; cursor = chaveMais(cursor, -1); }
+  return conta;
+}
+
+/** Melhor dia: {chave, minutos}. */
+function melhorDia(mapa) {
+  mapa = mapa || mapaMinutos();
+  let melhor = { chave: null, minutos: 0 };
+  Object.keys(mapa).forEach((d) => {
+    if (mapa[d] > melhor.minutos) melhor = { chave: d, minutos: mapa[d] };
+  });
+  return melhor;
+}
+
+/** Melhor semana: melhor janela de 7 dias seguidos. */
+function melhorSemana(mapa) {
+  mapa = mapa || mapaMinutos();
+  const dias = diasComEstudo(mapa);
+  if (!dias.length) return { fim: null, minutos: 0 };
+  let melhor = { fim: null, minutos: 0 };
+  const ultimo = chaveHoje();
+  let cursor = dias[0];
+  while (diasEntre(cursor, ultimo) >= 0) {
+    let soma = 0;
+    for (let i = 0; i < 7; i++) soma += mapa[chaveMais(cursor, i)] || 0;
+    if (soma > melhor.minutos) melhor = { fim: chaveMais(cursor, 6), minutos: soma };
+    cursor = chaveMais(cursor, 1);
+  }
+  return melhor;
+}
+
+/**
+ * Recalcula os recordes e devolve a lista dos que foram batidos agora.
+ * Só avisa quando havia uma marca anterior — no primeiro bloco da vida
+ * não faz sentido dizer que um recorde caiu.
+ */
+function atualizaRecordes(antes) {
+  const mapa = mapaMinutos();
+  const novos = {
+    dia: melhorDia(mapa).minutos,
+    semana: melhorSemana(mapa).minutos,
+    sequencia: maiorSequencia(mapa)
+  };
+  const quebrados = [];
+  if (antes.dia > 0 && novos.dia > antes.dia) {
+    quebrados.push('Melhor dia agora é ' + fmtDuracao(novos.dia) + '.');
+  }
+  if (antes.semana > 0 && novos.semana > antes.semana) {
+    quebrados.push('Melhor semana agora é ' + fmtDuracao(novos.semana) + '.');
+  }
+  if (antes.sequencia > 0 && novos.sequencia > antes.sequencia) {
+    quebrados.push('Sequência de ' + novos.sequencia + ' dias seguidos.');
+  }
+  estado.recordes = novos;
+  salvaEstado();
+  return quebrados;
+}
+
+/** Marcos do contador vitalício alcançados agora. */
+function verificaMarcos() {
+  const horas = totalMinutos() / 60;
+  const novos = [];
+  MARCOS.forEach((m) => {
+    if (horas >= m && estado.marcosVistos.indexOf(m) === -1) {
+      estado.marcosVistos.push(m);
+      novos.push(m);
+    }
+  });
+  if (novos.length) salvaEstado();
+  return novos;
+}
+
+/**
+ * Acerta recordes e marcos sem avisar nada. Usado ao abrir o app e depois
+ * de uma importação, pra não disparar comemoração de coisa antiga.
+ */
+function sincronizaMarcasEmSilencio() {
+  const mapa = mapaMinutos();
+  estado.recordes = {
+    dia: melhorDia(mapa).minutos,
+    semana: melhorSemana(mapa).minutos,
+    sequencia: maiorSequencia(mapa)
+  };
+  const horas = totalMinutos() / 60;
+  estado.marcosVistos = MARCOS.filter((m) => horas >= m);
+  salvaEstado();
+}
+
+/* ---- Estatísticas de um ciclo ---- */
+
+function blocosDoCiclo(ciclo) {
+  return estado.blocos.filter((b) => b.cicloId === ciclo.id);
+}
+
+/** Números de um ciclo: horas, dias ativos, maior sequência, blocos. */
+function estatCiclo(ciclo) {
+  if (ciclo.congelado) return ciclo.congelado;
+  const blocos = blocosDoCiclo(ciclo);
+  const mapa = mapaMinutos(blocos);
+  return {
+    minutos: blocos.reduce((s, b) => s + b.minutos, 0),
+    blocos: blocos.length,
+    diasAtivos: Object.keys(mapa).length,
+    maiorSequencia: maiorSequencia(mapa)
+  };
+}
+
+/**
+ * Minutos acumulados por dia do ciclo (índice 0 = primeiro dia).
+ * O array vai até o último dia decorrido, para o gráfico de comparação.
+ */
+function acumuladoDoCiclo(ciclo) {
+  const mapa = mapaMinutos(blocosDoCiclo(ciclo));
+  const fim = ciclo.fimReal || chaveHoje();
+  const total = Math.max(0, diasEntre(ciclo.inicio, fim));
+  const serie = [];
+  let soma = 0;
+  for (let i = 0; i <= total; i++) {
+    soma += mapa[chaveMais(ciclo.inicio, i)] || 0;
+    serie.push(soma);
+  }
+  return serie;
+}
+
+/* ======================= 9. TELAS E DESENHO ======================= */
+
+/* ---------- Modal ---------- */
+
+function abreModal(cfg) {
+  $('#modalTitulo').textContent = cfg.titulo || '';
+  $('#modalFrase').textContent = cfg.frase || '';
+  $('#modalDetalhe').innerHTML = cfg.detalhe || '';
+  const caixa = $('#modalBotoes');
+  caixa.innerHTML = '';
+  (cfg.botoes || []).forEach((b) => {
+    const bt = document.createElement('button');
+    bt.className = 'bt ' + (b.tipo || '');
+    bt.textContent = b.texto;
+    bt.addEventListener('click', b.acao);
+    caixa.appendChild(bt);
+  });
+  $('#modal').classList.remove('oculto');
+}
+
+function fechaModal() {
+  $('#modal').classList.add('oculto');
+}
+
+/* ---------- Avisos flutuantes ---------- */
+
+function avisa(rotulo, texto, brilho) {
+  const el = document.createElement('div');
+  el.className = 'aviso' + (brilho ? ' brilho' : '');
+  el.innerHTML = '<b>' + escapaHTML(rotulo) + '</b>' + escapaHTML(texto);
+  $('#toaster').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; }, brilho ? 7000 : 4200);
+  setTimeout(() => el.remove(), brilho ? 7500 : 4700);
+}
+
+/* ---------- Timer ---------- */
+
+const CIRCUNFERENCIA = 2 * Math.PI * 88;
+
+function desenhaTimer() {
+  const t = estado.timer;
+
+  // Chegou a zero enquanto o app estava aberto (ou voltou do segundo plano)
+  if (t && !t.pausadoEm && restanteMs(t) <= 0) { terminaBloco(false); return; }
+
+  const total = t ? t.duracaoMs : duracaoPadraoMs();
+  const restante = t ? Math.max(0, restanteMs(t)) : total;
+  const seg = Math.ceil(restante / 1000);
+
+  $('#tempoTexto').textContent = doisDig(Math.floor(seg / 60)) + ':' + doisDig(seg % 60);
+
+  const arco = $('#arcoProgresso');
+  arco.style.strokeDasharray = CIRCUNFERENCIA;
+  arco.style.strokeDashoffset = CIRCUNFERENCIA * (1 - (total ? restante / total : 0));
+
+  const anel = $('#anel');
+  anel.classList.toggle('pausa', !!t && t.modo === 'pausa');
+
+  const rotulo = $('#modoRotulo');
+  if (!t) rotulo.textContent = 'Pronto';
+  else if (t.pausadoEm) rotulo.textContent = t.modo === 'foco' ? 'Foco parado' : 'Pausa parada';
+  else rotulo.textContent = t.modo === 'foco' ? 'Foco' : 'Pausa';
+  rotulo.classList.toggle('piscando', !!(t && t.pausadoEm));
+
+  const assunto = $('#assuntoAtual');
+  if (t && t.modo === 'foco') assunto.textContent = t.assunto;
+  else if (t) assunto.textContent = 'Respira, Davi';
+  else assunto.textContent = $('#campoAssunto').value.trim() || 'Escolhe o assunto';
+
+  const principal = $('#btPrincipal');
+  if (!t) principal.textContent = 'Começar';
+  else if (t.pausadoEm) principal.textContent = 'Retomar';
+  else principal.textContent = 'Pausar';
+
+  $('#btZerar').disabled = !t;
+  $('#btPular').disabled = !t;
+
+  document.title = t && !t.pausadoEm
+    ? $('#tempoTexto').textContent + ' — Copeiro'
+    : 'Copeiro — Pomodoro do Davi';
+}
+
+/* ---------- Saudação (varia com a hora e com o dia) ---------- */
+
+function faixaDoDia() {
+  const h = new Date().getHours();
+  if (h < 5) return 'madrugada';
+  if (h < 12) return 'manha';
+  if (h < 18) return 'tarde';
+  return 'noite';
+}
+
+function desenhaSaudacao() {
+  const mapa = mapaMinutos();
+  const hoje = mapa[chaveHoje()] || 0;
+  const dias = diasComEstudo(mapa);
+  let texto;
+  if (hoje > 0) {
+    texto = fala('jaEstudouHoje', { min: fmtDuracao(hoje) });
+  } else if (dias.length && diasEntre(dias[dias.length - 1], chaveHoje()) >= 3) {
+    texto = fala('retomada');          // volta depois de dias parados: nunca cobrança
+  } else {
+    texto = fala(faixaDoDia());
+  }
+  $('#saudacao').textContent = texto;
+}
+
+/* ---------- Cabeçalho ---------- */
+
+function desenhaCabecalho() {
+  const ciclo = cicloAtivo();
+  const el = $('#infoCabecalho');
+  if (!ciclo) {
+    el.innerHTML = 'Sem campanha aberta<br>Cadastra o ciclo na Estante';
+    return;
+  }
+  const dia = Math.max(1, diasEntre(ciclo.inicio, chaveHoje()) + 1);
+  const total = Math.max(dia, diasEntre(ciclo.inicio, ciclo.fimPrevisto) + 1);
+  const est = estatCiclo(ciclo);
+  el.innerHTML = '<b>' + escapaHTML(ciclo.nome) + '</b><br>dia ' + dia + ' de ' + total +
+                 ' — ' + fmtHoras(est.minutos) + ' na campanha';
+}
+
+/* ---------- Tela Foco ---------- */
+
+function desenhaFoco() {
+  const mapa = mapaMinutos();
+  const hoje = mapa[chaveHoje()] || 0;
+  const blocosHoje = blocosDoDia(chaveHoje()).length;
+  $('#hojeMin').textContent = hoje;
+  $('#hojeBlocos').textContent = blocosHoje;
+  $('#hojeSeq').textContent = sequenciaAtual(mapa);
+  $('#fraseHoje').textContent = hoje
+    ? fmtDuracao(hoje) + ' copados hoje, em ' + blocosHoje + (blocosHoje === 1 ? ' bloco.' : ' blocos.')
+    : 'Placar zerado. O primeiro bloco abre o jogo.';
+
+  // Fichas de duração
+  $$('#fichasDuracao .ficha').forEach((f) => {
+    f.classList.toggle('ativa', Number(f.dataset.min) === estado.prefs.duracao);
+  });
+
+  desenhaAssuntos();
+}
+
+/** Autocompletar do ciclo atual + atalhos para os 5 últimos assuntos. */
+function desenhaAssuntos() {
+  const ciclo = cicloAtivo();
+  const doCiclo = ciclo ? blocosDoCiclo(ciclo) : estado.blocos;
+
+  // Lista do autocompletar: assuntos do ciclo atual, do mais recente ao mais antigo
+  const vistos = [];
+  doCiclo.slice().sort((a, b) => (b.fim || b.inicio) - (a.fim || a.inicio)).forEach((b) => {
+    if (b.assunto && vistos.indexOf(b.assunto) === -1) vistos.push(b.assunto);
+  });
+  $('#listaAssuntos').innerHTML = vistos
+    .map((a) => '<option value="' + escapaHTML(a) + '"></option>').join('');
+
+  // Atalhos: os 5 últimos
+  const caixa = $('#assuntosRecentes');
+  caixa.innerHTML = '';
+  vistos.slice(0, 5).forEach((a) => {
+    const bt = document.createElement('button');
+    bt.className = 'ficha ficha-assunto';
+    bt.textContent = a;
+    bt.addEventListener('click', () => {
+      $('#campoAssunto').value = a;
+      desenhaTimer();
+    });
+    caixa.appendChild(bt);
+  });
+  if (!vistos.length) {
+    caixa.innerHTML = '<span class="vazio">Os assuntos que tu usar neste ciclo aparecem aqui.</span>';
+  }
+}
+
+/* ---------- Tela Histórico ---------- */
+
+let quantosMostrar = 30;
+
+function desenhaHistorico() {
+  // Hoje
+  const doDia = blocosDoDia(chaveHoje());
+  const minHoje = doDia.reduce((s, b) => s + b.minutos, 0);
+  $('#resumoHoje').textContent = doDia.length
+    ? fmtDuracao(minHoje) + ' em ' + doDia.length + (doDia.length === 1 ? ' bloco' : ' blocos')
+    : 'Nenhum bloco hoje ainda.';
+  $('#listaHoje').innerHTML = doDia.length ? doDia.map((b) => (
+    '<li><span class="hora">' + horaDoDia(b.fim || b.inicio) + '</span>' +
+    '<span class="assunto">' + escapaHTML(b.assunto) + '</span>' +
+    '<span class="dur">' + fmtDuracao(b.minutos) + '</span></li>'
+  )).join('') : '<li class="vazio">A lista de hoje começa no próximo bloco.</li>';
+
+  desenhaSemana();
+  desenhaListaTudo();
+}
+
+function desenhaSemana() {
+  const mapa = mapaMinutos();
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    const chave = chaveMais(chaveHoje(), -i);
+    dias.push({ chave: chave, min: mapa[chave] || 0 });
+  }
+  const maximo = Math.max(60, ...dias.map((d) => d.min));
+  const soma = dias.reduce((s, d) => s + d.min, 0);
+  const nomes = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+
+  $('#resumoSemana').textContent = soma
+    ? fmtDuracao(soma) + ' nos últimos 7 dias — média de ' + fmtDuracao(soma / 7) + ' por dia.'
+    : 'Semana ainda em branco. Um bloco já muda isso.';
+
+  $('#graficoSemana').innerHTML = dias.map((d) => {
+    const alt = Math.round((d.min / maximo) * 100);
+    const ehHoje = d.chave === chaveHoje();
+    const data = dataDaChave(d.chave);
+    return '<div class="dia' + (ehHoje ? ' hoje' : '') + '">' +
+      '<span class="valor">' + (d.min || '') + '</span>' +
+      '<div class="barra-caixa"><div class="barra" style="height:' + alt + '%"></div></div>' +
+      '<small>' + nomes[data.getDay()] + '<br>' + data.getDate() + '</small>' +
+      '</div>';
+  }).join('');
+}
+
+function desenhaListaTudo() {
+  const todos = estado.blocos.slice().sort((a, b) => (b.fim || b.inicio) - (a.fim || a.inicio));
+  const mostrados = todos.slice(0, quantosMostrar);
+
+  $('#resumoTudo').textContent = todos.length
+    ? todos.length + (todos.length === 1 ? ' bloco registrado — ' : ' blocos registrados — ') + fmtHoras(totalMinutos()) + ' no total.'
+    : 'Nada registrado ainda.';
+
+  let ultimoDia = null;
+  $('#listaTudo').innerHTML = mostrados.length ? mostrados.map((b) => {
+    const chave = chaveDia(b.fim || b.inicio);
+    let cabeca = '';
+    if (chave !== ultimoDia) {
+      ultimoDia = chave;
+      cabeca = '<li style="border-bottom:0;padding-bottom:2px"><b style="font-size:.82rem;letter-spacing:1px;text-transform:uppercase;color:#5C6E80">' +
+               dataCurta(chave) + ' · ' + fmtDuracao(minutosDoDia(chave)) + '</b></li>';
+    }
+    return cabeca +
+      '<li><span class="hora">' + horaDoDia(b.fim || b.inicio) + '</span>' +
+      '<span class="assunto">' + escapaHTML(b.assunto) +
+      (b.cicloNome ? '<br><span class="ciclo">' + escapaHTML(b.cicloNome) + '</span>' : '') +
+      '</span><span class="dur">' + fmtDuracao(b.minutos) + '</span>' +
+      '<button class="bt-apagar" data-apagar="' + b.id + '" title="Apagar registro">✕</button></li>';
+  }).join('') : '<li class="vazio">O histórico completo aparece aqui.</li>';
+
+  $('#btMaisRegistros').classList.toggle('oculto', todos.length <= quantosMostrar);
+}
+
+/* ---------- Tela Progresso ---------- */
+
+function desenhaProgresso() {
+  const mapa = mapaMinutos();
+  const total = totalMinutos();
+
+  // Contador vitalício
+  $('#vitalicioHoras').textContent = fmtHoras(total);
+  $('#vitalicioBlocos').textContent = estado.blocos.length;
+  $('#vitalicioDias').textContent = Object.keys(mapa).length;
+
+  $('#marcos').innerHTML = MARCOS.map((m) => (
+    '<span class="marco' + (total / 60 >= m ? ' batido' : '') + '">' + m + 'h</span>'
+  )).join('');
+
+  const proximo = MARCOS.find((m) => total / 60 < m);
+  $('#proximoMarco').textContent = proximo
+    ? 'Faltam ' + fmtHoras(proximo * 60 - total) + ' pro marco de ' + proximo + 'h.'
+    : 'Todos os marcos batidos, Davi. O contador segue somando.';
+
+  desenhaComparacao();
+  desenhaMapaCalor(mapa);
+
+  // Recordes
+  const md = melhorDia(mapa), ms = melhorSemana(mapa);
+  $('#recDia').textContent = md.minutos;
+  $('#recSemana').textContent = ms.minutos;
+  $('#recSeq').textContent = maiorSequencia(mapa);
+  const partes = [];
+  if (md.chave) partes.push('Melhor dia: ' + fmtDuracao(md.minutos) + ' em ' + dataCurta(md.chave) + '.');
+  if (ms.fim) partes.push('Melhor semana: ' + fmtDuracao(ms.minutos) + ', até ' + dataCurta(ms.fim) + '.');
+  const seqViva = sequenciaAtual(mapa);
+  if (seqViva) partes.push('Sequência viva: ' + seqViva + (seqViva === 1 ? ' dia.' : ' dias.'));
+  $('#recDetalhe').textContent = partes.join(' ') || 'As marcas aparecem depois do primeiro bloco.';
+}
+
+/** Mapa de calor anual: um quadradinho por dia, mais escuro = mais minutos. */
+function desenhaMapaCalor(mapa) {
+  mapa = mapa || mapaMinutos();
+  const hoje = chaveHoje();
+  const diaSemanaHoje = dataDaChave(hoje).getDay();
+  const primeiro = chaveMais(hoje, -(52 * 7 + diaSemanaHoje));  // domingo, 53 semanas atrás
+
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const celulas = [];
+  const rotulos = [];
+  let mesAnterior = -1;
+  let minutosAno = 0;
+
+  for (let semana = 0; semana < 53; semana++) {
+    const primeiroDaSemana = dataDaChave(chaveMais(primeiro, semana * 7));
+    const mes = primeiroDaSemana.getMonth();
+    rotulos.push('<span>' + (mes !== mesAnterior ? meses[mes] : '') + '</span>');
+    mesAnterior = mes;
+
+    for (let d = 0; d < 7; d++) {
+      const chave = chaveMais(primeiro, semana * 7 + d);
+      if (diasEntre(chave, hoje) < 0) { celulas.push('<i class="futuro"></i>'); continue; }
+      const min = mapa[chave] || 0;
+      minutosAno += min;
+      let nivel = '';
+      if (min >= 150) nivel = 'n5';
+      else if (min >= 90) nivel = 'n4';
+      else if (min >= 50) nivel = 'n3';
+      else if (min >= 25) nivel = 'n2';
+      else if (min > 0) nivel = 'n1';
+      celulas.push('<i class="' + nivel + '" title="' + dataCurta(chave) + ' — ' +
+                   (min ? fmtDuracao(min) : 'nada') + '"></i>');
+    }
+  }
+
+  // A grade é preenchida por coluna (uma coluna = uma semana)
+  const mapaEl = $('#mapaCalor');
+  mapaEl.style.gridTemplateColumns = 'repeat(53, 14px)';
+  mapaEl.innerHTML = celulas.join('');
+  const mesesEl = $('#mesesCalor');
+  mesesEl.style.gridTemplateColumns = 'repeat(53, 14px)';
+  mesesEl.innerHTML = rotulos.join('');
+
+  $('#resumoCalor').textContent = fmtHoras(minutosAno) + ' nos últimos 12 meses.';
+}
+
+/**
+ * Comparação em tempo real com o ciclo anterior: duas curvas de horas
+ * acumuladas sobrepostas, e a diferença "nesta altura da campanha".
+ */
+function desenhaComparacao() {
+  const canvas = $('#canvasComparacao');
+  const atual = cicloAtivo();
+  const anteriores = ciclosEncerrados();
+  const anterior = anteriores[0] || null;
+  const ctx = canvas.getContext('2d');
+
+  // Canvas escondido tem largura zero: desenha quando a tela aparecer
+  const larguraCSS = canvas.clientWidth;
+  if (!larguraCSS) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(larguraCSS * dpr);
+  canvas.height = Math.round(canvas.clientHeight * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, larguraCSS, canvas.clientHeight);
+
+  const resumo = $('#comparacaoResumo');
+  if (!atual) {
+    resumo.textContent = 'Cadastra o ciclo atual na Estante pra ligar a comparação.';
+    desenhaEixoVazio(ctx, larguraCSS, canvas.clientHeight, 'Sem campanha em andamento');
+    return;
+  }
+
+  const serieAtual = acumuladoDoCiclo(atual);
+  const serieAnterior = anterior ? acumuladoDoCiclo(anterior) : [];
+  const diaAtual = serieAtual.length;                       // 1 = primeiro dia
+  const diasPrevistos = Math.max(diaAtual, diasEntre(atual.inicio, atual.fimPrevisto) + 1);
+  const horasAtual = serieAtual[serieAtual.length - 1] || 0;
+
+  let texto = 'Dia ' + diaAtual + ' de ' + diasPrevistos + ' — ' + fmtHoras(horasAtual) + ' estudadas';
+  if (anterior && serieAnterior.length) {
+    const alturaAnterior = serieAnterior[Math.min(diaAtual, serieAnterior.length) - 1] || 0;
+    const dif = horasAtual - alturaAnterior;
+    texto += dif >= 0
+      ? ', ' + fmtHoras(Math.abs(dif)) + ' à frente do ciclo anterior nesta altura.'
+      : ', ' + fmtHoras(Math.abs(dif)) + ' atrás do ciclo anterior nesta altura.';
+  } else {
+    texto += '. O primeiro ciclo é a régua: o próximo compara com este.';
+  }
+  resumo.textContent = texto;
+
+  // ---- Desenho ----
+  const L = larguraCSS, A = canvas.clientHeight;
+  const mE = 46, mD = 12, mT = 14, mB = 26;
+  const largura = L - mE - mD, altura = A - mT - mB;
+  const maxDias = Math.max(diasPrevistos, serieAnterior.length, 2);
+  const maxMin = Math.max(60, ...serieAtual, ...serieAnterior);
+
+  const px = (i) => mE + (i / (maxDias - 1)) * largura;
+  const py = (m) => mT + altura - (m / maxMin) * altura;
+
+  // Grade e rótulos
+  ctx.strokeStyle = '#E1E8EF';
+  ctx.fillStyle = '#5C6E80';
+  ctx.font = '11px system-ui, sans-serif';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = mT + (altura / 4) * i;
+    ctx.beginPath(); ctx.moveTo(mE, y); ctx.lineTo(L - mD, y); ctx.stroke();
+    ctx.fillText(fmtHoras(maxMin * (1 - i / 4)), 4, y + 4);
+  }
+  ctx.fillText('dia 1', mE, A - 8);
+  ctx.fillText('dia ' + maxDias, L - mD - 40, A - 8);
+
+  const linha = (serie, cor, grossura, tracejada) => {
+    if (serie.length < 2) return;
+    ctx.beginPath();
+    ctx.strokeStyle = cor;
+    ctx.lineWidth = grossura;
+    ctx.setLineDash(tracejada ? [5, 5] : []);
+    serie.forEach((m, i) => (i ? ctx.lineTo(px(i), py(m)) : ctx.moveTo(px(i), py(m))));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  linha(serieAnterior, '#111111', 2, true);
+  linha(serieAtual, '#0D80BF', 3, false);
+
+  // Ponto de hoje
+  if (serieAtual.length) {
+    ctx.fillStyle = '#0D80BF';
+    ctx.beginPath();
+    ctx.arc(px(serieAtual.length - 1), py(serieAtual[serieAtual.length - 1]), 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function desenhaEixoVazio(ctx, L, A, texto) {
+  ctx.fillStyle = '#5C6E80';
+  ctx.font = '13px system-ui, sans-serif';
+  ctx.fillText(texto, 12, A / 2);
+}
+
+/* ---------- Tela Estante ---------- */
+
+function desenhaEstante() {
+  const ciclo = cicloAtivo();
+  const numeros = $('#cicloNumeros');
+
+  if (ciclo) {
+    const est = estatCiclo(ciclo);
+    const dia = Math.max(1, diasEntre(ciclo.inicio, chaveHoje()) + 1);
+    const total = Math.max(dia, diasEntre(ciclo.inicio, ciclo.fimPrevisto) + 1);
+    const faseFinal = dia > total * 0.75;
+    $('#cicloResumo').textContent = ciclo.nome + ' — dia ' + dia + ' de ' + total +
+      (faseFinal ? '. Reta final: é decisão.' : '. Fase de grupos rolando.');
+    $('#btEncerrarCiclo').classList.remove('oculto');
+    numeros.classList.remove('oculto');
+    numeros.innerHTML =
+      '<div class="numero destaque"><b>' + fmtHoras(est.minutos) + '</b><span>horas no ciclo</span></div>' +
+      '<div class="numero"><b>' + est.blocos + '</b><span>blocos</span></div>' +
+      '<div class="numero"><b>' + est.diasAtivos + '</b><span>dias ativos</span></div>' +
+      '<div class="numero"><b>' + est.maiorSequencia + '</b><span>maior sequência</span></div>';
+  } else {
+    $('#cicloResumo').textContent = 'Nenhuma campanha aberta. Cadastra o ciclo pra ligar as estatísticas.';
+    $('#btEncerrarCiclo').classList.add('oculto');
+    numeros.classList.add('oculto');
+  }
+
+  // Preenche o formulário com o ciclo em andamento
+  if (ciclo && document.activeElement !== $('#cicloNome')) {
+    $('#cicloNome').value = ciclo.nome;
+    $('#cicloInicio').value = ciclo.inicio;
+    $('#cicloFim').value = ciclo.fimPrevisto;
+  }
+
+  // Estante
+  const encerrados = ciclosEncerrados();
+  $('#estanteResumo').textContent = encerrados.length
+    ? encerrados.length + (encerrados.length === 1 ? ' campanha guardada.' : ' campanhas guardadas.') + ' Isso aqui não some nunca.'
+    : 'A estante tá esperando a primeira taça. Encerra um ciclo e ele fica aqui pra sempre.';
+
+  $('#estante').innerHTML = encerrados.map((c) => {
+    const e = estatCiclo(c);
+    return '<article class="trofeu">' +
+      '<h3>' + escapaHTML(c.nome) + '</h3>' +
+      '<p class="periodo">' + dataCurta(c.inicio) + ' → ' + dataCurta(c.fimReal) +
+      ' · ' + (diasEntre(c.inicio, c.fimReal) + 1) + ' dias</p>' +
+      '<div class="num-linha">' +
+        '<div><b>' + fmtHoras(e.minutos) + '</b><span>horas</span></div>' +
+        '<div><b>' + e.diasAtivos + '</b><span>dias ativos</span></div>' +
+        '<div><b>' + e.maiorSequencia + '</b><span>sequência</span></div>' +
+        '<div><b>' + e.blocos + '</b><span>blocos</span></div>' +
+      '</div>' +
+      '<div class="prateleira"></div>' +
+      '</article>';
+  }).join('');
+}
+
+/* ---------- Redesenha tudo ---------- */
+
+function atualizaTudo() {
+  desenhaCabecalho();
+  desenhaFoco();
+  desenhaHistorico();
+  desenhaProgresso();
+  desenhaEstante();
+}
+
+function vaiPara(nome) {
+  $$('#abas button').forEach((b) => b.classList.toggle('ativa', b.dataset.tela === nome));
+  $$('.tela').forEach((t) => t.classList.toggle('oculto', t.id !== 'tela-' + nome));
+  if (nome === 'progresso') desenhaComparacao();   // canvas precisa estar visível
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ===================== 10. EVENTOS E INÍCIO ===================== */
+
+/* ---- Abas ---- */
+$('#abas').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('button[data-tela]');
+  if (bt) vaiPara(bt.dataset.tela);
+});
+
+/* ---- Controles do timer ---- */
+$('#btPrincipal').addEventListener('click', () => {
+  const t = estado.timer;
+  if (!t) {
+    const assunto = $('#campoAssunto').value.trim() || 'Estudo livre';
+    comecaBloco('foco', estado.prefs.duracao, assunto);
+    desenhaAssuntos();
+  } else if (t.pausadoEm) {
+    retomaTimer();
+  } else {
+    pausaTimer();
+  }
+});
+
+$('#btZerar').addEventListener('click', () => {
+  if (!estado.timer) return;
+  abreModal({
+    titulo: 'Zerar o bloco?',
+    frase: 'O tempo deste bloco não vai pro histórico.',
+    detalhe: 'Se tu quer guardar o que já rodou, usa "Pular" no lugar.',
+    botoes: [
+      { texto: 'Zerar', tipo: 'bt-perigo', acao: () => { fechaModal(); zeraTimer(); } },
+      { texto: 'Deixa quieto', tipo: '', acao: fechaModal }
+    ]
+  });
+});
+
+$('#btPular').addEventListener('click', () => { pulaBloco(); });
+
+/* ---- Duração ---- */
+$('#fichasDuracao').addEventListener('click', (ev) => {
+  const f = ev.target.closest('.ficha');
+  if (!f) return;
+  estado.prefs.duracao = Number(f.dataset.min);
+  salvaEstado();
+  $$('#fichasDuracao .ficha').forEach((x) => x.classList.toggle('ativa', x === f));
+  if (!estado.timer) desenhaTimer();
+});
+
+/* ---- Assunto ---- */
+$('#campoAssunto').addEventListener('input', () => { if (!estado.timer) desenhaTimer(); });
+$('#campoAssunto').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') { ev.preventDefault(); $('#campoAssunto').blur(); $('#btPrincipal').click(); }
+});
+
+/* ---- Ciclo: salvar ---- */
+$('#btSalvarCiclo').addEventListener('click', () => {
+  const nome = $('#cicloNome').value.trim();
+  const inicio = $('#cicloInicio').value;
+  const fim = $('#cicloFim').value;
+
+  if (!nome || !inicio || !fim) {
+    avisa('Falta dado', 'Precisa de nome, início e fim previsto pra abrir a campanha.');
+    return;
+  }
+  if (diasEntre(inicio, fim) < 0) {
+    avisa('Datas trocadas', 'O fim previsto tem que vir depois do início.');
+    return;
+  }
+
+  const ativo = cicloAtivo();
+  if (ativo) {
+    ativo.nome = nome;
+    ativo.inicio = inicio;
+    ativo.fimPrevisto = fim;
+    // Mantém o nome do ciclo nos blocos já registrados
+    estado.blocos.forEach((b) => { if (b.cicloId === ativo.id) b.cicloNome = nome; });
+    avisa('Campanha', 'Ciclo atualizado, Davi.');
+  } else {
+    estado.ciclos.push({
+      id: idNovo(), nome: nome, inicio: inicio,
+      fimPrevisto: fim, fimReal: null, congelado: null
+    });
+    avisa('Campanha', 'Ciclo aberto. Bola rolando, Davi.');
+  }
+  salvaEstado();
+  atualizaTudo();
+});
+
+/* ---- Ciclo: encerrar (levantar a taça) ---- */
+$('#btEncerrarCiclo').addEventListener('click', () => {
+  const ciclo = cicloAtivo();
+  if (!ciclo) return;
+  const est = estatCiclo(ciclo);
+  abreModal({
+    titulo: 'Encerrar ' + ciclo.nome + '?',
+    frase: 'As estatísticas congelam e a campanha vai pra estante.',
+    detalhe: fmtHoras(est.minutos) + ' · ' + est.diasAtivos + ' dias ativos · maior sequência de ' +
+             est.maiorSequencia + '. Depois de encerrado, o ciclo não volta a receber blocos.',
+    botoes: [
+      { texto: 'Levantar a taça', tipo: 'bt-azul', acao: () => { fechaModal(); encerraCiclo(ciclo); } },
+      { texto: 'Ainda não', tipo: '', acao: fechaModal }
+    ]
+  });
+});
+
+function encerraCiclo(ciclo) {
+  const est = estatCiclo(ciclo);
+  ciclo.fimReal = chaveHoje();
+  ciclo.congelado = {                    // estatísticas congeladas no encerramento
+    minutos: est.minutos,
+    blocos: est.blocos,
+    diasAtivos: est.diasAtivos,
+    maiorSequencia: est.maiorSequencia
+  };
+  salvaEstado();
+  $('#cicloNome').value = '';
+  $('#cicloInicio').value = '';
+  $('#cicloFim').value = '';
+  atualizaTudo();
+  vaiPara('estante');
+  abreModal({
+    titulo: 'Taça na estante',
+    frase: fala('encerraCiclo', { nome: ciclo.nome }),
+    detalhe: fmtHoras(est.minutos) + ' em ' + est.diasAtivos + ' dias ativos. Fica guardado pra sempre.',
+    botoes: [{ texto: 'Fechar', tipo: 'bt-azul', acao: fechaModal }]
+  });
+  vibra([200, 80, 200, 80, 400]);
+}
+
+/* ---- Histórico: apagar registro e ver mais ---- */
+$('#listaTudo').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-apagar]');
+  if (!bt) return;
+  const id = bt.dataset.apagar;
+  const bloco = estado.blocos.find((b) => b.id === id);
+  if (!bloco) return;
+  abreModal({
+    titulo: 'Apagar registro?',
+    frase: fmtDuracao(bloco.minutos) + ' em ' + bloco.assunto,
+    detalhe: 'Some do histórico, das estatísticas e do mapa do ano.',
+    botoes: [
+      { texto: 'Apagar', tipo: 'bt-perigo', acao: () => {
+          estado.blocos = estado.blocos.filter((b) => b.id !== id);
+          sincronizaMarcasEmSilencio();
+          fechaModal();
+          atualizaTudo();
+        } },
+      { texto: 'Cancelar', tipo: '', acao: fechaModal }
+    ]
+  });
+});
+
+$('#btMaisRegistros').addEventListener('click', () => {
+  quantosMostrar += 60;
+  desenhaListaTudo();
+});
+
+/* ---- Backup: exportar e importar ---- */
+$('#btExportar').addEventListener('click', () => {
+  try {
+    const dados = JSON.stringify(estado, null, 2);
+    const url = URL.createObjectURL(new Blob([dados], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'copeiro-' + chaveHoje() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    avisa('Backup', 'Arquivo gerado. Guarda ele em algum lugar seguro, Davi.');
+  } catch (erro) {
+    avisa('Backup', 'Não consegui gerar o arquivo neste navegador.');
+  }
+});
+
+$('#btImportar').addEventListener('click', () => $('#arquivoImportar').click());
+
+$('#arquivoImportar').addEventListener('change', (ev) => {
+  const arquivo = ev.target.files && ev.target.files[0];
+  if (!arquivo) return;
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    let dados;
+    try {
+      dados = JSON.parse(leitor.result);
+    } catch (erro) {
+      avisa('Importar', 'Esse arquivo não é um JSON válido.');
+      return;
+    }
+    if (!dados || !Array.isArray(dados.blocos)) {
+      avisa('Importar', 'Esse arquivo não parece um backup do Copeiro.');
+      return;
+    }
+    abreModal({
+      titulo: 'Importar backup?',
+      frase: dados.blocos.length + ' blocos e ' + ((dados.ciclos || []).length) + ' ciclos no arquivo.',
+      detalhe: 'Isso substitui todo o histórico que está neste aparelho.',
+      botoes: [
+        { texto: 'Substituir tudo', tipo: 'bt-azul', acao: () => {
+            const base = estadoNovo();
+            estado = Object.assign(base, dados);
+            estado.blocos = dados.blocos;
+            estado.ciclos = Array.isArray(dados.ciclos) ? dados.ciclos : [];
+            estado.prefs = Object.assign({ duracao: 30 }, dados.prefs || {});
+            if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
+            estado.timer = null;
+            sincronizaMarcasEmSilencio();
+            fechaModal();
+            desenhaSaudacao();
+            atualizaTudo();
+            desenhaTimer();
+            avisa('Importar', 'Histórico restaurado, Davi.');
+          } },
+        { texto: 'Cancelar', tipo: '', acao: fechaModal }
+      ]
+    });
+  };
+  leitor.onerror = () => avisa('Importar', 'Não consegui ler o arquivo.');
+  leitor.readAsText(arquivo);
+  ev.target.value = '';               // permite reimportar o mesmo arquivo
+});
+
+/* ---- Voltar do segundo plano: acerta o relógio na hora ---- */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  desenhaTimer();                     // fecha o bloco se o tempo acabou fora
+  if (timerRodando()) { ligaDesenho(); pedeTravaTela(); }
+  if (diaAtualDaTela !== chaveHoje()) { diaAtualDaTela = chaveHoje(); desenhaSaudacao(); atualizaTudo(); }
+});
+
+/* ---- Redesenho do gráfico ao girar o tablet ---- */
+let esperaRedesenho = null;
+window.addEventListener('resize', () => {
+  clearTimeout(esperaRedesenho);
+  esperaRedesenho = setTimeout(() => {
+    if (!$('#tela-progresso').classList.contains('oculto')) desenhaComparacao();
+  }, 180);
+});
+
+/* ---- Virada do dia com o app aberto ---- */
+let diaAtualDaTela = chaveHoje();
+setInterval(() => {
+  if (diaAtualDaTela !== chaveHoje()) {
+    diaAtualDaTela = chaveHoje();
+    desenhaSaudacao();
+    atualizaTudo();
+  }
+}, 30000);
+
+/* ---- Início ---- */
+function inicia() {
+  carregaEstado();
+  sincronizaMarcasEmSilencio();   // acerta recordes/marcos sem comemorar coisa velha
+  desenhaSaudacao();
+  atualizaTudo();
+  desenhaTimer();
+  retomaTimerSalvo();
+
+  // Primeiro toque em qualquer lugar destrava o áudio no Android
+  document.addEventListener('pointerdown', garanteAudioUmaVez, { once: true });
+}
+
+function garanteAudioUmaVez() { garanteAudio(); }
+
+inicia();
+
+/* ---- Service worker: é ele que faz o app abrir sem internet ---- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .catch((erro) => console.warn('[copeiro] service worker não registrou:', erro));
+  });
+}
+</script>
+</body>
+</html>

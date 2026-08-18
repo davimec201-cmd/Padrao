@@ -124,3 +124,53 @@ restauração em JSON pelos Ajustes — é também assim que os resumos vão pra
 outro aparelho.
 
 **Rodar:** abrir `um-de-cada-vez/index.html` no navegador.
+
+---
+
+### `copeiro/`
+
+Pomodoro de estudo, PWA instalável, feito para o tablet Android. Quatro
+arquivos, nenhuma dependência: `index.html` (HTML + CSS + JS embutidos),
+`manifest.webmanifest`, `service-worker.js` e os dois ícones PNG. Depois de
+instalado, funciona 100% offline.
+
+#### O que ele faz
+
+| Parte | Como funciona |
+|---|---|
+| **Timer** | Foco de 15, 25, 30 ou 50 min (padrão 30) e pausa fixa de 5 min, livre. Iniciar, pausar, retomar, zerar, pular. |
+| **Relógio real** | O tempo vem de `Date.now()`, nunca de contagem de ticks: com a tela apagada ou o app em segundo plano o bloco não atrasa, e um bloco que terminou com o app fechado é fechado na volta com o horário certo. |
+| **Alarme** | Gerado na hora com Web Audio API, sem arquivo de som. Vibra quando o aparelho tem vibração. Wake Lock mantém a tela acesa durante o bloco, onde houver suporte. |
+| **Ciclos** | Nome, início e fim previsto. Todo bloco entra automaticamente no ciclo ativo. Ao encerrar, as estatísticas congelam e o ciclo vai para a Estante. |
+| **Assunto** | Campo com autocompletar pelos assuntos do ciclo atual e atalho para os 5 últimos. Fica visível durante o bloco. |
+| **Histórico** | Hoje, últimos 7 dias em barras, lista completa com opção de apagar registro, exportar e importar tudo em JSON. |
+| **Progresso** | Mapa de calor anual, estante de ciclos, comparação em tempo real com o ciclo anterior, contador vitalício de horas com marcos de 100/250/500/1000h e recordes pessoais. |
+
+Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
+murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
+
+#### Onde os dados ficam
+
+No `localStorage` daquele aparelho, com aviso e fallback em memória se o
+navegador bloquear ou a cota encher. Backup e restauração em JSON pela aba
+Histórico.
+
+**Rodar:** abrir `copeiro/index.html` no navegador, ou instalar pelo GitHub
+Pages (passo a passo abaixo).
+
+#### Publicar no GitHub Pages
+
+1. `Settings` → `Pages` → em **Build and deployment**, *Source*: `Deploy from
+   a branch`; *Branch*: `main` e pasta `/ (root)`. Salvar.
+2. Esperar o deploy (aba `Actions` mostra o progresso).
+3. O app fica em `https://<usuário>.github.io/<repositório>/copeiro/`.
+
+O service worker exige HTTPS — o GitHub Pages já serve em HTTPS, então nada a
+configurar. Todos os caminhos são relativos: funciona em qualquer subpasta.
+
+#### Instalar no tablet Android
+
+1. Abrir o endereço acima no **Chrome** do tablet.
+2. Menu `⋮` → **Adicionar à tela inicial** (ou **Instalar app**) → confirmar.
+3. Abrir pelo ícone da tela inicial: abre em tela cheia, sem barra do
+   navegador, e a partir daí funciona sem internet.
