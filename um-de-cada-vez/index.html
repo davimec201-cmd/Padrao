@@ -1,313 +1,487 @@
 <title>Um de Cada Vez</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 
 <style>
-/* ---------------------------------------------------------------
-   TOKENS
-   Tema claro definido no :root puro. O tema escuro só REDEFINE
-   os tokens, nunca cores soltas dentro de um bloco de media.
-   --------------------------------------------------------------- */
+/* ===============================================================
+   A GRID
+   Tema único e assumido: escuro. Um app Tron em modo claro não
+   existe. Todas as cores são pintadas explicitamente para a página
+   não pegar emprestado o fundo de quem a hospeda.
+   =============================================================== */
 :root {
-  --chao:        #EFF2F1;
-  --superficie:  #FFFFFF;
-  --superficie2: #E7ECEA;
-  --tinta:       #16211F;
-  --tinta-fraca: #5B6B66;
-  --tinta-tenue: #8A9994;
-  --linha:       #D5DEDB;
-  --acento:      #0E6E62;
-  --acento-forte:#0A574D;
-  --acento-tenue:#D6E8E4;
-  --atencao:     #A85B26;
-  --sombra:      0 1px 2px rgba(22,33,31,.05), 0 8px 24px -12px rgba(22,33,31,.18);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --chao:        #101615;
-    --superficie:  #18211F;
-    --superficie2: #202B28;
-    --tinta:       #E6EDEA;
-    --tinta-fraca: #9AAAA5;
-    --tinta-tenue: #6B7C77;
-    --linha:       #26332F;
-    --acento:      #4FC0AC;
-    --acento-forte:#7BD6C5;
-    --acento-tenue:#17302B;
-    --atencao:     #D89361;
-    --sombra:      0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
-  }
-}
-:root[data-theme="dark"] {
-  --chao:        #101615;
-  --superficie:  #18211F;
-  --superficie2: #202B28;
-  --tinta:       #E6EDEA;
-  --tinta-fraca: #9AAAA5;
-  --tinta-tenue: #6B7C77;
-  --linha:       #26332F;
-  --acento:      #4FC0AC;
-  --acento-forte:#7BD6C5;
-  --acento-tenue:#17302B;
-  --atencao:     #D89361;
-  --sombra:      0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  --vazio:      #04070B;
+  --placa:      #0A1119;
+  --placa2:     #0F1A24;
+  --placa3:     #14232F;
+  --borda:      #1B2E3D;
+  --borda-viva: #2A4A61;
+
+  --neon:       #67E8F9;   /* rim light, texto de destaque, brilho */
+  --neon-forte: #A5F3FC;
+  --neon-dado:  #22A3C0;   /* validado p/ barras sobre #0A1119 */
+  --neon-fraco: rgba(103,232,249,.10);
+  --neon-medio: rgba(103,232,249,.22);
+
+  --ambar:      #FFA23A;   /* CLU: erro, alerta, pausa */
+  --ambar-fraco:rgba(255,162,58,.12);
+
+  --texto:      #CFE0EA;
+  --texto-fraco:#7B94A6;
+  --texto-tenue:#47606F;
+
+  --brilho:     0 0 18px rgba(103,232,249,.28);
+  --brilho-int: 0 0 28px rgba(103,232,249,.45);
 }
 
 * { box-sizing: border-box; }
 
+html { background: var(--vazio); }
+
 body {
   margin: 0;
-  background: var(--chao);
-  color: var(--tinta);
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(103,232,249,.07), transparent 60%),
+    linear-gradient(rgba(27,46,61,.5) 1px, transparent 1px) 0 0 / 100% 56px,
+    linear-gradient(90deg, rgba(27,46,61,.5) 1px, transparent 1px) 0 0 / 56px 100%,
+    var(--vazio);
+  color: var(--texto);
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 17px;
-  line-height: 1.55;
+  line-height: 1.6;
   -webkit-text-size-adjust: 100%;
 }
-
-/* Tipografia de apoio */
-.rotulo {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--tinta-tenue);
+/* vinheta: a grade some nas bordas, como no filme */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(100% 70% at 50% 40%, transparent 30%, var(--vazio) 100%);
 }
+body > * { position: relative; z-index: 1; }
+
+/* --- tipografia de chrome --- */
+.chrome, .rotulo, .nav button, .botao, .selo, .aba, .secao-titulo, .marca, h1, h2, h3 {
+  font-family: "Chakra Petch", "IBM Plex Sans", sans-serif;
+}
+.rotulo {
+  font-size: 12px; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--texto-tenue);
+}
+.rotulo.viva { color: var(--neon); text-shadow: 0 0 12px rgba(103,232,249,.5); }
 .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 
-:focus-visible {
-  outline: 2px solid var(--acento);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
+:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; }
+::selection { background: var(--neon-medio); color: var(--neon-forte); }
 
-/* ---------------------------------------------------------------
-   ESTRUTURA
-   --------------------------------------------------------------- */
+/* ===============================================================
+   TOPO
+   =============================================================== */
 .topo {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; flex-wrap: wrap;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--linha);
-  background: var(--chao);
-  position: sticky; top: 0; z-index: 5;
+  gap: 12px; flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--borda);
+  background: linear-gradient(180deg, rgba(10,17,25,.96), rgba(10,17,25,.82));
+  backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 10;
 }
 .marca {
-  font-family: "Fraunces", Georgia, serif;
-  font-size: 19px; font-weight: 600; letter-spacing: -.01em;
-  color: var(--tinta);
+  font-size: 15px; font-weight: 700;
+  letter-spacing: .3em; text-transform: uppercase;
+  color: var(--neon);
+  text-shadow: 0 0 16px rgba(103,232,249,.55);
 }
-.nav { display: flex; gap: 4px; }
+.nav { display: flex; gap: 2px; flex-wrap: wrap; }
 .nav button {
-  font: inherit; font-size: 15px;
-  background: none; border: none; color: var(--tinta-fraca);
-  padding: 10px 14px; min-height: 44px;
-  border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  background: none; border: 1px solid transparent; color: var(--texto-fraco);
+  padding: 9px 14px; min-height: 42px; cursor: pointer;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
 }
-.nav button:hover { background: var(--superficie2); color: var(--tinta); }
-.nav button[aria-current="page"] { background: var(--acento-tenue); color: var(--acento); font-weight: 600; }
+.nav button:hover { color: var(--neon); background: var(--neon-fraco); }
+.nav button[aria-current="page"] {
+  color: var(--neon); background: var(--neon-fraco);
+  border-color: var(--borda-viva);
+  box-shadow: inset 0 -2px 0 var(--neon), 0 0 16px rgba(103,232,249,.18);
+}
 
-main { padding: 0 20px 80px; }
-.palco {           /* centro focal: uma decisão por vez */
-  max-width: 640px; margin: 0 auto;
-  min-height: 62vh;
+main { padding: 0 20px 96px; }
+.palco {
+  max-width: 680px; margin: 0 auto; padding: 44px 0;
+  min-height: 60vh;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 28px; text-align: center;
-  padding: 48px 0;
+  gap: 26px; text-align: center;
 }
-.folha {           /* páginas de lista/formulário */
-  max-width: 820px; margin: 0 auto; padding: 32px 0 0;
-  display: flex; flex-direction: column; gap: 28px;
-}
+.folha { max-width: 900px; margin: 0 auto; padding: 32px 0 0; display: flex; flex-direction: column; gap: 26px; }
+.largo { max-width: 1240px; }
 
-/* ---------------------------------------------------------------
-   CARTÃO FOCAL
-   --------------------------------------------------------------- */
-.cartao {
-  background: var(--superficie);
-  border: 1px solid var(--linha);
-  border-radius: 18px;
-  box-shadow: var(--sombra);
-  padding: 40px 32px;
+/* ===============================================================
+   PLACAS — o canto chanfrado é a assinatura da Grid
+   =============================================================== */
+.placa {
+  background: linear-gradient(160deg, var(--placa2), var(--placa));
+  border: 1px solid var(--borda);
+  padding: 34px 30px;
   width: 100%;
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  display: flex; flex-direction: column; gap: 18px;
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  position: relative;
 }
-.cartao .materia { color: var(--acento); }
+.placa.viva {
+  border-color: var(--borda-viva);
+  box-shadow: 0 0 0 1px rgba(103,232,249,.08), 0 0 40px -12px rgba(103,232,249,.35);
+}
+.placa.centro { align-items: center; }
+
 .assunto {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Chakra Petch", sans-serif;
   font-weight: 600;
-  font-size: clamp(30px, 6vw, 46px);
-  line-height: 1.12;
-  letter-spacing: -.02em;
-  text-wrap: balance;
-  margin: 0;
+  font-size: clamp(28px, 5.4vw, 42px);
+  line-height: 1.12; letter-spacing: .005em;
+  text-wrap: balance; margin: 0;
+  color: var(--texto);
 }
-.contexto { color: var(--tinta-fraca); font-size: 15px; margin: 0; }
+.assunto.brilha { color: var(--neon-forte); text-shadow: 0 0 24px rgba(103,232,249,.4); }
+.contexto { color: var(--texto-fraco); font-size: 15px; margin: 0; }
+.secao-titulo { font-size: 24px; font-weight: 600; letter-spacing: .04em; margin: 0; color: var(--texto); }
 
-/* ---------------------------------------------------------------
+/* ===============================================================
    BOTÕES
-   --------------------------------------------------------------- */
+   =============================================================== */
 .botao {
-  font: inherit; font-weight: 600; font-size: 18px;
-  background: var(--acento); color: var(--chao);
-  border: none; border-radius: 12px;
-  padding: 16px 40px; min-height: 56px;
-  cursor: pointer;
-  transition: transform .12s ease, background .12s ease;
+  font-size: 15px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  background: var(--neon-fraco); color: var(--neon);
+  border: 1px solid var(--neon);
+  padding: 15px 34px; min-height: 54px; cursor: pointer;
+  clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
+  box-shadow: var(--brilho); transition: box-shadow .15s ease, background .15s ease;
 }
-.botao:hover { background: var(--acento-forte); }
-.botao:active { transform: scale(.98); }
+.botao:hover { background: var(--neon-medio); box-shadow: var(--brilho-int); }
+.botao:active { transform: translateY(1px); }
 .botao.calmo {
-  background: var(--superficie); color: var(--tinta);
-  border: 1px solid var(--linha);
-  font-size: 16px; font-weight: 500; padding: 12px 22px; min-height: 48px;
+  background: transparent; color: var(--texto-fraco);
+  border-color: var(--borda-viva); box-shadow: none;
+  font-size: 13px; padding: 12px 22px; min-height: 46px;
 }
-.botao.calmo:hover { background: var(--superficie2); }
+.botao.calmo:hover { color: var(--neon); border-color: var(--neon); box-shadow: var(--brilho); background: var(--neon-fraco); }
+.botao.ambar { color: var(--ambar); border-color: var(--ambar); background: var(--ambar-fraco); box-shadow: 0 0 18px rgba(255,162,58,.25); }
+.botao.ambar:hover { box-shadow: 0 0 28px rgba(255,162,58,.4); }
+
 .discreto {
-  font: inherit; font-size: 15px;
-  background: none; border: none; color: var(--tinta-fraca);
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 13px; letter-spacing: .1em; text-transform: uppercase;
+  background: none; border: none; color: var(--texto-tenue);
   cursor: pointer; padding: 10px 12px; min-height: 44px;
-  border-radius: 8px;
-  text-decoration: underline; text-underline-offset: 3px;
-  text-decoration-color: var(--linha);
 }
-.discreto:hover { color: var(--tinta); }
-.discreto.perigo:hover { color: var(--atencao); }
-.linha-acoes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.discreto:hover { color: var(--neon); }
+.discreto.perigo:hover { color: var(--ambar); }
+.linha-acoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.linha-acoes.esq { justify-content: flex-start; }
 
-/* ---------------------------------------------------------------
-   PROGRESSO DO DIA — finito, sem contador de culpa
-   --------------------------------------------------------------- */
+/* ===============================================================
+   FORMULÁRIOS
+   =============================================================== */
+input[type="text"], input[type="number"], input[type="search"], select, textarea {
+  font-family: inherit; font-size: 16px;
+  padding: 13px 15px; min-height: 48px;
+  background: var(--vazio); color: var(--texto);
+  border: 1px solid var(--borda); width: 100%;
+  border-radius: 0;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--neon); box-shadow: 0 0 0 1px var(--neon), var(--brilho); outline: none;
+}
+input::placeholder, textarea::placeholder { color: var(--texto-tenue); }
+label { font-family: "Chakra Petch", sans-serif; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--texto-tenue); }
+.campo { display: flex; flex-direction: column; gap: 6px; }
+
+/* ===============================================================
+   PROGRESSO / SELOS
+   =============================================================== */
 .progresso { display: flex; align-items: center; gap: 12px; }
-.pontos { display: flex; gap: 7px; }
-.ponto {
-  width: 11px; height: 11px; border-radius: 50%;
-  border: 1.5px solid var(--linha); background: transparent;
-}
-.ponto.cheio { background: var(--acento); border-color: var(--acento); }
+.pontos { display: flex; gap: 8px; }
+.ponto { width: 10px; height: 10px; border: 1px solid var(--borda-viva); transform: rotate(45deg); }
+.ponto.cheio { background: var(--neon); border-color: var(--neon); box-shadow: 0 0 10px rgba(103,232,249,.7); }
 
-/* ---------------------------------------------------------------
-   SESSÃO — modo foco
-   --------------------------------------------------------------- */
-.barra-tempo { height: 3px; background: var(--linha); border-radius: 2px; overflow: hidden; width: 100%; }
-.barra-tempo > i { display: block; height: 100%; background: var(--acento); width: 0; transition: width 1s linear; }
-.sessao-topo {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  flex-wrap: wrap; width: 100%;
+.selo {
+  font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .06em;
+  padding: 4px 9px; white-space: nowrap;
+  border: 1px solid var(--borda); color: var(--texto-tenue);
 }
-.passos { display: flex; gap: 8px; align-items: center; }
+.selo.agora { border-color: var(--neon); color: var(--neon); box-shadow: 0 0 12px rgba(103,232,249,.2); }
+.selo.ambar { border-color: var(--ambar); color: var(--ambar); }
+
+.nivel { display: flex; gap: 3px; }
+.nivel i { width: 4px; height: 10px; background: var(--borda-viva); }
+.nivel i.on { background: var(--neon); box-shadow: 0 0 6px rgba(103,232,249,.6); }
+
+/* ===============================================================
+   SESSÃO — tela dividida: fonte à esquerda, você à direita
+   =============================================================== */
+.sessao-topo { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; width: 100%; }
+.passos { display: flex; gap: 6px; align-items: center; }
 .passo-marca {
-  font-family: "IBM Plex Mono", monospace; font-size: 12px;
-  padding: 5px 10px; border-radius: 999px;
-  border: 1px solid var(--linha); color: var(--tinta-tenue);
+  font-family: "Chakra Petch", sans-serif; font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase;
+  padding: 6px 11px; border: 1px solid var(--borda); color: var(--texto-tenue);
 }
-.passo-marca[data-ativo="sim"] { background: var(--acento-tenue); border-color: var(--acento-tenue); color: var(--acento); }
-.passo-marca[data-feito="sim"] { color: var(--tinta-fraca); }
+.passo-marca[data-ativo="sim"] { border-color: var(--neon); color: var(--neon); box-shadow: 0 0 14px rgba(103,232,249,.25); }
+.passo-marca[data-feito="sim"] { color: var(--texto-fraco); border-color: var(--borda-viva); }
 
-textarea.resumo {
-  font: inherit; font-size: 17px; line-height: 1.7;
-  width: 100%; min-height: 46vh; resize: vertical;
-  padding: 20px;
-  background: var(--superficie); color: var(--tinta);
-  border: 1px solid var(--linha); border-radius: 14px;
+.divisor {
+  display: grid; width: 100%;
+  grid-template-columns: var(--esq, 1fr) 10px var(--dir, 1fr);
+  gap: 0; min-height: 58vh;
 }
-textarea.resumo::placeholder { color: var(--tinta-tenue); }
+.painel {
+  display: flex; flex-direction: column; min-width: 0;
+  border: 1px solid var(--borda); background: var(--placa);
+}
+.painel-topo {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 14px; border-bottom: 1px solid var(--borda);
+  background: var(--placa2);
+}
+.painel-corpo { flex: 1; overflow: auto; padding: 18px; min-height: 0; }
+.painel-corpo.fonte { font-size: 16px; line-height: 1.75; color: var(--texto-fraco); white-space: pre-wrap; overflow-wrap: anywhere; }
+.painel textarea {
+  flex: 1; border: none; background: transparent; resize: none;
+  padding: 18px; font-size: 17px; line-height: 1.75; min-height: 0;
+}
+.painel textarea:focus { box-shadow: none; }
+.pega {
+  cursor: col-resize; background: transparent;
+  display: flex; align-items: center; justify-content: center;
+}
+.pega::after { content: ""; width: 2px; height: 46px; background: var(--borda-viva); }
+.pega:hover::after { background: var(--neon); box-shadow: var(--brilho); }
+
+.abas { display: flex; gap: 2px; }
+.aba {
+  font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  background: none; border: 1px solid var(--borda); color: var(--texto-tenue);
+  padding: 9px 14px; min-height: 40px; cursor: pointer;
+}
+.aba[aria-selected="true"] { color: var(--neon); border-color: var(--neon); background: var(--neon-fraco); }
+
+@media (max-width: 860px) {
+  .divisor { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .divisor .pega { display: none; }
+  .divisor .painel[data-oculto="sim"] { display: none; }
+}
 
 .instrucao {
-  background: var(--superficie); border: 1px solid var(--linha);
-  border-left: 3px solid var(--acento);
-  border-radius: 12px; padding: 24px 26px;
-  text-align: left; max-width: 560px;
+  border: 1px solid var(--borda); border-left: 2px solid var(--neon);
+  background: var(--placa); padding: 22px 26px; text-align: left; max-width: 580px;
+  box-shadow: -8px 0 24px -16px rgba(103,232,249,.6);
 }
 .instrucao p { margin: 0 0 12px; }
-.instrucao p:last-child { margin-bottom: 0; }
-.instrucao strong { font-weight: 600; }
+.instrucao p:last-child { margin: 0; }
+.instrucao strong { color: var(--neon); font-weight: 600; }
 
-.avaliacao { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; }
+.avaliacao { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 440px; }
 .avaliacao button {
-  font: inherit; font-size: 17px; text-align: left;
+  font-family: inherit; font-size: 17px; text-align: left;
   display: flex; flex-direction: column; gap: 2px;
-  background: var(--superficie); color: var(--tinta);
-  border: 1px solid var(--linha); border-radius: 12px;
-  padding: 16px 20px; min-height: 60px; cursor: pointer;
+  background: var(--placa); color: var(--texto);
+  border: 1px solid var(--borda); padding: 15px 20px; min-height: 62px; cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
-.avaliacao button:hover { border-color: var(--acento); background: var(--acento-tenue); }
-.avaliacao small { color: var(--tinta-fraca); font-size: 13px; }
+.avaliacao button:hover { border-color: var(--neon); background: var(--neon-fraco); box-shadow: var(--brilho); }
+.avaliacao small { color: var(--texto-tenue); font-size: 13px; font-family: "IBM Plex Mono", monospace; }
 
-/* ---------------------------------------------------------------
-   MATERIAL
-   --------------------------------------------------------------- */
-.secao-titulo {
-  font-family: "Fraunces", Georgia, serif; font-weight: 600;
-  font-size: 26px; letter-spacing: -.01em; margin: 0;
+/* ===============================================================
+   DISCO DE IDENTIDADE — o cronômetro pomodoro
+   =============================================================== */
+.disco { position: relative; width: 240px; height: 240px; }
+.disco svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.disco .trilha { fill: none; stroke: var(--borda); stroke-width: 3; }
+.disco .arco {
+  fill: none; stroke: var(--neon); stroke-width: 3; stroke-linecap: butt;
+  filter: drop-shadow(0 0 6px rgba(103,232,249,.9));
+  transition: stroke-dashoffset 1s linear;
 }
-.adicionar {
-  display: grid; gap: 10px;
-  grid-template-columns: minmax(0,1fr) minmax(0,1.6fr) auto;
-  background: var(--superficie); border: 1px solid var(--linha);
-  border-radius: 14px; padding: 14px;
+.disco[data-fase="pausa"] .arco { stroke: var(--ambar); filter: drop-shadow(0 0 6px rgba(255,162,58,.9)); }
+.disco .aro-int { fill: none; stroke: var(--borda); stroke-width: 1; }
+.disco .miolo {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
 }
-@media (max-width: 640px) { .adicionar { grid-template-columns: 1fr; } }
+.disco .tempo {
+  font-family: "IBM Plex Mono", monospace; font-size: 44px; font-weight: 500;
+  letter-spacing: -.02em; color: var(--neon-forte);
+  text-shadow: 0 0 22px rgba(103,232,249,.55);
+}
+.disco[data-fase="pausa"] .tempo { color: var(--ambar); text-shadow: 0 0 22px rgba(255,162,58,.55); }
+.disco .fase { font-family: "Chakra Petch", sans-serif; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--texto-tenue); }
+.ciclos { display: flex; gap: 6px; justify-content: center; }
+.ciclos i { width: 22px; height: 3px; background: var(--borda-viva); }
+.ciclos i.on { background: var(--neon); box-shadow: 0 0 8px rgba(103,232,249,.7); }
 
-input[type="text"], input[type="number"], input[type="search"] {
-  font: inherit; font-size: 16px;
-  padding: 12px 14px; min-height: 48px;
-  background: var(--chao); color: var(--tinta);
-  border: 1px solid var(--linha); border-radius: 10px;
-  width: 100%;
+/* ===============================================================
+   MODO LEITURA — o resumo feio, renderizado bonito
+   =============================================================== */
+.leitura { max-width: 74ch; margin: 0 auto; font-size: 18px; line-height: 1.78; }
+.leitura .l-h2 {
+  font-family: "Chakra Petch", sans-serif; font-size: 27px; font-weight: 700;
+  letter-spacing: .02em; color: var(--neon-forte);
+  text-shadow: 0 0 20px rgba(103,232,249,.35);
+  margin: 44px 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--borda-viva);
 }
-input::placeholder { color: var(--tinta-tenue); }
+.leitura .l-h3 {
+  font-family: "Chakra Petch", sans-serif; font-size: 15px; font-weight: 700;
+  letter-spacing: .17em; text-transform: uppercase; color: var(--neon);
+  margin: 34px 0 12px; padding-left: 13px; border-left: 2px solid var(--neon);
+  box-shadow: -7px 0 18px -12px rgba(103,232,249,.9);
+}
+.leitura p { margin: 0 0 15px; }
+.leitura ul, .leitura ol { margin: 0 0 18px; padding-left: 4px; list-style: none; }
+.leitura ol { counter-reset: item; }
+.leitura li { position: relative; padding-left: 26px; margin-bottom: 9px; }
+.leitura ul > li::before {
+  content: ""; position: absolute; left: 4px; top: .68em;
+  width: 7px; height: 7px; background: var(--neon); transform: rotate(45deg);
+  box-shadow: 0 0 8px rgba(103,232,249,.8);
+}
+.leitura ol > li { counter-increment: item; }
+.leitura ol > li::before {
+  content: counter(item); position: absolute; left: 0; top: 0;
+  font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--neon);
+}
+.leitura .l-fluxo {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  margin: 0 0 18px; padding: 15px 18px;
+  border: 1px solid var(--borda); background: var(--placa);
+}
+.leitura .l-fluxo .no {
+  font-family: "Chakra Petch", sans-serif; font-size: 15px; font-weight: 500;
+  padding: 6px 13px; border: 1px solid var(--borda-viva); color: var(--texto);
+}
+.leitura .l-fluxo .seta { color: var(--neon); font-size: 19px; text-shadow: 0 0 10px rgba(103,232,249,.8); }
+.leitura .l-alerta {
+  margin: 0 0 18px; padding: 15px 18px;
+  border: 1px solid rgba(255,162,58,.35); border-left: 2px solid var(--ambar);
+  background: var(--ambar-fraco); color: var(--texto);
+}
+.leitura .l-cita {
+  margin: 0 0 18px; padding: 4px 0 4px 18px;
+  border-left: 2px solid var(--borda-viva); color: var(--texto-fraco); font-style: italic;
+}
+.leitura strong { color: var(--neon); font-weight: 600; }
+.leitura .marca {
+  background: var(--neon-medio); color: var(--neon-forte);
+  padding: 1px 6px; box-shadow: 0 0 14px rgba(103,232,249,.25);
+  font-family: inherit; font-size: inherit; letter-spacing: 0; text-transform: none;
+}
+.leitura .l-tabela { overflow-x: auto; margin: 0 0 18px; }
+.leitura table { border-collapse: collapse; width: 100%; font-size: 16px; }
+.leitura th, .leitura td { border: 1px solid var(--borda); padding: 10px 14px; text-align: left; }
+.leitura th {
+  font-family: "Chakra Petch", sans-serif; font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--neon); background: var(--placa2);
+}
 
-.grupo { display: flex; flex-direction: column; gap: 8px; }
-.grupo > .rotulo { padding-left: 2px; }
+/* ===============================================================
+   LISTAS
+   =============================================================== */
+.grupo { display: flex; flex-direction: column; gap: 7px; }
 .item {
-  display: flex; align-items: center; gap: 14px;
-  width: 100%; text-align: left; font: inherit;
-  background: var(--superficie); color: var(--tinta);
-  border: 1px solid var(--linha); border-radius: 12px;
-  padding: 14px 18px; min-height: 60px; cursor: pointer;
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+  font-family: inherit; font-size: 17px;
+  background: var(--placa); color: var(--texto);
+  border: 1px solid var(--borda); padding: 14px 18px; min-height: 60px; cursor: pointer;
 }
-.item:hover { border-color: var(--acento); }
+.item:hover { border-color: var(--neon); background: var(--neon-fraco); box-shadow: 0 0 20px -6px rgba(103,232,249,.4); }
 .item .titulo { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.selo {
-  font-family: "IBM Plex Mono", monospace; font-size: 12px;
-  padding: 4px 9px; border-radius: 999px; white-space: nowrap;
-  border: 1px solid var(--linha); color: var(--tinta-fraca);
-}
-.selo.agora { background: var(--acento-tenue); border-color: var(--acento-tenue); color: var(--acento); }
-.nivel { display: flex; gap: 3px; }
-.nivel i { width: 5px; height: 5px; border-radius: 50%; background: var(--linha); }
-.nivel i.on { background: var(--acento); }
+.item .sub { font-size: 13px; color: var(--texto-tenue); }
+.vazio { text-align: center; color: var(--texto-fraco); padding: 44px 20px; border: 1px dashed var(--borda-viva); }
 
-.vazio {
-  text-align: center; color: var(--tinta-fraca);
-  padding: 40px 20px; border: 1px dashed var(--linha); border-radius: 14px;
+.bloco { background: var(--placa); border: 1px solid var(--borda); padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+.aviso { font-size: 14px; color: var(--texto-fraco); max-width: 62ch; line-height: 1.65; }
+.grade2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+
+/* ===============================================================
+   QUESTÕES
+   =============================================================== */
+.alternativas { display: flex; flex-direction: column; gap: 9px; width: 100%; }
+.alt {
+  display: flex; gap: 14px; align-items: flex-start; text-align: left;
+  font-family: inherit; font-size: 17px; line-height: 1.5;
+  background: var(--placa); color: var(--texto);
+  border: 1px solid var(--borda); padding: 15px 18px; min-height: 56px; cursor: pointer;
+}
+.alt:hover:not(:disabled) { border-color: var(--neon); background: var(--neon-fraco); }
+.alt .letra {
+  font-family: "IBM Plex Mono", monospace; font-size: 14px; color: var(--texto-tenue);
+  border: 1px solid var(--borda-viva); width: 26px; height: 26px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.alt[data-estado="certa"] { border-color: var(--neon); background: var(--neon-fraco); box-shadow: var(--brilho); }
+.alt[data-estado="certa"] .letra { border-color: var(--neon); color: var(--neon); }
+.alt[data-estado="errada"] { border-color: var(--ambar); background: var(--ambar-fraco); }
+.alt[data-estado="errada"] .letra { border-color: var(--ambar); color: var(--ambar); }
+.alt:disabled { cursor: default; }
+.enunciado { font-size: 19px; line-height: 1.6; text-align: left; width: 100%; margin: 0; }
+.comentario {
+  width: 100%; text-align: left; padding: 16px 18px;
+  border: 1px solid var(--borda); border-left: 2px solid var(--neon); background: var(--placa);
+  font-size: 16px; line-height: 1.7; color: var(--texto-fraco);
 }
 
-/* ---------------------------------------------------------------
-   AJUSTES
-   --------------------------------------------------------------- */
-.campo { display: flex; flex-direction: column; gap: 6px; max-width: 320px; }
-.campo label { font-size: 14px; color: var(--tinta-fraca); }
-.bloco {
-  background: var(--superficie); border: 1px solid var(--linha);
-  border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 16px;
+/* ===============================================================
+   GRÁFICOS — uma série, um tom. Identidade vem do rótulo.
+   =============================================================== */
+.figura { display: flex; flex-direction: column; gap: 12px; }
+.figura figcaption { font-family: "Chakra Petch", sans-serif; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--texto-tenue); }
+.grafico { width: 100%; overflow-x: auto; }
+.grafico svg { display: block; width: 100%; height: auto; }
+.g-barra { fill: var(--neon-dado); }
+.g-barra:hover { fill: var(--neon); }
+.g-grade { stroke: var(--borda); stroke-width: 1; }
+.g-eixo { fill: var(--texto-tenue); font-family: "IBM Plex Mono", monospace; font-size: 10px; }
+.g-rotulo { fill: var(--texto); font-family: "IBM Plex Sans", sans-serif; font-size: 13px; }
+.g-valor { fill: var(--texto-fraco); font-family: "IBM Plex Mono", monospace; font-size: 12px; }
+.dica {
+  position: fixed; pointer-events: none; z-index: 30;
+  background: var(--placa2); border: 1px solid var(--neon);
+  box-shadow: var(--brilho); padding: 8px 12px; font-size: 13px;
+  font-family: "IBM Plex Mono", monospace; color: var(--texto);
+  opacity: 0; transition: opacity .12s ease;
 }
-.aviso { font-size: 14px; color: var(--tinta-fraca); max-width: 60ch; }
+.dica.ver { opacity: 1; }
+.numerao { display: flex; flex-direction: column; gap: 2px; }
+.numerao .n {
+  font-family: "IBM Plex Mono", monospace; font-size: 34px; font-weight: 500;
+  color: var(--neon-forte); text-shadow: 0 0 20px rgba(103,232,249,.4); line-height: 1.1;
+}
+.numerao .q { font-family: "Chakra Petch", sans-serif; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--texto-tenue); }
 
+.tabela-dados { width: 100%; overflow-x: auto; }
+.tabela-dados table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.tabela-dados th, .tabela-dados td { border-bottom: 1px solid var(--borda); padding: 9px 12px; text-align: left; }
+.tabela-dados th { font-family: "Chakra Petch", sans-serif; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-tenue); }
+.tabela-dados td.num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; text-align: right; }
+details.tabela summary { font-family: "Chakra Petch", sans-serif; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-tenue); cursor: pointer; padding: 8px 0; }
+details.tabela summary:hover { color: var(--neon); }
+
+/* ===============================================================
+   RECADO
+   =============================================================== */
 .recado {
-  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
-  background: var(--tinta); color: var(--chao);
-  padding: 12px 20px; border-radius: 999px; font-size: 15px;
-  box-shadow: var(--sombra); z-index: 20;
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+  background: var(--placa2); color: var(--neon);
+  border: 1px solid var(--neon); box-shadow: var(--brilho-int);
+  padding: 13px 24px; font-family: "Chakra Petch", sans-serif;
+  font-size: 14px; letter-spacing: .08em; z-index: 40;
   opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  max-width: calc(100vw - 40px); text-align: center;
 }
 .recado.ver { opacity: 1; }
 
-@media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
 <header class="topo">
@@ -315,82 +489,112 @@ input::placeholder { color: var(--tinta-tenue); }
   <nav class="nav" id="nav">
     <button data-tela="agora">Agora</button>
     <button data-tela="material">Material</button>
+    <button data-tela="questoes">Questões</button>
+    <button data-tela="historico">Histórico</button>
     <button data-tela="ajustes">Ajustes</button>
   </nav>
 </header>
 
 <main id="app"></main>
 <div class="recado" id="recado" role="status" aria-live="polite"></div>
+<div class="dica" id="dica" role="tooltip"></div>
 
 <script>
 "use strict";
 
 /* ===============================================================
-   ARMAZENAMENTO
-   Guarda no próprio aparelho. Se o navegador bloquear, cai para
-   memória — o app continua funcionando, mas avisa nos Ajustes.
+   ARMAZENAMENTO — guarda neste aparelho, migra do formato antigo
    =============================================================== */
-const CHAVE = "umdecadavez.v1";
+const CHAVE = "umdecadavez.v2";
+const CHAVE_ANTIGA = "umdecadavez.v1";
 let memoria = null;
 
-function podeGravar() {
+const GRAVA = (() => {
   try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); return true; }
   catch (e) { return false; }
+})();
+
+function padrao() {
+  return {
+    versao: 2,
+    topicos: [], questoes: [], sessoes: [], historico: {},
+    calendario: calendarioPadrao(),
+    config: {
+      metaDiaria: 4, foco: 25, pausaCurta: 5, pausaLonga: 15,
+      ciclosAteLonga: 4, som: true, autoPausa: true
+    }
+  };
 }
-const GRAVA = podeGravar();
+
+function migrar(d) {
+  const base = padrao();
+  const novo = Object.assign(base, d);
+  novo.config = Object.assign(base.config, d.config || {});
+  novo.calendario = novo.calendario || calendarioPadrao();
+  const cicloDe = iso => {
+    const c = novo.calendario.ciclos.find(x => iso >= x.inicio && iso <= x.fim);
+    return c ? c.n : (iso < novo.calendario.ciclos[0].inicio ? 1 : novo.calendario.ciclos.length);
+  };
+  novo.topicos = (novo.topicos || []).map(t => {
+    const m = Object.assign({ fonte: "", resumo: "", nivel: 0 }, t);
+    if (!m.ciclo) m.ciclo = cicloDe(m.criadoEm || new Date().toISOString().slice(0, 10));
+    return m;
+  });
+  novo.questoes = novo.questoes || [];
+  novo.sessoes = novo.sessoes || [];
+  novo.historico = novo.historico || {};
+  novo.versao = 2;
+  return novo;
+}
 
 function carregar() {
   if (!GRAVA) return memoria || padrao();
   try {
-    const bruto = localStorage.getItem(CHAVE);
+    const bruto = localStorage.getItem(CHAVE) || localStorage.getItem(CHAVE_ANTIGA);
     if (!bruto) return padrao();
-    const dados = JSON.parse(bruto);
-    return Object.assign(padrao(), dados);
+    return migrar(JSON.parse(bruto));
   } catch (e) { return padrao(); }
 }
+
 function salvar() {
   memoria = estado;
   if (!GRAVA) return;
   try { localStorage.setItem(CHAVE, JSON.stringify(estado)); }
   catch (e) { recado("Não consegui salvar — memória do navegador cheia."); }
 }
-function padrao() {
-  return { topicos: [], historico: {}, config: { metaDiaria: 4, minutosSessao: 25 } };
-}
 
 /* ===============================================================
    DATAS E REVISÃO ESPAÇADA
-   Intervalos em dias. "Travei" volta ao começo, "Quase" mantém o
-   nível, "Mandei bem" avança. Sem contagem de atraso em lugar
-   nenhum: atrasado é só o que vem primeiro na fila.
    =============================================================== */
 const INTERVALOS = [1, 3, 7, 16, 35, 70];
-
 const hoje = () => new Date().toISOString().slice(0, 10);
+
 function maisDias(n) {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
+  const d = new Date(); d.setDate(d.getDate() + n);
   return d.toISOString().slice(0, 10);
 }
-function diasEntre(aISO, bISO) {
-  return Math.round((new Date(bISO) - new Date(aISO)) / 86400000);
-}
+function diasEntre(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
 function porExtenso(iso) {
-  const d = new Date(iso + "T12:00:00");
-  return d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 }
 function quandoVolta(iso) {
   const d = diasEntre(hoje(), iso);
-  if (d <= 0) return "agora";
-  if (d === 1) return "amanhã";
-  return "em " + d + " dias";
+  if (d <= 0) return "agora"; if (d === 1) return "amanhã"; return "em " + d + " dias";
 }
 function desdeUltima(t) {
   if (!t.ultimaEm) return "material novo";
   const d = diasEntre(t.ultimaEm, hoje());
-  if (d === 0) return "estudado hoje";
-  if (d === 1) return "estudado ontem";
+  if (d === 0) return "estudado hoje"; if (d === 1) return "estudado ontem";
   return "estudado há " + d + " dias";
+}
+function duracao(seg) {
+  const h = Math.floor(seg / 3600), m = Math.round((seg % 3600) / 60);
+  if (h > 0) return h + "h" + String(m).padStart(2, "0");
+  return m + " min";
+}
+function relogio(s) {
+  const neg = s < 0; s = Math.abs(s);
+  return (neg ? "+" : "") + String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
 }
 
 /* ===============================================================
@@ -398,70 +602,330 @@ function desdeUltima(t) {
    =============================================================== */
 let estado = carregar();
 let tela = "agora";
-let indiceFila = 0;      // qual da fila está em foco (o botão "trocar" gira)
-let sessao = null;       // { topicoId, passo, restam, timerId, texto }
+let indiceFila = 0;
+let sessao = null;
 let editandoId = null;
+let lendoId = null;
+let pratica = null;
 let busca = "";
+let filtroMateria = "";
+let larguraEsq = 50;
+let verTodosCiclos = false;
+let painelMovel = "fonte";
 
+const acharTopico = id => estado.topicos.find(t => t.id === id);
+const feitosHoje = () => estado.historico[hoje()] || 0;
 function fila() {
+  const atual = cicloAtual();
   return estado.topicos
     .filter(t => t.proximaEm <= hoje())
-    .sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : a.proximaEm > b.proximaEm ? 1 : a.nivel - b.nivel));
+    .filter(t => verTodosCiclos || !atual || (t.ciclo || 1) === atual.n)
+    .sort((a, b) => a.proximaEm < b.proximaEm ? -1 : a.proximaEm > b.proximaEm ? 1 : a.nivel - b.nivel);
 }
-function feitosHoje() { return estado.historico[hoje()] || 0; }
-function acharTopico(id) { return estado.topicos.find(t => t.id === id); }
+function filaForaDoCiclo() {
+  const atual = cicloAtual();
+  if (!atual) return 0;
+  return estado.topicos.filter(t => t.proximaEm <= hoje() && (t.ciclo || 1) !== atual.n).length;
+}
+function novoId(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
 /* ===============================================================
-   AJUDANTES DE DOM
-   Monta elementos em vez de colar HTML — assim o texto que você
-   digita nunca é interpretado como código.
+   DOM
    =============================================================== */
 function el(tag, props, filhos) {
   const n = document.createElement(tag);
   if (props) for (const k in props) {
-    if (k === "class") n.className = props[k];
-    else if (k === "texto") n.textContent = props[k];
-    else if (k.startsWith("on")) n.addEventListener(k.slice(2), props[k]);
-    else if (props[k] !== null && props[k] !== undefined) n.setAttribute(k, props[k]);
+    const v = props[k];
+    if (v === null || v === undefined) continue;
+    if (k === "class") n.className = v;
+    else if (k === "texto") n.textContent = v;
+    else if (k === "estilo") n.style.cssText = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
   }
-  (filhos || []).forEach(f => { if (f) n.appendChild(f); });
+  (filhos || []).forEach(f => { if (f) n.appendChild(f.nodeType ? f : document.createTextNode(String(f))); });
   return n;
 }
+const svgEl = (tag, props) => {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in props) if (props[k] !== null && props[k] !== undefined) n.setAttribute(k, props[k]);
+  return n;
+};
 let recadoTimer = null;
-function recado(texto) {
+function recado(txt) {
   const r = document.getElementById("recado");
-  r.textContent = texto;
-  r.classList.add("ver");
+  r.textContent = txt; r.classList.add("ver");
   clearTimeout(recadoTimer);
-  recadoTimer = setTimeout(() => r.classList.remove("ver"), 2600);
+  recadoTimer = setTimeout(() => r.classList.remove("ver"), 2800);
 }
 
 /* ===============================================================
-   TELA: AGORA — uma decisão na tela, nunca uma lista
+   FORMATADOR DE RESUMO
+   Regras, não interpretação. Você escreve solto; ele aplica
+   hierarquia a partir de marcas mínimas e de algumas pistas.
+
+     Título:            linha terminando em ":"
+     ## Título grande   linha começando com ##
+     - item             tópico
+     1. item            lista numerada
+     A -> B -> C        fluxo com seta
+     ! atenção          bloco de alerta
+     > definição        citação
+     **negrito**  ==destaque==
+     | a | b |          tabela
+   =============================================================== */
+function inline(txt) {
+  const frag = document.createDocumentFragment();
+  const re = /(\*\*[^*]+\*\*|==[^=]+==)/g;
+  let ult = 0, m;
+  while ((m = re.exec(txt)) !== null) {
+    if (m.index > ult) frag.appendChild(document.createTextNode(txt.slice(ult, m.index)));
+    const corpo = m[0].slice(2, -2);
+    frag.appendChild(m[0].startsWith("**")
+      ? el("strong", { texto: corpo })
+      : el("span", { class: "marca", texto: corpo }));
+    ult = m.index + m[0].length;
+  }
+  if (ult < txt.length) frag.appendChild(document.createTextNode(txt.slice(ult)));
+  return frag;
+}
+
+function formatar(texto) {
+  const raiz = el("div", { class: "leitura" });
+  const linhas = (texto || "").replace(/\r/g, "").split("\n");
+  let i = 0;
+
+  const ehItem = s => /^\s*[-*•]\s+/.test(s);
+  const ehNum = s => /^\s*\d+[.)]\s+/.test(s);
+  const ehTabela = s => (s.match(/\|/g) || []).length >= 2;
+
+  while (i < linhas.length) {
+    const bruta = linhas[i];
+    const l = bruta.trim();
+
+    if (!l) { i++; continue; }
+
+    // ## título grande
+    if (/^##\s+/.test(l)) {
+      raiz.appendChild(el("div", { class: "l-h2" }, [inline(l.replace(/^##\s+/, ""))]));
+      i++; continue;
+    }
+
+    // tabela
+    if (ehTabela(l)) {
+      const linhasTab = [];
+      while (i < linhas.length && ehTabela(linhas[i].trim())) { linhasTab.push(linhas[i].trim()); i++; }
+      const celulas = linhasTab
+        .filter(x => !/^[\s|:-]+$/.test(x))
+        .map(x => x.replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
+      if (celulas.length) {
+        const tab = el("table");
+        const thead = el("thead"), trh = el("tr");
+        celulas[0].forEach(c => trh.appendChild(el("th", {}, [inline(c)])));
+        thead.appendChild(trh); tab.appendChild(thead);
+        const tb = el("tbody");
+        celulas.slice(1).forEach(linha => {
+          const tr = el("tr");
+          linha.forEach(c => tr.appendChild(el("td", {}, [inline(c)])));
+          tb.appendChild(tr);
+        });
+        tab.appendChild(tb);
+        raiz.appendChild(el("div", { class: "l-tabela" }, [tab]));
+      }
+      continue;
+    }
+
+    // alerta
+    if (/^!\s*/.test(l)) {
+      raiz.appendChild(el("div", { class: "l-alerta" }, [inline(l.replace(/^!\s*/, ""))]));
+      i++; continue;
+    }
+
+    // citação / definição
+    if (/^>\s*/.test(l)) {
+      raiz.appendChild(el("div", { class: "l-cita" }, [inline(l.replace(/^>\s*/, ""))]));
+      i++; continue;
+    }
+
+    // fluxo com seta
+    if (/(->|=>|→)/.test(l) && !ehItem(l)) {
+      const partes = l.split(/\s*(?:->|=>|→)\s*/).filter(Boolean);
+      if (partes.length > 1) {
+        const cx = el("div", { class: "l-fluxo" });
+        partes.forEach((p, k) => {
+          if (k) cx.appendChild(el("span", { class: "seta", texto: "→" }));
+          cx.appendChild(el("span", { class: "no" }, [inline(p)]));
+        });
+        raiz.appendChild(cx); i++; continue;
+      }
+    }
+
+    // listas
+    if (ehItem(l) || ehNum(l)) {
+      const num = ehNum(l);
+      const lista = el(num ? "ol" : "ul");
+      while (i < linhas.length) {
+        const x = linhas[i].trim();
+        if (!(num ? ehNum(x) : ehItem(x))) break;
+        lista.appendChild(el("li", {}, [inline(x.replace(num ? /^\s*\d+[.)]\s+/ : /^\s*[-*•]\s+/, ""))]));
+        i++;
+      }
+      raiz.appendChild(lista); continue;
+    }
+
+    // título de seção: termina em ":" e é curto
+    if (/:$/.test(l) && l.length <= 80) {
+      raiz.appendChild(el("div", { class: "l-h3" }, [inline(l.replace(/:$/, ""))]));
+      i++; continue;
+    }
+
+    // pista: linha curta, sem pontuação final, seguida de tópico
+    const seguinte = (linhas[i + 1] || "").trim();
+    if (l.length <= 60 && !/[.!?;,]$/.test(l) && (ehItem(seguinte) || ehNum(seguinte))) {
+      raiz.appendChild(el("div", { class: "l-h3" }, [inline(l)]));
+      i++; continue;
+    }
+
+    // parágrafo (junta linhas soltas seguidas)
+    const par = [];
+    while (i < linhas.length) {
+      const x = linhas[i].trim();
+      if (!x || ehItem(x) || ehNum(x) || ehTabela(x) || /^(##|!|>)/.test(x) || (/:$/.test(x) && x.length <= 80)) break;
+      par.push(x); i++;
+    }
+    if (par.length) raiz.appendChild(el("p", {}, [inline(par.join(" "))]));
+  }
+
+  if (!raiz.childNodes.length) {
+    raiz.appendChild(el("p", { class: "contexto", texto: "Nada escrito ainda." }));
+  }
+  return raiz;
+}
+
+/* ===============================================================
+   IMPORTADOR DE QUESTÕES
+   Aceita o formato que um LLM costuma cuspir. Tolerante a
+   variação de numeração, de letra e de rótulo do gabarito.
+   =============================================================== */
+function parsearQuestoes(texto) {
+  const achados = [], falhas = [];
+  const linhas = (texto || "").replace(/\r/g, "").split("\n");
+
+  const reAlt = /^\s*\(?([a-eA-E])\)?[).\-–:]\s+(.*)$/;
+  const reGab = /^\s*(?:resposta|gabarito|correta|alternativa\s+correta|resposta\s+correta)\s*[:\-–]?\s*\(?([a-eA-E])\)?/i;
+  const reCom = /^\s*(?:coment[áa]rio|explica[çc][ãa]o|justificativa|racioc[íi]nio)\s*[:\-–]\s*(.*)$/i;
+  const reNum = /^\s*(?:quest[ãa]o\s*)?(\d{1,3})\s*[).\-–:]\s*(.*)$/i;
+
+  let atual = null;
+  const fechar = () => {
+    if (!atual) return;
+    const ok = atual.enunciado.trim() && atual.alternativas.length >= 2 && atual.correta >= 0;
+    if (ok) achados.push(atual);
+    else if (atual.enunciado.trim()) falhas.push(atual.enunciado.trim().slice(0, 70));
+    atual = null;
+  };
+  const abrir = txt => { fechar(); atual = { enunciado: txt || "", alternativas: [], correta: -1, comentario: "" }; };
+
+  let modo = "enunciado";
+  for (const bruta of linhas) {
+    const l = bruta.trim();
+    if (!l) { if (atual && atual.correta >= 0 && modo === "comentario") modo = "comentario"; continue; }
+
+    const mNum = l.match(reNum);
+    const mAlt = l.match(reAlt);
+    const mGab = l.match(reGab);
+    const mCom = l.match(reCom);
+
+    // "1. ..." só inicia questão quando não for alternativa nem já houver alternativas pendentes
+    if (mNum && !mAlt) { abrir(mNum[2]); modo = "enunciado"; continue; }
+    if (mGab) {
+      if (!atual) continue;
+      atual.correta = mGab[1].toLowerCase().charCodeAt(0) - 97;
+      modo = "comentario"; continue;
+    }
+    if (mCom) {
+      if (!atual) continue;
+      atual.comentario = mCom[1]; modo = "comentario"; continue;
+    }
+    if (mAlt && atual) {
+      const idx = mAlt[1].toLowerCase().charCodeAt(0) - 97;
+      atual.alternativas[idx] = mAlt[2];
+      modo = "alternativas"; continue;
+    }
+    if (!atual) { abrir(l); modo = "enunciado"; continue; }
+    if (modo === "enunciado") atual.enunciado += (atual.enunciado ? " " : "") + l;
+    else if (modo === "comentario") atual.comentario += (atual.comentario ? " " : "") + l;
+    else if (modo === "alternativas" && atual.alternativas.length) {
+      atual.alternativas[atual.alternativas.length - 1] += " " + l;
+    }
+  }
+  fechar();
+
+  achados.forEach(q => { q.alternativas = q.alternativas.map(a => a || "—"); });
+  return { questoes: achados.filter(q => q.correta < q.alternativas.length), falhas };
+}
+
+/* ===============================================================
+   SOM — sintetizado, sem arquivo externo
+   =============================================================== */
+let ctxAudio = null;
+function bip(freq, dur) {
+  if (!estado.config.som) return;
+  try {
+    ctxAudio = ctxAudio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctxAudio.createOscillator(), g = ctxAudio.createGain();
+    o.type = "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, ctxAudio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.12, ctxAudio.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctxAudio.currentTime + dur);
+    o.connect(g); g.connect(ctxAudio.destination);
+    o.start(); o.stop(ctxAudio.currentTime + dur + 0.02);
+  } catch (e) { /* som é enfeite: falhar aqui não quebra nada */ }
+}
+const somFoco = () => { bip(660, .18); setTimeout(() => bip(880, .22), 190); };
+const somPausa = () => { bip(440, .2); setTimeout(() => bip(330, .28), 210); };
+
+/* ===============================================================
+   TELA: AGORA — uma decisão na tela
    =============================================================== */
 function telaAgora() {
   const palco = el("div", { class: "palco" });
   const f = fila();
-
   palco.appendChild(el("div", { class: "rotulo", texto: porExtenso(hoje()) }));
+  const faixa = faixaCiclo();
+  if (faixa) palco.appendChild(faixa);
 
-  if (estado.topicos.length === 0) {
-    palco.appendChild(el("div", { class: "cartao" }, [
-      el("h1", { class: "assunto", texto: "Comece pelo material" }),
-      el("p", { class: "contexto", texto: "Adicione um assunto — matéria e título. O resumo você escreve depois, durante a sessão." }),
-      el("button", { class: "botao", onclick: () => irPara("material") }, [document.createTextNode("Adicionar material")]),
+  if (!estado.topicos.length) {
+    palco.appendChild(el("div", { class: "placa viva centro" }, [
+      el("h1", { class: "assunto brilha", texto: "A Grid está vazia" }),
+      el("p", { class: "contexto", texto: "Traga um resumo pra dentro — o da colega, o slide do professor, o que for. O resumo entra de um lado, o que você escreve fica do outro." }),
+      el("div", { class: "linha-acoes" }, [
+        el("button", { class: "botao", texto: "Importar resumo", onclick: () => irPara("importar") }),
+        el("button", { class: "botao calmo", texto: "Criar do zero", onclick: () => irPara("material") })
+      ]),
       el("button", { class: "discreto", texto: "ver funcionando com exemplos", onclick: exemplos })
     ]));
     return palco;
   }
 
-  if (f.length === 0) {
-    const proximo = estado.topicos.slice().sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : 1))[0];
-    palco.appendChild(el("div", { class: "cartao" }, [
-      el("h1", { class: "assunto", texto: "Você está em dia" }),
-      el("p", { class: "contexto", texto: "Nada vence hoje. O próximo é " + proximo.titulo + ", " + quandoVolta(proximo.proximaEm) + "." }),
-      el("button", { class: "botao calmo", texto: "Estudar mesmo assim", onclick: () => comecar(proximo.id) })
-    ]));
+  if (!f.length) {
+    const fora = filaForaDoCiclo();
+    const prox = estado.topicos.slice().sort((a, b) => a.proximaEm < b.proximaEm ? -1 : 1)[0];
+    const placa = el("div", { class: "placa centro" }, [
+      el("h1", { class: "assunto brilha", texto: "Você está em dia" }),
+      el("p", {
+        class: "contexto",
+        texto: fora && !verTodosCiclos
+          ? "Nada do ciclo em curso vence hoje. Há " + fora + " de ciclos anteriores esperando — bons pra revisar antes do PA4."
+          : "Nada vence hoje. O próximo é " + prox.titulo + ", " + quandoVolta(prox.proximaEm) + "."
+      })
+    ]);
+    if (fora && !verTodosCiclos) {
+      placa.appendChild(el("button", { class: "botao calmo", texto: "Revisar ciclos anteriores", onclick: () => { verTodosCiclos = true; indiceFila = 0; render(); } }));
+    } else {
+      placa.appendChild(el("button", { class: "botao calmo", texto: "Estudar mesmo assim", onclick: () => comecar(prox.id) }));
+    }
+    palco.appendChild(placa);
     palco.appendChild(progressoDoDia());
     return palco;
   }
@@ -469,181 +933,497 @@ function telaAgora() {
   if (indiceFila >= f.length) indiceFila = 0;
   const t = f[indiceFila];
 
-  const cartao = el("div", { class: "cartao" }, [
-    el("div", { class: "rotulo materia", texto: t.materia || "sem matéria" }),
+  const placa = el("div", { class: "placa viva centro" }, [
+    el("div", { class: "rotulo viva", texto: t.materia || "sem matéria" }),
     el("h1", { class: "assunto", texto: t.titulo }),
-    el("p", { class: "contexto", texto: desdeUltima(t) + " · nível " + t.nivel }),
+    el("p", { class: "contexto", texto: desdeUltima(t) + " · nível " + t.nivel + (t.fonte ? " · resumo importado" : "") }),
     el("button", { class: "botao", texto: "Começar", onclick: () => comecar(t.id) })
   ]);
 
   const acoes = el("div", { class: "linha-acoes" });
-  if (f.length > 1) {
-    acoes.appendChild(el("button", {
-      class: "discreto", texto: "trocar",
-      onclick: () => { indiceFila = (indiceFila + 1) % f.length; render(); }
-    }));
-  }
+  if (f.length > 1) acoes.appendChild(el("button", {
+    class: "discreto", texto: "trocar", onclick: () => { indiceFila = (indiceFila + 1) % f.length; render(); }
+  }));
   acoes.appendChild(el("button", {
     class: "discreto", texto: "deixar pra amanhã",
     onclick: () => { t.proximaEm = maisDias(1); salvar(); recado("Guardado pra amanhã."); render(); }
   }));
-  cartao.appendChild(acoes);
+  placa.appendChild(acoes);
 
-  palco.appendChild(cartao);
+  palco.appendChild(placa);
   palco.appendChild(progressoDoDia());
   return palco;
 }
 
-function progressoDoDia() {
-  const meta = estado.config.metaDiaria;
-  const feitos = feitosHoje();
-  const pontos = el("div", { class: "pontos" });
-  for (let i = 0; i < meta; i++) {
-    pontos.appendChild(el("i", { class: "ponto" + (i < feitos ? " cheio" : "") }));
+/* A faixa do ciclo existe pra você nunca revisar conteúdo do ciclo
+   passado achando que está estudando pra próxima prova. Ela informa;
+   não cobra. */
+function faixaCiclo() {
+  const st = statusCiclo();
+  if (!st) return null;
+  const linha = el("div", { class: "linha-acoes" });
+
+  if (st.naSemana) {
+    linha.appendChild(el("span", { class: "selo ambar", texto: "semana do " + st.ciclo.prova }));
+  } else if (st.dias >= 0) {
+    linha.appendChild(el("span", { class: "selo agora", texto: "ciclo " + st.ciclo.n }));
+    linha.appendChild(el("span", {
+      class: "rotulo",
+      texto: st.ciclo.prova + (st.dias === 0 ? " é hoje" : st.dias === 1 ? " é amanhã" : " em " + st.dias + " dias")
+        + (st.ciclo.confirmado ? "" : " (data estimada)")
+    }));
+  } else {
+    linha.appendChild(el("span", { class: "selo", texto: "ciclo " + st.ciclo.n + " · " + st.ciclo.prova + " já passou" }));
   }
-  const texto = feitos >= meta
+
+  const fora = filaForaDoCiclo();
+  if (verTodosCiclos) {
+    linha.appendChild(el("button", {
+      class: "discreto", texto: "só o ciclo " + st.ciclo.n,
+      onclick: () => { verTodosCiclos = false; indiceFila = 0; render(); }
+    }));
+  } else if (fora > 0) {
+    linha.appendChild(el("button", {
+      class: "discreto", texto: "incluir outros ciclos (" + fora + ")",
+      onclick: () => { verTodosCiclos = true; indiceFila = 0; render(); }
+    }));
+  }
+  return linha;
+}
+
+function progressoDoDia() {
+  const meta = estado.config.metaDiaria, feitos = feitosHoje();
+  const pontos = el("div", { class: "pontos" });
+  for (let i = 0; i < meta; i++) pontos.appendChild(el("i", { class: "ponto" + (i < feitos ? " cheio" : "") }));
+  const txt = feitos >= meta
     ? "meta do dia batida" + (feitos > meta ? " · +" + (feitos - meta) : "")
     : feitos + " de " + meta + " hoje";
-  return el("div", { class: "progresso" }, [pontos, el("span", { class: "rotulo", texto: texto })]);
+  return el("div", { class: "progresso" }, [pontos, el("span", { class: "rotulo", texto: txt })]);
 }
 
 /* ===============================================================
-   SESSÃO — espelha o método: transcrever, explicar, avaliar
+   POMODORO — ciclos de foco e pausa, com o disco de identidade.
+   A pausa é sugerida, nunca imposta: se você estiver embalado,
+   "continuar no foco" segue direto.
    =============================================================== */
 function comecar(id) {
   const t = acharTopico(id);
   if (!t) return;
-  sessao = { topicoId: id, passo: 0, restam: estado.config.minutosSessao * 60, timerId: null, texto: t.resumo || "" };
+  sessao = {
+    topicoId: id, passo: 0,
+    fase: "foco", restam: estado.config.foco * 60, rodando: true,
+    ciclos: 0, segundosFoco: 0, timerId: null,
+    texto: t.resumo || "", inicio: Date.now()
+  };
   sessao.timerId = setInterval(tique, 1000);
-  tela = "sessao";
-  render();
-}
-function encerrarSessao() {
-  if (sessao && sessao.timerId) clearInterval(sessao.timerId);
-  sessao = null;
-  tela = "agora";
-  render();
-}
-function tique() {
-  if (!sessao) return;
-  sessao.restam--;
-  const total = estado.config.minutosSessao * 60;
-  const rel = document.getElementById("relogio");
-  const barra = document.getElementById("barra");
-  if (rel) rel.textContent = formatarTempo(sessao.restam);
-  if (barra) barra.style.width = Math.min(100, ((total - sessao.restam) / total) * 100) + "%";
-  if (sessao.restam === 0) recado("25 minutos. Pode parar aqui ou seguir — você decide.");
-}
-function formatarTempo(s) {
-  const neg = s < 0;
-  s = Math.abs(s);
-  const m = Math.floor(s / 60);
-  return (neg ? "+" : "") + String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  tela = "sessao"; render();
 }
 
+function minutosDaFase() {
+  const c = estado.config;
+  return sessao.fase === "foco" ? c.foco : sessao.fase === "pausaLonga" ? c.pausaLonga : c.pausaCurta;
+}
+
+function tique() {
+  if (!sessao || !sessao.rodando) return;
+  if (sessao.fase === "foco") sessao.segundosFoco++;
+  sessao.restam--;
+  if (sessao.restam <= 0) trocarFase(true);
+  else atualizarDisco();
+}
+
+function trocarFase(automatico) {
+  const c = estado.config;
+  if (sessao.fase === "foco") {
+    sessao.ciclos++;
+    sessao.fase = (sessao.ciclos % c.ciclosAteLonga === 0) ? "pausaLonga" : "pausaCurta";
+    if (automatico) { somPausa(); recado("Ciclo " + sessao.ciclos + " fechado. Pausa liberada — ou siga, você decide."); }
+  } else {
+    sessao.fase = "foco";
+    if (automatico) { somFoco(); recado("De volta ao foco."); }
+  }
+  sessao.restam = minutosDaFase() * 60;
+  sessao.rodando = automatico ? (sessao.fase === "foco" ? true : estado.config.autoPausa) : sessao.rodando;
+  atualizarDisco();
+}
+
+/* Atualiza só o disco — nunca re-renderiza a tela, senão o texto
+   que você está digitando perderia o cursor a cada segundo. */
+function atualizarDisco() {
+  if (!sessao) return;
+  const disco = document.getElementById("disco");
+  if (!disco) return;
+  const total = minutosDaFase() * 60;
+  const decorrido = Math.max(0, total - sessao.restam);
+  const arco = document.getElementById("arco");
+  const comp = 2 * Math.PI * 104;
+  if (arco) {
+    arco.setAttribute("stroke-dasharray", comp);
+    arco.setAttribute("stroke-dashoffset", comp * (1 - Math.min(1, decorrido / total)));
+  }
+  disco.setAttribute("data-fase", sessao.fase === "foco" ? "foco" : "pausa");
+  const tmp = document.getElementById("tempo");
+  if (tmp) tmp.textContent = relogio(sessao.restam);
+  const fs = document.getElementById("faseNome");
+  if (fs) fs.textContent = sessao.fase === "foco" ? "foco" : sessao.fase === "pausaLonga" ? "pausa longa" : "pausa";
+  const cic = document.getElementById("ciclos");
+  if (cic) {
+    cic.textContent = "";
+    for (let i = 0; i < estado.config.ciclosAteLonga; i++) {
+      cic.appendChild(el("i", { class: (i < (sessao.ciclos % estado.config.ciclosAteLonga || (sessao.ciclos ? estado.config.ciclosAteLonga : 0))) ? "on" : "" }));
+    }
+  }
+  const bt = document.getElementById("btPausa");
+  if (bt) bt.textContent = sessao.rodando ? "pausar" : "retomar";
+}
+
+function montarDisco() {
+  const total = minutosDaFase() * 60;
+  const comp = 2 * Math.PI * 104;
+  const svg = svgEl("svg", { viewBox: "0 0 240 240" });
+  svg.appendChild(svgEl("circle", { class: "trilha", cx: 120, cy: 120, r: 104 }));
+  svg.appendChild(svgEl("circle", { class: "aro-int", cx: 120, cy: 120, r: 88 }));
+  svg.appendChild(svgEl("circle", { class: "aro-int", cx: 120, cy: 120, r: 116 }));
+  const arco = svgEl("circle", {
+    class: "arco", id: "arco", cx: 120, cy: 120, r: 104,
+    "stroke-dasharray": comp, "stroke-dashoffset": comp * (1 - (total - sessao.restam) / total)
+  });
+  svg.appendChild(arco);
+
+  const ciclos = el("div", { class: "ciclos", id: "ciclos" });
+  const disco = el("div", { class: "disco", id: "disco", "data-fase": sessao.fase === "foco" ? "foco" : "pausa" }, [
+    svg,
+    el("div", { class: "miolo" }, [
+      el("div", { class: "tempo mono", id: "tempo", texto: relogio(sessao.restam) }),
+      el("div", { class: "fase", id: "faseNome", texto: sessao.fase === "foco" ? "foco" : "pausa" })
+    ])
+  ]);
+  return el("div", { class: "linha-acoes", estilo: "flex-direction:column;gap:14px" }, [
+    disco, ciclos,
+    el("div", { class: "linha-acoes" }, [
+      el("button", {
+        class: "discreto", id: "btPausa", texto: sessao.rodando ? "pausar" : "retomar",
+        onclick: () => { sessao.rodando = !sessao.rodando; atualizarDisco(); }
+      }),
+      el("button", {
+        class: "discreto",
+        texto: sessao.fase === "foco" ? "pular pra pausa" : "voltar pro foco",
+        onclick: () => { trocarFase(false); }
+      })
+    ])
+  ]);
+}
+
+/* ===============================================================
+   TELA: SESSÃO
+   =============================================================== */
 function telaSessao() {
   const t = acharTopico(sessao.topicoId);
   if (!t) { encerrarSessao(); return el("div"); }
 
-  const palco = el("div", { class: "palco" });
-  palco.style.justifyContent = "flex-start";
-  palco.style.minHeight = "auto";
+  const folha = el("div", { class: "folha largo" });
 
-  // Cabeçalho da sessão: onde estou, quanto falta, como saio
   const marcas = el("div", { class: "passos" });
-  ["transcrever", "explicar", "avaliar"].forEach((nome, i) => {
-    marcas.appendChild(el("span", {
-      class: "passo-marca", texto: nome,
-      "data-ativo": sessao.passo === i ? "sim" : "nao",
-      "data-feito": sessao.passo > i ? "sim" : "nao"
-    }));
-  });
-  palco.appendChild(el("div", { class: "sessao-topo" }, [
+  ["transcrever", "explicar", "avaliar"].forEach((nome, i) => marcas.appendChild(el("span", {
+    class: "passo-marca", texto: nome,
+    "data-ativo": sessao.passo === i ? "sim" : "nao",
+    "data-feito": sessao.passo > i ? "sim" : "nao"
+  })));
+
+  folha.appendChild(el("div", { class: "sessao-topo" }, [
     marcas,
     el("div", { class: "linha-acoes" }, [
-      el("span", { class: "mono rotulo", id: "relogio", texto: formatarTempo(sessao.restam) }),
+      el("span", { class: "rotulo mono", texto: relogio(sessao.restam) + " · " + sessao.fase }),
       el("button", { class: "discreto", texto: "sair", onclick: sairComGuardar })
     ])
   ]));
-  const barra = el("div", { class: "barra-tempo" }, [el("i", { id: "barra" })]);
-  palco.appendChild(barra);
+  folha.appendChild(el("div", { class: "rotulo viva", texto: (t.materia || "sem matéria") + " — " + t.titulo }));
 
-  palco.appendChild(el("div", { class: "rotulo materia", texto: t.materia || "sem matéria" }));
-  palco.appendChild(el("h1", { class: "assunto", texto: t.titulo }));
-
+  /* --- passo 1: transcrever, com tela dividida --- */
   if (sessao.passo === 0) {
     const area = el("textarea", {
-      class: "resumo",
-      placeholder: "Transcreva o resumo aqui. Escrever é o estudo — não é só copiar pra ter guardado.",
+      placeholder: t.fonte
+        ? "Transcreva daqui do lado, com as suas palavras.\n\nMarcas que o modo leitura entende:\n  Título:      linha terminando em dois-pontos\n  - item       vira tópico\n  A -> B       vira fluxo com seta\n  ! cuidado    vira alerta\n  **negrito**  ==destaque=="
+        : "Transcreva o resumo aqui. Escrever é o estudo — não é só copiar pra ter guardado.",
       oninput: e => { sessao.texto = e.target.value; }
     });
     area.value = sessao.texto;
-    palco.appendChild(area);
-    palco.appendChild(el("button", {
-      class: "botao", texto: "Terminei de transcrever",
-      onclick: () => { t.resumo = sessao.texto; salvar(); sessao.passo = 1; render(); }
-    }));
-    setTimeout(() => area.focus(), 30);
+
+    if (t.fonte) {
+      const painelFonte = el("div", { class: "painel", "data-painel": "fonte", "data-oculto": painelMovel === "fonte" ? "nao" : "sim" }, [
+        el("div", { class: "painel-topo" }, [
+          el("span", { class: "rotulo", texto: "resumo importado" }),
+          el("span", { class: "rotulo mono", texto: t.fonte.length + " car." })
+        ]),
+        el("div", { class: "painel-corpo fonte", texto: t.fonte })
+      ]);
+      const painelVoce = el("div", { class: "painel", "data-painel": "voce", "data-oculto": painelMovel === "voce" ? "nao" : "sim" }, [
+        el("div", { class: "painel-topo" }, [
+          el("span", { class: "rotulo viva", texto: "o seu" }),
+          el("span", { class: "rotulo mono", id: "contaChars", texto: sessao.texto.length + " car." })
+        ]),
+        area
+      ]);
+      area.addEventListener("input", () => {
+        const c = document.getElementById("contaChars");
+        if (c) c.textContent = area.value.length + " car.";
+      });
+
+      const pega = el("div", { class: "pega", role: "separator", "aria-orientation": "vertical", tabindex: "0" });
+      const divisor = el("div", { class: "divisor" }, [painelFonte, pega, painelVoce]);
+      divisor.style.setProperty("--esq", larguraEsq + "fr");
+      divisor.style.setProperty("--dir", (100 - larguraEsq) + "fr");
+      arrastavel(pega, divisor);
+
+      // Em tela estreita, abas em vez de divisão
+      const abas = el("div", { class: "abas" }, [
+        el("button", { class: "aba", texto: "resumo dela", "aria-selected": painelMovel === "fonte" }),
+        el("button", { class: "aba", texto: "o seu", "aria-selected": painelMovel === "voce" })
+      ]);
+      abas.addEventListener("click", e => {
+        const b = e.target.closest("button"); if (!b) return;
+        painelMovel = b.textContent === "o seu" ? "voce" : "fonte";
+        abas.querySelectorAll("button").forEach(x => x.setAttribute("aria-selected", String((x.textContent === "o seu") === (painelMovel === "voce"))));
+        painelFonte.setAttribute("data-oculto", painelMovel === "fonte" ? "nao" : "sim");
+        painelVoce.setAttribute("data-oculto", painelMovel === "voce" ? "nao" : "sim");
+      });
+      const barraAbas = el("div", { estilo: "display:none" }, [abas]);
+      if (window.matchMedia("(max-width: 860px)").matches) barraAbas.style.display = "block";
+      folha.appendChild(barraAbas);
+      folha.appendChild(divisor);
+    } else {
+      const so = el("div", { class: "painel", estilo: "min-height:52vh" }, [
+        el("div", { class: "painel-topo" }, [el("span", { class: "rotulo viva", texto: "o seu resumo" })]),
+        area
+      ]);
+      folha.appendChild(so);
+    }
+
+    folha.appendChild(el("div", { class: "linha-acoes" }, [
+      el("button", {
+        class: "botao", texto: "Terminei de transcrever",
+        onclick: () => { t.resumo = sessao.texto; salvar(); sessao.passo = 1; render(); }
+      })
+    ]));
+    setTimeout(() => { if (!window.matchMedia("(max-width: 860px)").matches || painelMovel === "voce") area.focus(); }, 40);
   }
 
+  /* --- passo 2: explicar --- */
   if (sessao.passo === 1) {
+    const palco = el("div", { class: "palco" });
+    palco.appendChild(montarDisco());
     palco.appendChild(el("div", { class: "instrucao" }, [
       el("p", {}, [
-        document.createTextNode("Agora "),
-        el("strong", { texto: "explique em voz alta" }),
+        document.createTextNode("Agora "), el("strong", { texto: "explique em voz alta" }),
         document.createTextNode(", do começo ao fim, como se estivesse ensinando alguém que não sabe nada do assunto.")
       ]),
       el("p", { texto: "Sem olhar o texto. Onde você travar ou enrolar é exatamente o que ainda não está sabido — é essa a informação que a gente quer." })
     ]));
     palco.appendChild(el("button", { class: "botao", texto: "Já expliquei", onclick: () => { sessao.passo = 2; render(); } }));
     palco.appendChild(el("button", { class: "discreto", texto: "deixa eu olhar o texto de novo", onclick: () => { sessao.passo = 0; render(); } }));
+    folha.appendChild(palco);
   }
 
+  /* --- passo 3: avaliar --- */
   if (sessao.passo === 2) {
+    const palco = el("div", { class: "palco" });
     palco.appendChild(el("p", { class: "contexto", texto: "Como foi explicar?" }));
-    const opcoes = [
+    const caixa = el("div", { class: "avaliacao" });
+    [
       { nome: "Travei", desc: "não saiu, ou saiu com buraco grande", nota: 0 },
       { nome: "Quase", desc: "saiu, mas engasguei em partes", nota: 1 },
       { nome: "Mandei bem", desc: "expliquei inteiro, sem travar", nota: 2 }
-    ];
-    const caixa = el("div", { class: "avaliacao" });
-    opcoes.forEach(o => {
-      caixa.appendChild(el("button", { onclick: () => avaliar(o.nota) }, [
-        el("span", { texto: o.nome }),
-        el("small", { texto: o.desc + " · volta " + quandoVolta(previsao(t, o.nota)) })
-      ]));
-    });
+    ].forEach(o => caixa.appendChild(el("button", { onclick: () => avaliar(o.nota) }, [
+      el("span", { texto: o.nome }),
+      el("small", { texto: o.desc + " · volta " + quandoVolta(previsao(acharTopico(sessao.topicoId), o.nota)) })
+    ])));
     palco.appendChild(caixa);
+    folha.appendChild(palco);
   }
 
-  return palco;
+  return folha;
+}
+
+function arrastavel(pega, divisor) {
+  let ativo = false;
+  const mover = clientX => {
+    const r = divisor.getBoundingClientRect();
+    const pct = Math.max(22, Math.min(78, ((clientX - r.left) / r.width) * 100));
+    larguraEsq = pct;
+    divisor.style.setProperty("--esq", pct + "fr");
+    divisor.style.setProperty("--dir", (100 - pct) + "fr");
+  };
+  pega.addEventListener("pointerdown", e => { ativo = true; pega.setPointerCapture(e.pointerId); e.preventDefault(); });
+  pega.addEventListener("pointermove", e => { if (ativo) mover(e.clientX); });
+  pega.addEventListener("pointerup", e => { ativo = false; pega.releasePointerCapture(e.pointerId); });
+  pega.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      larguraEsq = Math.max(22, Math.min(78, larguraEsq + (e.key === "ArrowLeft" ? -4 : 4)));
+      divisor.style.setProperty("--esq", larguraEsq + "fr");
+      divisor.style.setProperty("--dir", (100 - larguraEsq) + "fr");
+      e.preventDefault();
+    }
+  });
 }
 
 function sairComGuardar() {
   const t = acharTopico(sessao.topicoId);
   if (t && sessao.passo === 0) { t.resumo = sessao.texto; salvar(); }
+  registrarSessao(null);
   encerrarSessao();
 }
-
-function previsao(t, nota) {
-  let nivel = t.nivel;
-  if (nota === 0) nivel = 0;
-  else if (nota === 2) nivel = Math.min(nivel + 1, INTERVALOS.length - 1);
-  return maisDias(INTERVALOS[nivel]);
+function encerrarSessao() {
+  if (sessao && sessao.timerId) clearInterval(sessao.timerId);
+  sessao = null; tela = "agora"; render();
 }
-
+function registrarSessao(avaliacao) {
+  if (!sessao || sessao.segundosFoco < 30) return;
+  const t = acharTopico(sessao.topicoId);
+  estado.sessoes.push({
+    id: novoId("s"), topicoId: sessao.topicoId,
+    titulo: t ? t.titulo : "—", materia: t ? (t.materia || "Sem matéria") : "Sem matéria",
+    dataISO: hoje(), segundos: sessao.segundosFoco, ciclos: sessao.ciclos, avaliacao: avaliacao
+  });
+  if (estado.sessoes.length > 2000) estado.sessoes = estado.sessoes.slice(-2000);
+  salvar();
+}
+function previsao(t, nota) {
+  let n = t.nivel;
+  if (nota === 0) n = 0; else if (nota === 2) n = Math.min(n + 1, INTERVALOS.length - 1);
+  return maisDias(INTERVALOS[n]);
+}
 function avaliar(nota) {
   const t = acharTopico(sessao.topicoId);
   if (!t) return encerrarSessao();
-  if (nota === 0) t.nivel = 0;
-  else if (nota === 2) t.nivel = Math.min(t.nivel + 1, INTERVALOS.length - 1);
+  if (nota === 0) t.nivel = 0; else if (nota === 2) t.nivel = Math.min(t.nivel + 1, INTERVALOS.length - 1);
   t.proximaEm = maisDias(INTERVALOS[t.nivel]);
   t.ultimaEm = hoje();
   estado.historico[hoje()] = feitosHoje() + 1;
+  registrarSessao(nota);
   salvar();
-  indiceFila = 0;
-  recado("Volta " + quandoVolta(t.proximaEm) + ".");
-  encerrarSessao();
+  const tempo = sessao.segundosFoco;
+  if (sessao.timerId) clearInterval(sessao.timerId);
+  sessao = null; indiceFila = 0;
+  lendoId = t.id; tela = "leitura";
+  recado("Volta " + quandoVolta(t.proximaEm) + " · " + duracao(tempo) + " de foco");
+  render();
+}
+
+/* ===============================================================
+   TELA: LEITURA — o resumo feio, renderizado bonito
+   =============================================================== */
+function telaLeitura() {
+  const t = acharTopico(lendoId);
+  if (!t) { tela = "material"; return telaMaterial(); }
+  const folha = el("div", { class: "folha" });
+
+  folha.appendChild(el("div", { class: "linha-acoes esq" }, [
+    el("button", { class: "discreto", texto: "← voltar", onclick: () => { tela = fila().length ? "agora" : "material"; render(); } }),
+    el("button", { class: "discreto", texto: "editar texto", onclick: () => { editandoId = t.id; tela = "editor"; render(); } })
+  ]));
+
+  folha.appendChild(el("div", { class: "rotulo viva", texto: t.materia || "sem matéria" }));
+  folha.appendChild(el("h1", { class: "assunto brilha", texto: t.titulo }));
+  folha.appendChild(formatar(t.resumo));
+
+  const f = fila();
+  const acoes = el("div", { class: "linha-acoes", estilo: "margin-top:32px" });
+  if (f.length) acoes.appendChild(el("button", { class: "botao", texto: "Próximo assunto", onclick: () => { tela = "agora"; render(); } }));
+  acoes.appendChild(el("button", { class: "botao calmo", texto: "Ver marcas de formatação", onclick: () => irPara("marcas") }));
+  folha.appendChild(acoes);
+  return folha;
+}
+
+function telaMarcas() {
+  const folha = el("div", { class: "folha" });
+  folha.appendChild(el("button", { class: "discreto", texto: "← voltar", onclick: () => { tela = lendoId ? "leitura" : "material"; render(); } }));
+  folha.appendChild(el("h1", { class: "secao-titulo", texto: "Marcas de formatação" }));
+  folha.appendChild(el("p", { class: "aviso", texto: "Você escreve solto. Estas marquinhas são o único esforço extra — e cada uma vira um elemento visual no modo leitura. Nenhuma é obrigatória: texto sem marca nenhuma vira parágrafo normal." }));
+
+  const exemplo = [
+    "## Farmacologia dos antiarrítmicos",
+    "",
+    "Classe I:",
+    "- bloqueiam canais de sódio",
+    "- subdivididos em IA, IB e IC",
+    "",
+    "IA prolonga QT -> risco de torsades -> monitorar ECG",
+    "",
+    "! Nunca associar IC em cardiopatia estrutural",
+    "",
+    "> Efeito de uso-dependência: mais bloqueio em frequência alta",
+    "",
+    "| Subclasse | Efeito no QT |",
+    "| IA | prolonga |",
+    "| IB | encurta |",
+    "| IC | não altera |",
+    "",
+    "O ponto central é que **a subclasse define o efeito na repolarização**, e é isso que cai em prova. O termo ==uso-dependência== costuma ser cobrado junto."
+  ].join("\n");
+
+  folha.appendChild(el("div", { class: "grade2" }, [
+    el("div", { class: "bloco" }, [
+      el("div", { class: "rotulo", texto: "o que você digita" }),
+      el("pre", { estilo: "white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.7;color:var(--texto-fraco);margin:0", texto: exemplo })
+    ]),
+    el("div", { class: "bloco" }, [
+      el("div", { class: "rotulo viva", texto: "o que você lê" }),
+      formatar(exemplo)
+    ])
+  ]));
+  return folha;
+}
+
+/* ===============================================================
+   CICLOS DO SEMESTRE
+   Lido do calendário acadêmico Uniarp 2026 (seção Medicina).
+   O que está no calendário: início do semestre 20/07, PA1 em
+   24-28/08, PA2 em 05-09/10, PA4 em 01-04/12, término 07/12,
+   fechamento do PA3 até 30/11. A SEMANA DE PROVA DO PA3 não
+   consta no calendário — a data abaixo é estimativa, marcada
+   como não confirmada e editável em Ajustes.
+   =============================================================== */
+function calendarioPadrao() {
+  return {
+    semestre: "2026/2",
+    inicio: "2026-07-20",
+    fim: "2026-12-07",
+    ciclos: [
+      { n: 1, inicio: "2026-07-20", fim: "2026-08-28", provaIni: "2026-08-24", provaFim: "2026-08-28", prova: "PA1", confirmado: true },
+      { n: 2, inicio: "2026-08-31", fim: "2026-10-09", provaIni: "2026-10-05", provaFim: "2026-10-09", prova: "PA2", confirmado: true },
+      { n: 3, inicio: "2026-10-12", fim: "2026-11-27", provaIni: "2026-11-23", provaFim: "2026-11-27", prova: "PA3", confirmado: false }
+    ],
+    recuperacao: { provaIni: "2026-12-01", provaFim: "2026-12-04", prova: "PA4" }
+  };
+}
+
+function cicloAtual() {
+  const c = estado.calendario;
+  if (!c) return null;
+  const h = hoje();
+  return c.ciclos.find(x => h >= x.inicio && h <= x.fim)
+      || c.ciclos.find(x => h < x.inicio)
+      || c.ciclos[c.ciclos.length - 1];
+}
+function cicloDaData(iso) {
+  const c = estado.calendario;
+  if (!c) return 1;
+  const achado = c.ciclos.find(x => iso >= x.inicio && iso <= x.fim);
+  return achado ? achado.n : (iso < c.ciclos[0].inicio ? 1 : c.ciclos[c.ciclos.length - 1].n);
+}
+function emRecuperacao() {
+  const r = estado.calendario && estado.calendario.recuperacao;
+  return !!r && hoje() >= diasAntes(r.provaIni, 14) && hoje() <= r.provaFim;
+}
+function diasAntes(iso, n) { const d = new Date(iso); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+
+function statusCiclo() {
+  const c = cicloAtual();
+  if (!c) return null;
+  const h = hoje();
+  const dias = diasEntre(h, c.provaIni);
+  const naSemana = h >= c.provaIni && h <= c.provaFim;
+  return { ciclo: c, dias, naSemana };
 }
 
 /* ===============================================================
@@ -651,82 +1431,123 @@ function avaliar(nota) {
    =============================================================== */
 function telaMaterial() {
   const folha = el("div", { class: "folha" });
-  folha.appendChild(el("h1", { class: "secao-titulo", texto: "Material" }));
-
-  // Adicionar rápido
-  const listaMaterias = [...new Set(estado.topicos.map(t => t.materia).filter(Boolean))];
-  const dl = el("datalist", { id: "materias" });
-  listaMaterias.forEach(m => dl.appendChild(el("option", { value: m })));
-
-  const campoMateria = el("input", { type: "text", placeholder: "Matéria", list: "materias" });
-  const campoTitulo = el("input", { type: "text", placeholder: "Assunto (ex: antiarrítmicos classe I)" });
-  const adicionar = () => {
-    const titulo = campoTitulo.value.trim();
-    if (!titulo) { campoTitulo.focus(); return; }
-    estado.topicos.push({
-      id: "t" + Date.now() + Math.random().toString(36).slice(2, 6),
-      materia: campoMateria.value.trim(),
-      titulo: titulo,
-      resumo: "",
-      nivel: 0,
-      criadoEm: hoje(),
-      ultimaEm: null,
-      proximaEm: hoje()
-    });
-    salvar();
-    campoTitulo.value = "";
-    recado("Na fila de hoje.");
-    render();
-    setTimeout(() => { const i = document.querySelector(".adicionar input[placeholder^='Assunto']"); if (i) i.focus(); }, 30);
-  };
-  campoTitulo.addEventListener("keydown", e => { if (e.key === "Enter") adicionar(); });
-
-  folha.appendChild(el("div", { class: "adicionar" }, [
-    campoMateria, campoTitulo, dl,
-    el("button", { class: "botao calmo", texto: "Adicionar", onclick: adicionar })
+  folha.appendChild(el("div", { class: "sessao-topo" }, [
+    el("h1", { class: "secao-titulo", texto: "Material" }),
+    el("div", { class: "linha-acoes" }, [
+      el("button", { class: "botao calmo", texto: "Importar resumo", onclick: () => irPara("importar") })
+    ])
   ]));
 
-  if (estado.topicos.length === 0) {
+  const materias = [...new Set(estado.topicos.map(t => t.materia).filter(Boolean))];
+  const dl = el("datalist", { id: "materias" });
+  materias.forEach(m => dl.appendChild(el("option", { value: m })));
+
+  const cM = el("input", { type: "text", placeholder: "Matéria", list: "materias" });
+  const cT = el("input", { type: "text", placeholder: "Assunto (ex: antiarrítmicos classe I)" });
+  const add = () => {
+    const titulo = cT.value.trim();
+    if (!titulo) { cT.focus(); return; }
+    estado.topicos.push({
+      id: novoId("t"), materia: cM.value.trim(), titulo, fonte: "", resumo: "",
+      ciclo: cicloDaData(hoje()), nivel: 0, criadoEm: hoje(), ultimaEm: null, proximaEm: hoje()
+    });
+    salvar(); cT.value = ""; recado("Na fila de hoje."); render();
+  };
+  cT.addEventListener("keydown", e => { if (e.key === "Enter") add(); });
+  folha.appendChild(el("div", { class: "bloco" }, [
+    el("div", { class: "grade2" }, [cM, cT]), dl,
+    el("div", { class: "linha-acoes esq" }, [el("button", { class: "botao calmo", texto: "Adicionar", onclick: add })])
+  ]));
+
+  if (!estado.topicos.length) {
     folha.appendChild(el("div", { class: "vazio", texto: "Nada aqui ainda. O primeiro assunto entra na fila de hoje automaticamente." }));
     return folha;
   }
 
-  // Busca
   if (estado.topicos.length > 6) {
     const b = el("input", { type: "search", placeholder: "Buscar assunto ou matéria", oninput: e => { busca = e.target.value.toLowerCase(); render(); } });
     b.value = busca;
     folha.appendChild(b);
   }
 
-  // Agrupado por matéria
-  const filtrados = estado.topicos.filter(t =>
-    !busca || (t.titulo + " " + t.materia).toLowerCase().includes(busca)
-  );
-  const grupos = {};
-  filtrados.forEach(t => {
-    const k = t.materia || "Sem matéria";
-    (grupos[k] = grupos[k] || []).push(t);
-  });
+  const filtrados = estado.topicos.filter(t => !busca || (t.titulo + " " + t.materia).toLowerCase().includes(busca));
+  const porCiclo = {};
+  filtrados.forEach(t => { const k = t.ciclo || 1; (porCiclo[k] = porCiclo[k] || []).push(t); });
+  const atual = cicloAtual();
 
-  Object.keys(grupos).sort((a, b) => a.localeCompare(b, "pt-BR")).forEach(nome => {
+  Object.keys(porCiclo).sort((a, b) => b - a).forEach(n => {
+    const eAtual = atual && Number(n) === atual.n;
     const g = el("div", { class: "grupo" });
-    g.appendChild(el("div", { class: "rotulo", texto: nome + " · " + grupos[nome].length }));
-    grupos[nome]
-      .sort((a, b) => (a.proximaEm < b.proximaEm ? -1 : 1))
-      .forEach(t => {
-        const vence = t.proximaEm <= hoje();
-        const nivel = el("span", { class: "nivel" });
-        for (let i = 0; i < INTERVALOS.length; i++) nivel.appendChild(el("i", { class: i < t.nivel ? "on" : "" }));
-        g.appendChild(el("button", { class: "item", onclick: () => { editandoId = t.id; tela = "editor"; render(); } }, [
-          el("span", { class: "titulo", texto: t.titulo }),
-          nivel,
-          el("span", { class: "selo" + (vence ? " agora" : ""), texto: quandoVolta(t.proximaEm) })
-        ]));
-      });
+    g.appendChild(el("div", { class: eAtual ? "rotulo viva" : "rotulo", texto: "Ciclo " + n + " · " + porCiclo[n].length + (eAtual ? " · em curso" : "") }));
+    porCiclo[n].sort((a, b) => a.proximaEm < b.proximaEm ? -1 : 1).forEach(t => {
+      const nivel = el("span", { class: "nivel" });
+      for (let i = 0; i < INTERVALOS.length; i++) nivel.appendChild(el("i", { class: i < t.nivel ? "on" : "" }));
+      g.appendChild(el("button", { class: "item", onclick: () => { editandoId = t.id; tela = "editor"; render(); } }, [
+        el("span", { class: "titulo" }, [
+          el("span", { texto: t.titulo }),
+          el("span", { class: "sub", estilo: "display:block", texto: (t.materia || "sem matéria") + (t.fonte ? " · com resumo importado" : "") })
+        ]),
+        nivel,
+        el("span", { class: "selo" + (t.proximaEm <= hoje() ? " agora" : ""), texto: quandoVolta(t.proximaEm) })
+      ]));
+    });
     folha.appendChild(g);
   });
 
-  if (filtrados.length === 0) folha.appendChild(el("div", { class: "vazio", texto: "Nada com esse nome." }));
+  if (!filtrados.length) folha.appendChild(el("div", { class: "vazio", texto: "Nada com esse nome." }));
+  return folha;
+}
+
+/* ===============================================================
+   TELA: IMPORTAR RESUMO
+   =============================================================== */
+function telaImportar() {
+  const folha = el("div", { class: "folha" });
+  folha.appendChild(el("button", { class: "discreto", texto: "← voltar", onclick: () => irPara("material") }));
+  folha.appendChild(el("h1", { class: "secao-titulo", texto: "Importar resumo" }));
+  folha.appendChild(el("p", { class: "aviso", texto: "Cole o resumo da colega, o texto do slide, o que for. Ele entra como fonte — fica de um lado da tela enquanto você transcreve do outro. O texto importado nunca é alterado." }));
+
+  const materias = [...new Set(estado.topicos.map(t => t.materia).filter(Boolean))];
+  const dl = el("datalist", { id: "materias2" });
+  materias.forEach(m => dl.appendChild(el("option", { value: m })));
+  const cM = el("input", { type: "text", placeholder: "Matéria", list: "materias2" });
+  const cT = el("input", { type: "text", placeholder: "Assunto" });
+  const cX = el("textarea", { placeholder: "Cole o resumo aqui.", estilo: "min-height:38vh" });
+
+  const arq = el("input", { type: "file", accept: ".txt,.md,text/plain,text/markdown" });
+  arq.style.display = "none";
+  arq.addEventListener("change", async () => {
+    const f = arq.files[0]; if (!f) return;
+    cX.value = await f.text();
+    if (!cT.value.trim()) cT.value = f.name.replace(/\.(txt|md)$/i, "");
+    recado("Arquivo carregado."); arq.value = "";
+  });
+
+  const criar = () => {
+    const titulo = cT.value.trim(), texto = cX.value.trim();
+    if (!titulo) { recado("Falta o nome do assunto."); cT.focus(); return; }
+    if (!texto) { recado("Cole o resumo antes."); cX.focus(); return; }
+    const t = {
+      id: novoId("t"), materia: cM.value.trim(), titulo, fonte: texto, resumo: "",
+      ciclo: cicloDaData(hoje()), nivel: 0, criadoEm: hoje(), ultimaEm: null, proximaEm: hoje()
+    };
+    estado.topicos.push(t); salvar();
+    recado("Importado. Está na fila de hoje.");
+    comecar(t.id);
+  };
+
+  folha.appendChild(el("div", { class: "bloco" }, [
+    el("div", { class: "grade2" }, [
+      el("div", { class: "campo" }, [el("label", { texto: "Matéria" }), cM]),
+      el("div", { class: "campo" }, [el("label", { texto: "Assunto" }), cT])
+    ]), dl,
+    el("div", { class: "campo" }, [el("label", { texto: "Resumo" }), cX]),
+    el("div", { class: "linha-acoes esq" }, [
+      el("button", { class: "botao", texto: "Importar e começar", onclick: criar }),
+      el("button", { class: "botao calmo", texto: "Carregar arquivo .txt", onclick: () => arq.click() }),
+      arq
+    ])
+  ]));
   return folha;
 }
 
@@ -736,50 +1557,426 @@ function telaMaterial() {
 function telaEditor() {
   const t = acharTopico(editandoId);
   if (!t) { tela = "material"; return telaMaterial(); }
-
   const folha = el("div", { class: "folha" });
-  folha.appendChild(el("button", { class: "discreto", texto: "← voltar pro material", onclick: () => { tela = "material"; render(); } }));
+  folha.appendChild(el("button", { class: "discreto", texto: "← voltar pro material", onclick: () => irPara("material") }));
 
-  const cMateria = el("input", { type: "text", placeholder: "Matéria" });
-  cMateria.value = t.materia || "";
-  const cTitulo = el("input", { type: "text", placeholder: "Assunto" });
-  cTitulo.value = t.titulo;
-  const cResumo = el("textarea", { class: "resumo", placeholder: "Seu resumo transcrito." });
-  cResumo.value = t.resumo || "";
+  const cM = el("input", { type: "text", placeholder: "Matéria" }); cM.value = t.materia || "";
+  const cT = el("input", { type: "text", placeholder: "Assunto" }); cT.value = t.titulo;
+  const cC = el("select");
+  (estado.calendario ? estado.calendario.ciclos : []).forEach(c =>
+    cC.appendChild(el("option", { value: c.n, texto: "Ciclo " + c.n + " (" + c.prova + ")", selected: (t.ciclo || 1) === c.n ? "selected" : null })));
+  const cF = el("textarea", { placeholder: "Resumo importado (a fonte).", estilo: "min-height:26vh" }); cF.value = t.fonte || "";
+  const cR = el("textarea", { placeholder: "O seu resumo.", estilo: "min-height:32vh" }); cR.value = t.resumo || "";
 
   const guardar = () => {
-    t.materia = cMateria.value.trim();
-    t.titulo = cTitulo.value.trim() || t.titulo;
-    t.resumo = cResumo.value;
-    salvar();
-    recado("Salvo.");
+    t.materia = cM.value.trim(); t.titulo = cT.value.trim() || t.titulo;
+    t.ciclo = Number(cC.value) || t.ciclo; t.fonte = cF.value; t.resumo = cR.value;
+    salvar(); recado("Salvo.");
   };
-  [cMateria, cTitulo, cResumo].forEach(c => c.addEventListener("blur", guardar));
+  [cM, cT, cC, cF, cR].forEach(c => c.addEventListener("blur", guardar));
+  cC.addEventListener("change", guardar);
 
   folha.appendChild(el("div", { class: "bloco" }, [
-    el("div", { class: "campo" }, [el("label", { texto: "Matéria" }), cMateria]),
-    el("div", { class: "campo" }, [el("label", { texto: "Assunto" }), cTitulo])
+    el("div", { class: "grade2" }, [
+      el("div", { class: "campo" }, [el("label", { texto: "Matéria" }), cM]),
+      el("div", { class: "campo" }, [el("label", { texto: "Assunto" }), cT]),
+      el("div", { class: "campo" }, [el("label", { texto: "Ciclo" }), cC])
+    ])
   ]));
-  folha.appendChild(cResumo);
+  folha.appendChild(el("div", { class: "campo" }, [el("label", { texto: "Resumo importado (fonte)" }), cF]));
+  folha.appendChild(el("div", { class: "campo" }, [el("label", { texto: "O seu resumo" }), cR]));
 
-  folha.appendChild(el("div", { class: "linha-acoes" }, [
+  folha.appendChild(el("div", { class: "linha-acoes esq" }, [
     el("button", { class: "botao", texto: "Estudar agora", onclick: () => { guardar(); comecar(t.id); } }),
+    el("button", { class: "botao calmo", texto: "Modo leitura", onclick: () => { guardar(); lendoId = t.id; tela = "leitura"; render(); } }),
     el("button", { class: "botao calmo", texto: "Salvar", onclick: guardar }),
+    el("button", { class: "discreto", texto: "voltar pra fila de hoje", onclick: () => { t.proximaEm = hoje(); salvar(); recado("Está na fila de hoje."); render(); } }),
     el("button", {
-      class: "discreto", texto: "voltar pra fila de hoje",
-      onclick: () => { t.proximaEm = hoje(); salvar(); recado("Está na fila de hoje."); render(); }
-    }),
-    el("button", {
-      class: "discreto perigo", texto: "apagar assunto",
+      class: "discreto perigo", texto: "apagar",
       onclick: () => {
-        if (!confirm("Apagar \"" + t.titulo + "\" e o resumo dele? Não dá pra desfazer.")) return;
+        if (!confirm('Apagar "' + t.titulo + '" e os dois resumos? Não dá pra desfazer.')) return;
         estado.topicos = estado.topicos.filter(x => x.id !== t.id);
         salvar(); tela = "material"; recado("Apagado."); render();
       }
     })
   ]));
-
   folha.appendChild(el("p", { class: "aviso", texto: desdeUltima(t) + " · nível " + t.nivel + " · volta " + quandoVolta(t.proximaEm) }));
+  return folha;
+}
+
+/* ===============================================================
+   TELA: QUESTÕES
+   =============================================================== */
+function questoesDoCiclo() {
+  const a = cicloAtual();
+  return estado.questoes.filter(q => !filtroMateria || q.materia === filtroMateria);
+}
+function filaQuestoes() {
+  return questoesDoCiclo().filter(q => !q.proximaEm || q.proximaEm <= hoje());
+}
+
+function telaQuestoes() {
+  const folha = el("div", { class: "folha" });
+  folha.appendChild(el("div", { class: "sessao-topo" }, [
+    el("h1", { class: "secao-titulo", texto: "Questões" }),
+    el("div", { class: "linha-acoes" }, [
+      el("button", { class: "botao calmo", texto: "Colar questões", onclick: () => irPara("importarQ") })
+    ])
+  ]));
+
+  if (!estado.questoes.length) {
+    folha.appendChild(el("div", { class: "vazio" }, [
+      el("p", { texto: "Nenhuma questão ainda." }),
+      el("p", { class: "aviso", estilo: "margin:12px auto 0", texto: "Este app não inventa questão — ele guarda e treina as suas. Peça o bloco de questões pro modelo que você já usa, cole aqui, e ele separa enunciado, alternativas, gabarito e comentário sozinho." }),
+      el("div", { class: "linha-acoes", estilo: "margin-top:18px" }, [
+        el("button", { class: "botao", texto: "Colar questões", onclick: () => irPara("importarQ") })
+      ])
+    ]));
+    return folha;
+  }
+
+  const materias = [...new Set(estado.questoes.map(q => q.materia).filter(Boolean))];
+  if (materias.length > 1) {
+    const sel = el("select", { onchange: e => { filtroMateria = e.target.value; render(); } });
+    sel.appendChild(el("option", { value: "", texto: "Todas as matérias" }));
+    materias.forEach(m => sel.appendChild(el("option", { value: m, texto: m, selected: filtroMateria === m ? "selected" : null })));
+    folha.appendChild(sel);
+  }
+
+  const disp = questoesDoCiclo();
+  const naFila = filaQuestoes();
+  const acertos = disp.reduce((s, q) => s + (q.acertos || 0), 0);
+  const erros = disp.reduce((s, q) => s + (q.erros || 0), 0);
+  const taxa = acertos + erros ? Math.round((acertos / (acertos + erros)) * 100) : null;
+
+  folha.appendChild(el("div", { class: "grade2" }, [
+    el("div", { class: "bloco numerao" }, [el("span", { class: "n", texto: String(disp.length) }), el("span", { class: "q", texto: "questões no banco" })]),
+    el("div", { class: "bloco numerao" }, [el("span", { class: "n", texto: String(naFila.length) }), el("span", { class: "q", texto: "prontas pra hoje" })]),
+    el("div", { class: "bloco numerao" }, [el("span", { class: "n", texto: taxa === null ? "—" : taxa + "%" }), el("span", { class: "q", texto: "acerto acumulado" })])
+  ]));
+
+  folha.appendChild(el("div", { class: "linha-acoes" }, [
+    naFila.length
+      ? el("button", { class: "botao", texto: "Praticar " + naFila.length + " questões", onclick: () => comecarPratica(naFila) })
+      : el("button", { class: "botao calmo", texto: "Praticar tudo de novo", onclick: () => comecarPratica(disp) })
+  ]));
+
+  const g = el("div", { class: "grupo" });
+  g.appendChild(el("div", { class: "rotulo", texto: "banco" }));
+  disp.slice(0, 60).forEach(q => {
+    const total = (q.acertos || 0) + (q.erros || 0);
+    g.appendChild(el("button", {
+      class: "item",
+      onclick: () => { if (confirm("Apagar esta questão?\n\n" + q.enunciado.slice(0, 120))) { estado.questoes = estado.questoes.filter(x => x.id !== q.id); salvar(); render(); } }
+    }, [
+      el("span", { class: "titulo" }, [
+        el("span", { texto: q.enunciado.length > 110 ? q.enunciado.slice(0, 110) + "…" : q.enunciado }),
+        el("span", { class: "sub", estilo: "display:block", texto: (q.materia || "sem matéria") + (total ? " · " + (q.acertos || 0) + " acertos, " + (q.erros || 0) + " erros" : " · nunca respondida") })
+      ]),
+      el("span", { class: "selo" + (!q.proximaEm || q.proximaEm <= hoje() ? " agora" : ""), texto: q.proximaEm ? quandoVolta(q.proximaEm) : "nova" })
+    ]));
+  });
+  if (disp.length > 60) g.appendChild(el("p", { class: "aviso", texto: "Mostrando 60 de " + disp.length + "." }));
+  folha.appendChild(g);
+  folha.appendChild(el("p", { class: "aviso", texto: "Tocar numa questão apaga ela (com confirmação)." }));
+  return folha;
+}
+
+function telaImportarQuestoes() {
+  const folha = el("div", { class: "folha" });
+  folha.appendChild(el("button", { class: "discreto", texto: "← voltar", onclick: () => irPara("questoes") }));
+  folha.appendChild(el("h1", { class: "secao-titulo", texto: "Colar questões" }));
+  folha.appendChild(el("p", { class: "aviso", texto: "Cole o bloco inteiro que o modelo te deu. Ele entende numeração (1. / Questão 1), alternativas (a) A) a.), gabarito (Resposta: / Gabarito:) e comentário (Comentário: / Explicação:). Confira o resultado antes de importar." }));
+
+  const materias = [...new Set(estado.topicos.map(t => t.materia).concat(estado.questoes.map(q => q.materia)).filter(Boolean))];
+  const dl = el("datalist", { id: "materias3" });
+  materias.forEach(m => dl.appendChild(el("option", { value: m })));
+  const cM = el("input", { type: "text", placeholder: "Matéria destas questões", list: "materias3" });
+  const cX = el("textarea", { placeholder: "1. Qual o mecanismo dos antiarrítmicos classe I?\na) Bloqueio de canais de cálcio\nb) Bloqueio de canais de sódio\nc) Bloqueio beta-adrenérgico\nResposta: b\nComentário: Classe I bloqueia canais rápidos de sódio.\n\n2. ...", estilo: "min-height:34vh" });
+  const previa = el("div", { class: "grupo" });
+
+  const analisar = () => {
+    previa.textContent = "";
+    const r = parsearQuestoes(cX.value);
+    if (!r.questoes.length) {
+      previa.appendChild(el("div", { class: "vazio", texto: "Não reconheci nenhuma questão completa. Cada questão precisa de enunciado, pelo menos 2 alternativas e uma linha de gabarito." }));
+      return;
+    }
+    previa.appendChild(el("div", { class: "rotulo viva", texto: r.questoes.length + " questões reconhecidas" }));
+    r.questoes.slice(0, 6).forEach(q => {
+      previa.appendChild(el("div", { class: "bloco" }, [
+        el("p", { class: "enunciado", texto: q.enunciado }),
+        el("p", { class: "aviso", texto: q.alternativas.map((a, i) => String.fromCharCode(97 + i) + ") " + a).join("   ") }),
+        el("p", { class: "rotulo viva", texto: "gabarito: " + String.fromCharCode(97 + q.correta) + (q.comentario ? " · com comentário" : " · sem comentário") })
+      ]));
+    });
+    if (r.questoes.length > 6) previa.appendChild(el("p", { class: "aviso", texto: "…e mais " + (r.questoes.length - 6) + "." }));
+    if (r.falhas.length) previa.appendChild(el("div", { class: "bloco" }, [
+      el("div", { class: "rotulo", texto: r.falhas.length + " blocos ignorados (sem gabarito ou sem alternativas)" }),
+      el("p", { class: "aviso", texto: r.falhas.slice(0, 4).join(" · ") })
+    ]));
+    previa.appendChild(el("div", { class: "linha-acoes esq" }, [
+      el("button", {
+        class: "botao", texto: "Importar " + r.questoes.length + " questões",
+        onclick: () => {
+          r.questoes.forEach(q => estado.questoes.push({
+            id: novoId("q"), materia: cM.value.trim(), topicoId: null,
+            enunciado: q.enunciado, alternativas: q.alternativas, correta: q.correta,
+            comentario: q.comentario || "", acertos: 0, erros: 0, nivel: 0,
+            proximaEm: hoje(), ultimaEm: null
+          }));
+          salvar(); recado(r.questoes.length + " questões no banco."); irPara("questoes");
+        }
+      })
+    ]));
+  };
+
+  folha.appendChild(el("div", { class: "bloco" }, [
+    el("div", { class: "campo" }, [el("label", { texto: "Matéria" }), cM]), dl,
+    el("div", { class: "campo" }, [el("label", { texto: "Cole aqui" }), cX]),
+    el("div", { class: "linha-acoes esq" }, [el("button", { class: "botao calmo", texto: "Analisar", onclick: analisar })])
+  ]));
+  folha.appendChild(previa);
+  return folha;
+}
+
+/* ===============================================================
+   PRATICAR QUESTÕES
+   =============================================================== */
+function comecarPratica(lista) {
+  const baralho = lista.slice().sort(() => Math.random() - 0.5);
+  pratica = { lista: baralho, i: 0, escolha: null, acertos: 0, erros: 0 };
+  tela = "praticar"; render();
+}
+
+function telaPraticar() {
+  if (!pratica || pratica.i >= pratica.lista.length) {
+    const palco = el("div", { class: "palco" });
+    const total = pratica ? pratica.acertos + pratica.erros : 0;
+    palco.appendChild(el("div", { class: "placa viva centro" }, [
+      el("h1", { class: "assunto brilha", texto: total ? pratica.acertos + " de " + total : "Nada pra praticar" }),
+      el("p", { class: "contexto", texto: total ? "As que você errou voltam amanhã. As que acertou vão espaçando." : "Volte quando tiver questões na fila." }),
+      el("button", { class: "botao", texto: "Voltar", onclick: () => { pratica = null; irPara("questoes"); } })
+    ]));
+    return palco;
+  }
+
+  const q = pratica.lista[pratica.i];
+  const palco = el("div", { class: "palco" });
+  palco.style.justifyContent = "flex-start";
+  palco.appendChild(el("div", { class: "sessao-topo" }, [
+    el("span", { class: "rotulo", texto: (pratica.i + 1) + " de " + pratica.lista.length + (q.materia ? " · " + q.materia : "") }),
+    el("button", { class: "discreto", texto: "sair", onclick: () => { pratica = null; irPara("questoes"); } })
+  ]));
+
+  palco.appendChild(el("p", { class: "enunciado", texto: q.enunciado }));
+
+  const caixa = el("div", { class: "alternativas" });
+  q.alternativas.forEach((a, i) => {
+    const bt = el("button", { class: "alt" }, [
+      el("span", { class: "letra", texto: String.fromCharCode(97 + i) }),
+      el("span", { texto: a })
+    ]);
+    if (pratica.escolha !== null) {
+      bt.disabled = true;
+      if (i === q.correta) bt.setAttribute("data-estado", "certa");
+      else if (i === pratica.escolha) bt.setAttribute("data-estado", "errada");
+    } else {
+      bt.addEventListener("click", () => responder(q, i));
+    }
+    caixa.appendChild(bt);
+  });
+  palco.appendChild(caixa);
+
+  if (pratica.escolha !== null) {
+    const certo = pratica.escolha === q.correta;
+    palco.appendChild(el("div", { class: "rotulo viva", texto: certo ? "certa" : "errada — volta amanhã" }));
+    if (q.comentario) palco.appendChild(el("div", { class: "comentario", texto: q.comentario }));
+    palco.appendChild(el("button", {
+      class: "botao", texto: pratica.i + 1 < pratica.lista.length ? "Próxima" : "Terminar",
+      onclick: () => { pratica.i++; pratica.escolha = null; render(); }
+    }));
+  }
+  return palco;
+}
+
+function responder(q, i) {
+  const certo = i === q.correta;
+  pratica.escolha = i;
+  if (certo) { q.acertos = (q.acertos || 0) + 1; pratica.acertos++; q.nivel = Math.min((q.nivel || 0) + 1, INTERVALOS.length - 1); }
+  else { q.erros = (q.erros || 0) + 1; pratica.erros++; q.nivel = 0; }
+  q.ultimaEm = hoje();
+  q.proximaEm = maisDias(INTERVALOS[q.nivel]);
+  salvar(); render();
+}
+
+/* ===============================================================
+   GRÁFICOS
+   Uma série só, um tom só: o comprimento da barra já mostra a
+   grandeza; gastar cor com identidade aqui seria redundante.
+   A identidade vem do rótulo, sempre presente.
+   =============================================================== */
+function caminhoBarra(x, y, w, h, r) {
+  r = Math.min(r, w / 2, Math.max(0, h));
+  return "M" + x + "," + (y + h) + " V" + (y + r) +
+         " Q" + x + "," + y + " " + (x + r) + "," + y +
+         " H" + (x + w - r) + " Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) +
+         " V" + (y + h) + " Z";
+}
+function mostrarDica(e, txt) {
+  const d = document.getElementById("dica");
+  d.textContent = txt; d.classList.add("ver");
+  const x = Math.min(window.innerWidth - 20, e.clientX + 14);
+  d.style.left = x + "px"; d.style.top = (e.clientY - 44) + "px";
+  d.style.transform = x > window.innerWidth - 200 ? "translateX(-100%)" : "none";
+}
+const esconderDica = () => document.getElementById("dica").classList.remove("ver");
+
+function graficoDias(dados) {
+  const LARG = 26, VAO = 6, ALT = 170, BASE = 196;
+  const W = dados.length * (LARG + VAO), H = 220;
+  const max = Math.max(1, ...dados.map(d => d.minutos));
+  const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, preserveAspectRatio: "xMidYMid meet", role: "img" });
+
+  // grade recessiva: linha do máximo e da base
+  [0, 0.5, 1].forEach(f => {
+    const y = BASE - ALT * f;
+    svg.appendChild(svgEl("line", { class: "g-grade", x1: 0, y1: y, x2: W, y2: y, opacity: f === 0 ? 1 : .45 }));
+  });
+  const rotMax = svgEl("text", { class: "g-eixo", x: 2, y: BASE - ALT - 5 });
+  rotMax.textContent = max + " min";
+  svg.appendChild(rotMax);
+
+  dados.forEach((d, i) => {
+    const h = d.minutos ? Math.max(3, (d.minutos / max) * ALT) : 0;
+    const x = i * (LARG + VAO);
+    if (h) {
+      const p = svgEl("path", { class: "g-barra", d: caminhoBarra(x, BASE - h, LARG, h, 4) });
+      p.addEventListener("mouseenter", e => mostrarDica(e, porExtenso(d.iso) + " — " + d.minutos + " min"));
+      p.addEventListener("mousemove", e => mostrarDica(e, porExtenso(d.iso) + " — " + d.minutos + " min"));
+      p.addEventListener("mouseleave", esconderDica);
+      svg.appendChild(p);
+    }
+    // marca só os dias 1 e 15 pra não poluir
+    const dia = Number(d.iso.slice(8));
+    if (dia === 1 || dia === 15) {
+      const t = svgEl("text", { class: "g-eixo", x: x + LARG / 2, y: BASE + 14, "text-anchor": "middle" });
+      t.textContent = dia + "/" + Number(d.iso.slice(5, 7));
+      svg.appendChild(t);
+    }
+  });
+  return el("div", { class: "grafico" }, [svg]);
+}
+
+function graficoMaterias(dados) {
+  const ALTL = 42, W = 1180, ROT = 290;
+  const H = dados.length * ALTL + 8;
+  const max = Math.max(1, ...dados.map(d => d.minutos));
+  const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, preserveAspectRatio: "xMidYMid meet", role: "img" });
+  dados.forEach((d, i) => {
+    const y = i * ALTL;
+    const larg = Math.max(3, (d.minutos / max) * (W - ROT - 110));
+    const rot = svgEl("text", { class: "g-rotulo", x: 0, y: y + 25 });
+    rot.textContent = d.materia.length > 30 ? d.materia.slice(0, 30) + "…" : d.materia;
+    svg.appendChild(rot);
+    const p = svgEl("path", { class: "g-barra", d: caminhoBarra(ROT, y + 12, larg, 18, 4) });
+    p.addEventListener("mouseenter", e => mostrarDica(e, d.materia + " — " + duracao(d.minutos * 60)));
+    p.addEventListener("mouseleave", esconderDica);
+    svg.appendChild(p);
+    const val = svgEl("text", { class: "g-valor", x: ROT + larg + 10, y: y + 26 });
+    val.textContent = duracao(d.minutos * 60);
+    svg.appendChild(val);
+  });
+  return el("div", { class: "grafico" }, [svg]);
+}
+
+function tabelaDe(titulo, colunas, linhas) {
+  const tab = el("table");
+  const trh = el("tr");
+  colunas.forEach(c => trh.appendChild(el("th", { texto: c })));
+  tab.appendChild(el("thead", {}, [trh]));
+  const tb = el("tbody");
+  linhas.forEach(l => {
+    const tr = el("tr");
+    l.forEach((c, i) => tr.appendChild(el("td", { class: i ? "num" : "", texto: String(c) })));
+    tb.appendChild(tr);
+  });
+  tab.appendChild(tb);
+  return el("details", { class: "tabela" }, [
+    el("summary", { texto: titulo }),
+    el("div", { class: "tabela-dados" }, [tab])
+  ]);
+}
+
+/* ===============================================================
+   TELA: HISTÓRICO
+   =============================================================== */
+function telaHistorico() {
+  const folha = el("div", { class: "folha largo" });
+  folha.appendChild(el("h1", { class: "secao-titulo", texto: "Histórico" }));
+
+  if (!estado.sessoes.length) {
+    folha.appendChild(el("div", { class: "vazio", texto: "Ainda não há sessão registrada. Uma sessão entra aqui quando passa de 30 segundos de foco." }));
+    return folha;
+  }
+
+  const porDia = {};
+  estado.sessoes.forEach(s => { porDia[s.dataISO] = (porDia[s.dataISO] || 0) + s.segundos; });
+
+  const dias = [];
+  for (let i = 27; i >= 0; i--) {
+    const iso = maisDias(-i);
+    dias.push({ iso, minutos: Math.round((porDia[iso] || 0) / 60) });
+  }
+
+  const seteDias = dias.slice(-7).reduce((s, d) => s + d.minutos, 0);
+  const totalGeral = estado.sessoes.reduce((s, x) => s + x.segundos, 0);
+
+  let seq = 0;
+  for (let i = 0; ; i++) {
+    const iso = maisDias(-i);
+    if (porDia[iso]) seq++;
+    else if (i > 0) break;
+  }
+
+  folha.appendChild(el("div", { class: "grade2" }, [
+    el("div", { class: "bloco numerao" }, [el("span", { class: "n", texto: duracao(seteDias * 60) }), el("span", { class: "q", texto: "nos últimos 7 dias" })]),
+    el("div", { class: "bloco numerao" }, [el("span", { class: "n", texto: String(seq) }), el("span", { class: "q", texto: seq === 1 ? "dia seguido" : "dias seguidos" })]),
+    el("div", { class: "bloco numerao" }, [el("span", { class: "n", texto: String(estado.sessoes.length) }), el("span", { class: "q", texto: "sessões no total" })]),
+    el("div", { class: "bloco numerao" }, [el("span", { class: "n", texto: duracao(totalGeral) }), el("span", { class: "q", texto: "de foco acumulado" })])
+  ]));
+
+  folha.appendChild(el("figure", { class: "figura bloco", estilo: "margin:0" }, [
+    el("figcaption", { texto: "Minutos de foco por dia · últimos 28 dias" }),
+    graficoDias(dias),
+    tabelaDe("ver como tabela", ["Dia", "Minutos"], dias.filter(d => d.minutos).map(d => [d.iso, d.minutos]))
+  ]));
+
+  const porMateria = {};
+  estado.sessoes.forEach(s => { porMateria[s.materia] = (porMateria[s.materia] || 0) + s.segundos; });
+  const mats = Object.keys(porMateria)
+    .map(m => ({ materia: m, minutos: Math.round(porMateria[m] / 60) }))
+    .sort((a, b) => b.minutos - a.minutos).slice(0, 12);
+
+  folha.appendChild(el("figure", { class: "figura bloco", estilo: "margin:0" }, [
+    el("figcaption", { texto: "Tempo de foco por matéria" }),
+    graficoMaterias(mats),
+    tabelaDe("ver como tabela", ["Matéria", "Minutos"], mats.map(m => [m.materia, m.minutos]))
+  ]));
+
+  const g = el("div", { class: "grupo" });
+  g.appendChild(el("div", { class: "rotulo", texto: "sessões recentes" }));
+  estado.sessoes.slice().reverse().slice(0, 15).forEach(s => {
+    const nota = s.avaliacao === 0 ? "travei" : s.avaliacao === 1 ? "quase" : s.avaliacao === 2 ? "mandei bem" : "interrompida";
+    g.appendChild(el("div", { class: "item", estilo: "cursor:default;min-height:48px;padding:10px 16px" }, [
+      el("span", { class: "titulo" }, [
+        el("span", { texto: s.titulo }),
+        el("span", { class: "sub", estilo: "display:block", texto: s.materia + " · " + s.dataISO.split("-").reverse().join("/") + " · " + nota })
+      ]),
+      el("span", { class: "selo", texto: duracao(s.segundos) })
+    ]));
+  });
+  folha.appendChild(g);
   return folha;
 }
 
@@ -790,110 +1987,158 @@ function telaAjustes() {
   const folha = el("div", { class: "folha" });
   folha.appendChild(el("h1", { class: "secao-titulo", texto: "Ajustes" }));
 
-  const meta = el("input", { type: "number", min: "1", max: "20" });
-  meta.value = estado.config.metaDiaria;
-  meta.addEventListener("change", () => {
-    estado.config.metaDiaria = Math.max(1, Math.min(20, Number(meta.value) || 4));
-    meta.value = estado.config.metaDiaria; salvar(); render();
-  });
-
-  const dur = el("input", { type: "number", min: "5", max: "120", step: "5" });
-  dur.value = estado.config.minutosSessao;
-  dur.addEventListener("change", () => {
-    estado.config.minutosSessao = Math.max(5, Math.min(120, Number(dur.value) || 25));
-    dur.value = estado.config.minutosSessao; salvar();
-  });
+  /* --- pomodoro --- */
+  const num = (chave, min, max, passo) => {
+    const i = el("input", { type: "number", min, max, step: passo || 1 });
+    i.value = estado.config[chave];
+    i.addEventListener("change", () => {
+      estado.config[chave] = Math.max(min, Math.min(max, Number(i.value) || estado.config[chave]));
+      i.value = estado.config[chave]; salvar();
+    });
+    return i;
+  };
+  const som = el("input", { type: "checkbox" });
+  som.checked = !!estado.config.som;
+  som.addEventListener("change", () => { estado.config.som = som.checked; salvar(); if (som.checked) somFoco(); });
+  const auto = el("input", { type: "checkbox" });
+  auto.checked = !!estado.config.autoPausa;
+  auto.addEventListener("change", () => { estado.config.autoPausa = auto.checked; salvar(); });
 
   folha.appendChild(el("div", { class: "bloco" }, [
-    el("div", { class: "campo" }, [el("label", { texto: "Assuntos por dia" }), meta]),
-    el("div", { class: "campo" }, [el("label", { texto: "Minutos por sessão" }), dur]),
-    el("p", { class: "aviso", texto: "A meta existe pra ter fim visível, não pra cobrar. Passar dela é bônus; não bater não gera nenhum aviso." })
+    el("div", { class: "rotulo viva", texto: "Pomodoro" }),
+    el("div", { class: "grade2" }, [
+      el("div", { class: "campo" }, [el("label", { texto: "Foco (min)" }), num("foco", 5, 120, 5)]),
+      el("div", { class: "campo" }, [el("label", { texto: "Pausa curta (min)" }), num("pausaCurta", 1, 30)]),
+      el("div", { class: "campo" }, [el("label", { texto: "Pausa longa (min)" }), num("pausaLonga", 5, 60, 5)]),
+      el("div", { class: "campo" }, [el("label", { texto: "Focos até a pausa longa" }), num("ciclosAteLonga", 2, 8)]),
+      el("div", { class: "campo" }, [el("label", { texto: "Assuntos por dia" }), num("metaDiaria", 1, 20)])
+    ]),
+    el("label", { estilo: "display:flex;gap:10px;align-items:center;cursor:pointer" }, [som, el("span", { texto: "Bip ao trocar de fase" })]),
+    el("label", { estilo: "display:flex;gap:10px;align-items:center;cursor:pointer" }, [auto, el("span", { texto: "Começar a pausa sozinho" })]),
+    el("p", { class: "aviso", texto: "A pausa nunca é obrigatória: quando o foco fecha, dá pra seguir direto. Se você está embalado, parar custa mais caro do que continuar." })
   ]));
 
+  /* --- ciclos do semestre --- */
+  const cal = estado.calendario;
+  const blocoCiclos = el("div", { class: "bloco" }, [
+    el("div", { class: "rotulo viva", texto: "Ciclos do semestre " + cal.semestre })
+  ]);
+  cal.ciclos.forEach(c => {
+    const mk = (campo) => {
+      const i = el("input", { type: "text", value: c[campo], placeholder: "AAAA-MM-DD" });
+      i.addEventListener("change", () => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(i.value.trim())) { c[campo] = i.value.trim(); c.confirmado = true; salvar(); recado("Ciclo " + c.n + " atualizado."); render(); }
+        else { i.value = c[campo]; recado("Use o formato AAAA-MM-DD."); }
+      });
+      return i;
+    };
+    blocoCiclos.appendChild(el("div", { class: "bloco", estilo: "background:var(--placa2)" }, [
+      el("div", { class: "linha-acoes esq" }, [
+        el("span", { class: "rotulo", texto: "Ciclo " + c.n + " · " + c.prova }),
+        c.confirmado ? null : el("span", { class: "selo ambar", texto: "data estimada" })
+      ]),
+      el("div", { class: "grade2" }, [
+        el("div", { class: "campo" }, [el("label", { texto: "Começa" }), mk("inicio")]),
+        el("div", { class: "campo" }, [el("label", { texto: "Termina" }), mk("fim")]),
+        el("div", { class: "campo" }, [el("label", { texto: "Prova começa" }), mk("provaIni")]),
+        el("div", { class: "campo" }, [el("label", { texto: "Prova termina" }), mk("provaFim")])
+      ])
+    ]));
+  });
+  blocoCiclos.appendChild(el("p", { class: "aviso", texto: "PA1 (24–28/08) e PA2 (05–09/10) vieram do calendário acadêmico. A semana de prova do PA3 não consta no calendário — só o prazo de fechamento, 30/11 — então a data está estimada. Corrija aqui quando souber." }));
+  folha.appendChild(blocoCiclos);
+
+  /* --- backup --- */
   const entrada = el("input", { type: "file", accept: ".json,application/json" });
   entrada.style.display = "none";
   entrada.addEventListener("change", async () => {
-    const arq = entrada.files[0];
-    if (!arq) return;
+    const arq = entrada.files[0]; if (!arq) return;
     try {
       const dados = JSON.parse(await arq.text());
       if (!Array.isArray(dados.topicos)) throw new Error("formato");
       if (!confirm("Restaurar o backup substitui tudo que está aqui agora. Continuar?")) return;
-      estado = Object.assign(padrao(), dados);
-      salvar(); recado("Backup restaurado."); render();
+      estado = migrar(dados); salvar(); recado("Backup restaurado."); render();
     } catch (e) { recado("Esse arquivo não é um backup do Um de Cada Vez."); }
     entrada.value = "";
   });
 
   folha.appendChild(el("div", { class: "bloco" }, [
-    el("div", { class: "rotulo", texto: "Backup" }),
-    el("p", { class: "aviso", texto: GRAVA
-      ? "Seus resumos ficam gravados neste aparelho, neste navegador. Limpar os dados do navegador apaga tudo. Baixe um backup de vez em quando — e é assim que você leva os resumos pra outro aparelho."
-      : "Atenção: este navegador não está deixando gravar nada. O que você escrever some ao fechar a página. Baixe um backup antes de sair." }),
-    el("div", { class: "linha-acoes" }, [
+    el("div", { class: "rotulo viva", texto: "Backup" }),
+    el("p", {
+      class: "aviso", texto: GRAVA
+        ? "Tudo fica gravado neste aparelho, neste navegador. Limpar os dados do navegador apaga. Baixe um backup de vez em quando — é também assim que você leva os resumos pra outro aparelho."
+        : "Atenção: este navegador não está deixando gravar. O que você escrever some ao fechar a página. Baixe um backup antes de sair."
+    }),
+    el("div", { class: "linha-acoes esq" }, [
       el("button", { class: "botao calmo", texto: "Baixar backup", onclick: baixarBackup }),
-      el("button", { class: "botao calmo", texto: "Restaurar backup", onclick: () => entrada.click() })
-    ]),
-    entrada
+      el("button", { class: "botao calmo", texto: "Restaurar backup", onclick: () => entrada.click() }),
+      entrada
+    ])
   ]));
 
   folha.appendChild(el("div", { class: "bloco" }, [
     el("div", { class: "rotulo", texto: "Zona sem volta" }),
-    el("button", {
-      class: "discreto perigo", texto: "apagar tudo",
-      onclick: () => {
-        if (!confirm("Apagar TODOS os assuntos e resumos? Não dá pra desfazer.")) return;
-        estado = padrao(); salvar(); recado("Tudo apagado."); render();
-      }
-    })
+    el("div", { class: "linha-acoes esq" }, [
+      el("button", {
+        class: "discreto perigo", texto: "apagar tudo",
+        onclick: () => {
+          if (!confirm("Apagar TODOS os assuntos, resumos, questões e histórico? Não dá pra desfazer.")) return;
+          estado = padrao(); salvar(); recado("Tudo apagado."); render();
+        }
+      })
+    ])
   ]));
-
   return folha;
 }
 
 async function baixarBackup() {
   const conteudo = JSON.stringify(estado, null, 2);
   const nome = "um-de-cada-vez-" + hoje() + ".json";
-  const downloads = await window.claude?.use?.("downloads").catch(() => null);
+  let downloads = null;
+  try { downloads = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { downloads = null; }
   if (downloads) {
-    try {
-      await downloads.save({ filename: nome, data: conteudo });
-      recado("Backup salvo.");
-      return;
-    } catch (e) {
-      if (e && e.code === "declined") return;
-      // qualquer outro código: cai pro caminho manual abaixo
-    }
+    try { await downloads.save({ filename: nome, data: conteudo }); recado("Backup salvo."); return; }
+    catch (e) { if (e && e.code === "declined") return; }
   }
-  // Sem a capacidade de salvar: mostra o conteúdo pra copiar à mão
   const w = window.open("", "_blank");
   if (w) {
-    w.document.write("<pre style='white-space:pre-wrap;font:14px monospace;padding:16px'></pre>");
+    w.document.write("<pre style='white-space:pre-wrap;font:13px monospace;padding:16px'></pre>");
     w.document.querySelector("pre").textContent = conteudo;
     recado("Copie esse texto e salve num arquivo .json");
-  } else {
-    recado("Não consegui abrir o backup aqui.");
-  }
+  } else recado("Não consegui abrir o backup aqui.");
 }
 
 /* ===============================================================
-   EXEMPLOS — só pra ver funcionando; dá pra apagar tudo depois
+   EXEMPLOS
    =============================================================== */
 function exemplos() {
-  const base = [
-    ["Farmacologia", "Antiarrítmicos classe I", 0, 0],
-    ["Fisiologia", "Curva de dissociação da hemoglobina", 1, -2],
-    ["Semiologia", "Sopros cardíacos — como diferenciar", 0, 0]
-  ];
-  base.forEach(([materia, titulo, nivel, dias], i) => {
-    estado.topicos.push({
-      id: "ex" + Date.now() + i,
-      materia, titulo, resumo: "", nivel,
-      criadoEm: hoje(),
-      ultimaEm: dias < 0 ? maisDias(dias) : null,
-      proximaEm: hoje()
-    });
-  });
+  const c = cicloDaData(hoje());
+  const fonte = [
+    "Antiarrítmicos classe I",
+    "",
+    "Mecanismo:",
+    "- bloqueiam canais rápidos de sódio",
+    "- reduzem a velocidade de despolarização (fase 0)",
+    "",
+    "Subclasses:",
+    "- IA: prolonga a repolarização (quinidina, procainamida)",
+    "- IB: encurta a repolarização (lidocaína)",
+    "- IC: não altera a repolarização (flecainida, propafenona)",
+    "",
+    "IA prolonga QT -> risco de torsades de pointes -> monitorar ECG",
+    "",
+    "! IC é contraindicado em cardiopatia estrutural (estudo CAST)",
+    "",
+    "> Uso-dependência: o bloqueio aumenta em frequências cardíacas altas."
+  ].join("\n");
+  [
+    ["Farmacologia", "Antiarrítmicos classe I", fonte, 0],
+    ["Fisiologia", "Curva de dissociação da hemoglobina", "", 1],
+    ["Semiologia", "Sopros cardíacos — como diferenciar", "", 0]
+  ].forEach(([materia, titulo, f, nivel], i) => estado.topicos.push({
+    id: novoId("ex"), materia, titulo, fonte: f, resumo: "", ciclo: c, nivel,
+    criadoEm: hoje(), ultimaEm: null, proximaEm: hoje()
+  }));
   salvar();
   recado("Três exemplos. Apague quando quiser, em Material.");
   render();
@@ -902,33 +2147,35 @@ function exemplos() {
 /* ===============================================================
    ROTEADOR
    =============================================================== */
+const TELAS = {
+  agora: telaAgora, sessao: telaSessao, leitura: telaLeitura, marcas: telaMarcas,
+  material: telaMaterial, importar: telaImportar, editor: telaEditor,
+  questoes: telaQuestoes, importarQ: telaImportarQuestoes, praticar: telaPraticar,
+  historico: telaHistorico, ajustes: telaAjustes
+};
+const NA_NAV = { agora: "agora", sessao: "agora", leitura: "agora", marcas: "agora",
+  material: "material", importar: "material", editor: "material",
+  questoes: "questoes", importarQ: "questoes", praticar: "questoes",
+  historico: "historico", ajustes: "ajustes" };
+
 function irPara(nova) {
   if (sessao && nova !== "sessao") sairComGuardar();
-  tela = nova;
-  render();
+  tela = nova; render();
 }
+
 function render() {
   const app = document.getElementById("app");
   app.textContent = "";
-  let conteudo;
-  if (tela === "sessao" && sessao) conteudo = telaSessao();
-  else if (tela === "material") conteudo = telaMaterial();
-  else if (tela === "editor") conteudo = telaEditor();
-  else if (tela === "ajustes") conteudo = telaAjustes();
-  else { tela = "agora"; conteudo = telaAgora(); }
-  app.appendChild(conteudo);
-
-  const atual = tela === "editor" ? "material" : tela === "sessao" ? "agora" : tela;
+  esconderDica();
+  if (tela === "sessao" && !sessao) tela = "agora";
+  const fn = TELAS[tela] || telaAgora;
+  app.appendChild(fn());
+  const marca = NA_NAV[tela] || "agora";
   document.querySelectorAll("#nav button").forEach(b => {
-    if (b.dataset.tela === atual) b.setAttribute("aria-current", "page");
+    if (b.dataset.tela === marca) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
   });
-
-  if (tela === "sessao") {
-    const total = estado.config.minutosSessao * 60;
-    const barra = document.getElementById("barra");
-    if (barra) barra.style.width = Math.min(100, ((total - sessao.restam) / total) * 100) + "%";
-  }
+  if (tela === "sessao" && sessao) atualizarDisco();
 }
 
 document.getElementById("nav").addEventListener("click", e => {

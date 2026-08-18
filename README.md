@@ -7,37 +7,99 @@ decidindo por mim como as coisas devem funcionar.
 
 ### `um-de-cada-vez/`
 
-Ferramenta de estudo. Um arquivo HTML só — abre no navegador, funciona offline,
-guarda tudo no próprio aparelho.
+Ferramenta de estudo para medicina. Um arquivo HTML só — abre no navegador,
+funciona offline, guarda tudo no próprio aparelho. Sem build, sem servidor,
+sem dependência.
 
-Resolve duas coisas específicas:
-
-1. **Não saber o que estudar hoje.** Abriu, tem um assunto na tela. Só um.
-   Decidir gasta energia que era pra ser gasta estudando.
-2. **Material espalhado.** Matéria, assunto e resumo no mesmo lugar.
-
-O fluxo de estudo é o método de sempre, só que guiado:
+#### O fluxo de estudo
 
 | Passo | O que acontece |
 |---|---|
-| **Transcrever** | Você digita o resumo. Escrever é o estudo, não é arquivar. |
+| **Transcrever** | Tela dividida: o resumo importado de um lado, o seu texto do outro. A divisória arrasta. |
 | **Explicar** | O texto some. Você explica em voz alta, sem olhar. |
 | **Avaliar** | Travei / Quase / Mandei bem — define quando o assunto volta. |
+| **Ler** | O resumo cru vira página formatada: hierarquia, setas, alertas, tabelas. |
 
-A revisão é espaçada: 1, 3, 7, 16, 35, 70 dias. "Travei" volta pro começo,
+Revisão espaçada: 1, 3, 7, 16, 35, 70 dias. "Travei" volta pro começo,
 "Quase" mantém, "Mandei bem" avança.
 
-**Decisões de projeto que não são estéticas:**
+#### Ciclos do semestre
 
-- Uma decisão por tela. Lista longa trava, então não tem lista na tela inicial.
-- Zero contador de atraso. "Você está 87 revisões atrasado" faz fechar o app e
-  não voltar. Atrasado é só o que vem primeiro na fila.
-- Sessão com começo e fim visíveis — timer e bolinhas de progresso, finito.
+O curso tem 3 ciclos por semestre, cada um com conteúdo próprio e uma prova
+(PA1, PA2, PA3; PA4 é recuperação). A fila de hoje mostra **só o ciclo em
+curso** — estudar conteúdo do ciclo passado achando que está revisando pra
+próxima prova é o desperdício que isso evita. O material dos ciclos anteriores
+não some: fica a um toque de distância, pra revisar antes do PA4.
+
+Datas de `calendarioPadrao()`, lidas do calendário acadêmico Uniarp 2026
+(seção Medicina), semestre 2026/2:
+
+| Ciclo | Período | Prova |
+|---|---|---|
+| 1 | 20/07 – 28/08 | PA1, 24–28/08 |
+| 2 | 31/08 – 09/10 | PA2, 05–09/10 |
+| 3 | 12/10 – 27/11 | PA3, 23–27/11 *(estimado)* |
+| — | — | PA4, 01–04/12 |
+
+**A semana de prova do PA3 não consta no calendário** — só o prazo de
+fechamento, 30/11. A data está marcada como estimada e é editável em Ajustes.
+
+#### Formatador do modo leitura
+
+Regras, não interpretação — não há IA dentro da página. Você escreve solto;
+estas marcas viram elementos visuais:
+
+```
+## Título grande
+Título de seção:        (linha terminando em dois-pontos)
+- item                  (tópico)
+1. item                 (lista numerada)
+A -> B -> C             (fluxo com setas)
+! atenção               (bloco de alerta)
+> definição             (citação)
+| a | b |               (tabela)
+**negrito**  ==destaque==
+```
+
+Texto sem marca nenhuma vira parágrafo normal. Há também uma heurística: linha
+curta sem pontuação final, seguida de tópico, é tratada como título.
+
+#### Banco de questões
+
+O app **não gera** questões — ele guarda e treina as suas. O importador aceita
+o formato que um LLM costuma devolver: numeração (`1.` / `Questão 1`),
+alternativas (`a)` `A)` `a.`), gabarito (`Resposta:` / `Gabarito:`) e
+comentário (`Comentário:` / `Explicação:`). Confira a prévia antes de importar.
+Questão errada volta amanhã; acertada vai espaçando.
+
+#### Pomodoro
+
+Ciclos de foco e pausa com o disco de identidade como cronômetro. Bip
+sintetizado (sem arquivo de áudio). **A pausa nunca é obrigatória** — quando o
+foco fecha, dá pra seguir direto: se você está embalado, parar custa mais caro
+que continuar.
+
+#### Decisões que não são estéticas
+
+- Uma decisão por tela. Lista longa trava, então a tela inicial não tem lista.
+- Zero contador de atraso. Atrasado é só o que vem primeiro na fila.
+- Sessão com começo e fim visíveis; a meta diária não gera cobrança.
 - Sair no meio não perde o que foi escrito.
+- O cronômetro atualiza só o disco, nunca a tela inteira — senão o cursor
+  saltaria do texto a cada segundo.
 
-**Onde os dados ficam:** no navegador daquele aparelho (`localStorage`). Limpar
-os dados do navegador apaga tudo. Tem backup em Ajustes — baixa um `.json` que
-também serve pra levar os resumos pra outro aparelho.
+#### Cores dos gráficos
 
-**Rodar:** abrir `um-de-cada-vez/index.html` no navegador. Não precisa instalar
-nada, não tem build, não tem servidor.
+Série única, tom único (`#22A3C0`): o comprimento da barra já mostra a
+grandeza, e a identidade vem do rótulo. O tom foi validado contra a superfície
+escura (faixa de luminosidade, piso de croma e contraste ≥ 3:1); o neon
+`#67E8F9` fica reservado pra borda, brilho e texto de destaque.
+
+#### Onde os dados ficam
+
+No navegador daquele aparelho (`localStorage`), com fallback em memória se o
+navegador bloquear gravação. Limpar os dados do navegador apaga tudo. Backup e
+restauração em JSON pelos Ajustes — é também assim que os resumos vão pra
+outro aparelho.
+
+**Rodar:** abrir `um-de-cada-vez/index.html` no navegador.
