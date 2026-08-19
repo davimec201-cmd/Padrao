@@ -21,26 +21,55 @@
    tela inteira.
    ======================================================================= */
 :root{
-  --azul:#0D80BF;
-  --azul2:#1E7FC2;
-  --escuro:#0A2A43;
-  --preto:#111111;
-  --branco:#FFFFFF;
-  --fundo:#F3F6F9;
+  /* Cores da identidade — escritas por aplicaTema() a partir do arquivo de
+     tema. O que está aqui é só o valor inicial, pra tela não piscar antes do
+     JSON carregar. Nenhuma cor de identidade fica escrita no resto do CSS. */
+  --primaria:#0D80BF;
+  --acento:#1E7FC2;
+  --escura:#111111;
+  --clara:#FFFFFF;
+  --papel:#F3F6F9;
+  --tinta:#0A2A43;
+  --suave:#5C6E80;
+  --pausa-papel:#F2F2F2;
+  --pausa-acento:#0A2A43;
+  --faixas:repeating-linear-gradient(135deg,#0D80BF 0 22px,#111111 22px 44px,#FFFFFF 44px 66px);
+
+  /* Derivados, calculados a partir das cores do tema */
   --card:#FFFFFF;
   --linha:#E1E8EF;
-  --texto:#0A2A43;
-  --fraco:#5C6E80;
   --sombra:0 2px 10px rgba(10,42,67,.07);
+  --primaria-fundo:#EAF5FC;
+  --primaria-borda:#C9E3F3;
+  --trilho:#E8EEF4;
+  --calor0:#EAF0F5;
+  --calor1:#BEDFF1;
+  --calor2:#7CC0E4;
+  --calor3:#2E90C9;
+  --calor4:#0D80BF;
+  --calor5:#0A2A43;
+
+  /* Estado — não fazem parte da identidade e não vêm do tema */
+  --erro:#B3261E;
+  --erro-borda:#F0C9C6;
+  --erro-fundo:#FFF6F5;
+  --alerta-fundo:#FFF4E5;
+  --alerta-borda:#F3D9B0;
+  --alerta-tinta:#7A4E00;
+  --ouro:#B98900;
+  --ouro-clara:#E8C766;
+  --ouro-fundo:#FFF9E8;
+
   --raio:16px;
   --toque:56px;              /* altura mínima de alvo de toque no tablet */
 }
 
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{
-  background:var(--fundo);
-  color:var(--texto);
+  background:var(--papel);
+  color:var(--tinta);
   font-family:"Segoe UI",Roboto,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
   font-size:17px;
   line-height:1.45;
@@ -55,22 +84,12 @@ h1,h2,h3{margin:0;line-height:1.2}
 /* ---------- Faixas tricolores diagonais (CSS puro) ---------- */
 .faixas{
   height:10px;
-  background:repeating-linear-gradient(
-    135deg,
-    var(--azul)   0px, var(--azul)   22px,
-    var(--preto) 22px, var(--preto)  44px,
-    var(--branco)44px, var(--branco) 66px
-  );
+  background:var(--faixas);
 }
 .faixas-fina{height:6px}
 .faixas-larga{
   height:16px;
-  background:repeating-linear-gradient(
-    135deg,
-    var(--azul)   0px, var(--azul)   30px,
-    var(--preto) 30px, var(--preto)  60px,
-    var(--branco)60px, var(--branco) 90px
-  );
+  background:var(--faixas);background-size:150% 150%;
 }
 
 /* ---------- Cabeçalho ---------- */
@@ -90,19 +109,19 @@ h1,h2,h3{margin:0;line-height:1.2}
 /* Losango com faixas diagonais — mesma ideia do ícone do app */
 .losango{
   width:34px;height:34px;flex:0 0 auto;transform:rotate(45deg);
-  border:2px solid var(--escuro);border-radius:5px;overflow:hidden;
+  border:2px solid var(--tinta);border-radius:5px;overflow:hidden;
   background:repeating-linear-gradient(
     90deg,
-    var(--branco) 0px, var(--branco) 8px,
-    var(--azul)   8px, var(--azul)  16px,
-    var(--preto) 16px, var(--preto) 24px,
-    var(--azul)  24px, var(--azul)  32px
+    var(--clara) 0px, var(--clara) 8px,
+    var(--primaria)   8px, var(--primaria)  16px,
+    var(--escura) 16px, var(--escura) 24px,
+    var(--primaria)  24px, var(--primaria)  32px
   );
 }
 .marca h1{font-size:1.15rem;letter-spacing:.3px}
-.marca p{margin:1px 0 0;font-size:.9rem;color:var(--fraco)}
-.cabecalho-info{margin-left:auto;text-align:right;font-size:.86rem;color:var(--fraco)}
-.cabecalho-info b{color:var(--escuro)}
+.marca p{margin:1px 0 0;font-size:.9rem;color:var(--suave)}
+.cabecalho-info{margin-left:auto;text-align:right;font-size:.86rem;color:var(--suave)}
+.cabecalho-info b{color:var(--tinta)}
 
 /* ---------- Abas ---------- */
 .abas{
@@ -115,11 +134,11 @@ h1,h2,h3{margin:0;line-height:1.2}
 .abas::-webkit-scrollbar{display:none}
 .abas button{
   flex:1 0 auto;min-height:48px;padding:0 20px;
-  border:1px solid var(--linha);border-radius:999px;background:var(--fundo);
-  color:var(--fraco);font-weight:600;cursor:pointer;
+  border:1px solid var(--linha);border-radius:999px;background:var(--papel);
+  color:var(--suave);font-weight:600;cursor:pointer;
   transition:background .18s ease,color .18s ease,border-color .18s ease;
 }
-.abas button.ativa{background:var(--azul);border-color:var(--azul);color:var(--branco)}
+.abas button.ativa{background:var(--primaria);border-color:var(--primaria);color:var(--clara)}
 
 /* ---------- Estrutura ---------- */
 main{max-width:1180px;margin:0 auto;padding:18px clamp(12px,3vw,28px)}
@@ -130,34 +149,34 @@ main{max-width:1180px;margin:0 auto;padding:18px clamp(12px,3vw,28px)}
   box-shadow:var(--sombra);padding:18px;margin-bottom:16px;overflow:hidden;
 }
 .cartao > h2{font-size:1.05rem;margin-bottom:4px}
-.cartao > h2 + p.sub{margin:0 0 14px;color:var(--fraco);font-size:.9rem}
-p.sub{color:var(--fraco);font-size:.9rem}
+.cartao > h2 + p.sub{margin:0 0 14px;color:var(--suave);font-size:.9rem}
+p.sub{color:var(--suave);font-size:.9rem}
 .grade2{display:grid;gap:16px}
 @media (min-width:820px){.grade2{grid-template-columns:1fr 1fr}}
 
 /* ---------- Botões ---------- */
 .bt{
   min-height:var(--toque);padding:0 22px;border-radius:14px;border:1px solid var(--linha);
-  background:var(--card);color:var(--escuro);font-weight:700;cursor:pointer;
+  background:var(--card);color:var(--tinta);font-weight:700;cursor:pointer;
   transition:transform .12s ease,background .18s ease,box-shadow .18s ease;
 }
 .bt:active{transform:scale(.97)}
-.bt-azul{background:var(--azul);border-color:var(--azul);color:var(--branco);box-shadow:0 4px 14px rgba(13,128,191,.28)}
-.bt-escuro{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
+.bt-azul{background:var(--primaria);border-color:var(--primaria);color:var(--clara);box-shadow:0 4px 14px rgba(13,128,191,.28)}
+.bt-escuro{background:var(--tinta);border-color:var(--tinta);color:var(--clara)}
 .bt-grande{min-height:68px;font-size:1.15rem;padding:0 34px}
 .bt-fantasma{background:transparent}
-.bt-perigo{color:#B3261E;border-color:#F0C9C6;background:#FFF6F5}
+.bt-perigo{color:var(--erro);border-color:var(--erro-borda);background:var(--erro-fundo)}
 .bt:disabled{opacity:.42;cursor:default;box-shadow:none}
 .linha-bts{display:flex;flex-wrap:wrap;gap:10px}
 
 /* ---------- Campos ---------- */
-label.rot{display:block;font-size:.85rem;font-weight:600;color:var(--fraco);margin-bottom:6px}
+label.rot{display:block;font-size:.85rem;font-weight:600;color:var(--suave);margin-bottom:6px}
 input[type=text],input[type=date],input[type=number],select{
   width:100%;min-height:var(--toque);padding:0 14px;border:1px solid var(--linha);
-  border-radius:12px;background:var(--branco);
+  border-radius:12px;background:var(--clara);
 }
 input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
-  outline:3px solid rgba(13,128,191,.35);outline-offset:1px;border-color:var(--azul)
+  outline:3px solid rgba(13,128,191,.35);outline-offset:1px;border-color:var(--primaria)
 }
 .campos{display:grid;gap:12px}
 @media (min-width:720px){.campos-3{grid-template-columns:1fr 1fr auto;align-items:end}}
@@ -166,10 +185,10 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 .fichas{display:flex;flex-wrap:wrap;gap:8px}
 .ficha{
   min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--linha);
-  background:var(--fundo);color:var(--escuro);font-weight:600;cursor:pointer;
+  background:var(--papel);color:var(--tinta);font-weight:600;cursor:pointer;
 }
-.ficha.ativa{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
-.ficha-assunto{background:var(--branco);font-weight:500;max-width:100%;
+.ficha.ativa{background:var(--tinta);border-color:var(--tinta);color:var(--clara)}
+.ficha-assunto{background:var(--clara);font-weight:500;max-width:100%;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ---------- Timer ---------- */
@@ -180,24 +199,24 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 .relogio{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0 4px}
 .anel{position:relative;width:min(74vw,340px);aspect-ratio:1}
 .anel svg{width:100%;height:100%;transform:rotate(-90deg)}
-.anel .trilho{fill:none;stroke:#E8EEF4;stroke-width:11}
+.anel .trilho{fill:none;stroke:var(--trilho);stroke-width:11}
 .anel .progresso{
-  fill:none;stroke:var(--azul);stroke-width:11;stroke-linecap:round;
+  fill:none;stroke:var(--primaria);stroke-width:11;stroke-linecap:round;
   transition:stroke-dashoffset .4s linear,stroke .3s ease;
 }
-.anel.pausa .progresso{stroke:var(--escuro)}
+.anel.pausa .progresso{stroke:var(--tinta)}
 .anel-centro{
   position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:2px;text-align:center;padding:0 12px;
 }
 .tempo{
   font-size:clamp(3.1rem,13vw,4.6rem);font-weight:800;letter-spacing:-1px;
-  font-variant-numeric:tabular-nums;color:var(--escuro);line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--tinta);line-height:1;
 }
-.modo-rot{font-size:.82rem;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--azul)}
-.anel.pausa .modo-rot{color:var(--escuro)}
+.modo-rot{font-size:.82rem;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--primaria)}
+.anel.pausa .modo-rot{color:var(--tinta)}
 .assunto-atual{
-  font-size:1rem;font-weight:600;color:var(--escuro);max-width:100%;
+  font-size:1rem;font-weight:600;color:var(--tinta);max-width:100%;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .piscando{animation:pisca 1.6s ease-in-out infinite}
@@ -205,10 +224,10 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 
 /* ---------- Resumo / números ---------- */
 .numeros{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
-.numero{background:var(--fundo);border:1px solid var(--linha);border-radius:14px;padding:12px 14px}
-.numero b{display:block;font-size:1.7rem;line-height:1.1;color:var(--escuro);font-variant-numeric:tabular-nums}
-.numero span{font-size:.8rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.6px}
-.numero.destaque{background:linear-gradient(180deg,#EAF5FC,#F7FBFE);border-color:#C9E3F3}
+.numero{background:var(--papel);border:1px solid var(--linha);border-radius:14px;padding:12px 14px}
+.numero b{display:block;font-size:1.7rem;line-height:1.1;color:var(--tinta);font-variant-numeric:tabular-nums}
+.numero span{font-size:.8rem;color:var(--suave);text-transform:uppercase;letter-spacing:.6px}
+.numero.destaque{background:var(--primaria-fundo);border-color:var(--primaria-borda)}
 
 /* ---------- Listas ---------- */
 .lista{list-style:none;margin:0;padding:0}
@@ -216,67 +235,67 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
   display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--linha);
 }
 .lista li:last-child{border-bottom:0}
-.lista .hora{font-variant-numeric:tabular-nums;color:var(--fraco);font-size:.88rem;min-width:52px}
+.lista .hora{font-variant-numeric:tabular-nums;color:var(--suave);font-size:.88rem;min-width:52px}
 .lista .assunto{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.lista .dur{font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
-.lista .ciclo{font-size:.78rem;color:var(--fraco)}
+.lista .dur{font-weight:700;color:var(--primaria);font-variant-numeric:tabular-nums}
+.lista .ciclo{font-size:.78rem;color:var(--suave)}
 .divisor{border:0;border-top:1px solid var(--linha);margin:16px 0 0}
 .ajustes{display:grid;gap:12px}
 @media (min-width:600px){.ajustes{grid-template-columns:repeat(3,1fr)}}
-.ajuste{background:var(--fundo);border:1px solid var(--linha);border-radius:14px;padding:12px 14px}
-.ajuste-rot{font-size:.76rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:8px}
+.ajuste{background:var(--papel);border:1px solid var(--linha);border-radius:14px;padding:12px 14px}
+.ajuste-rot{font-size:.76rem;color:var(--suave);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:8px}
 .passo{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.passo b{font-size:1.3rem;font-variant-numeric:tabular-nums;color:var(--escuro)}
+.passo b{font-size:1.3rem;font-variant-numeric:tabular-nums;color:var(--tinta)}
 .bt-passo{
   width:48px;height:48px;flex:0 0 auto;border-radius:12px;border:1px solid var(--linha);
-  background:var(--branco);color:var(--escuro);font-size:1.35rem;font-weight:700;cursor:pointer;
+  background:var(--clara);color:var(--tinta);font-size:1.35rem;font-weight:700;cursor:pointer;
   line-height:1;transition:transform .12s ease;
 }
 .bt-passo:active{transform:scale(.94)}
 .bt-passo:disabled{opacity:.3;cursor:default}
 .bt-editar{
   min-height:40px;width:40px;border-radius:10px;border:1px solid var(--linha);
-  background:var(--branco);color:var(--azul);font-weight:700;cursor:pointer;flex:0 0 auto;
+  background:var(--clara);color:var(--primaria);font-weight:700;cursor:pointer;flex:0 0 auto;
 }
 .bt-apagar{
   min-height:40px;width:40px;border-radius:10px;border:1px solid var(--linha);
-  background:var(--branco);color:#B3261E;font-weight:700;cursor:pointer;flex:0 0 auto;
+  background:var(--clara);color:var(--erro);font-weight:700;cursor:pointer;flex:0 0 auto;
 }
-.vazio{color:var(--fraco);font-size:.94rem;padding:10px 2px}
+.vazio{color:var(--suave);font-size:.94rem;padding:10px 2px}
 
 /* ---------- Gráfico de barras da semana ---------- */
 .semana{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:8px}
 .dia{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
 .barra-caixa{flex:1;width:100%;display:flex;align-items:flex-end}
 .barra{
-  width:100%;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--azul2),var(--azul));
+  width:100%;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--acento),var(--primaria));
   min-height:3px;transition:height .5s cubic-bezier(.22,.8,.3,1);
 }
-.dia.hoje .barra{background:linear-gradient(180deg,var(--escuro),#14405F)}
-.dia small{font-size:.72rem;color:var(--fraco);text-align:center;line-height:1.2}
-.dia .valor{font-size:.78rem;font-weight:700;color:var(--escuro);font-variant-numeric:tabular-nums}
+.dia.hoje .barra{background:linear-gradient(180deg,var(--pausa-acento),var(--tinta))}
+.dia small{font-size:.72rem;color:var(--suave);text-align:center;line-height:1.2}
+.dia .valor{font-size:.78rem;font-weight:700;color:var(--tinta);font-variant-numeric:tabular-nums}
 
 /* ---------- Mapa de calor anual ---------- */
 .calor-rolagem{overflow-x:auto;padding-bottom:6px}
 .calor{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);gap:3px}
 .calor i{
-  width:14px;height:14px;border-radius:3px;background:#EAF0F5;display:block;
+  width:14px;height:14px;border-radius:3px;background:var(--calor0);display:block;
   border:1px solid rgba(10,42,67,.05);
 }
-.calor i.n1{background:#BEDFF1}
-.calor i.n2{background:#7CC0E4}
-.calor i.n3{background:#2E90C9}
-.calor i.n4{background:#0D80BF}
-.calor i.n5{background:#0A2A43}
+.calor i.n1{background:var(--calor1)}
+.calor i.n2{background:var(--calor2)}
+.calor i.n3{background:var(--calor3)}
+.calor i.n4{background:var(--calor4)}
+.calor i.n5{background:var(--calor5)}
 .calor i.futuro{background:transparent;border-color:transparent}
 .meses span{white-space:nowrap;overflow:visible}
-.meses{display:grid;grid-auto-flow:column;gap:3px;font-size:.68rem;color:var(--fraco);margin-bottom:4px;height:14px}
-.legenda-calor{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--fraco);margin-top:10px}
+.meses{display:grid;grid-auto-flow:column;gap:3px;font-size:.68rem;color:var(--suave);margin-bottom:4px;height:14px}
+.legenda-calor{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--suave);margin-top:10px}
 .legenda-calor i{width:14px;height:14px;border-radius:3px;display:block}
 
 /* ---------- Gráfico de comparação ---------- */
 .tela-canvas{width:100%;height:230px;display:block}
-.legenda{display:flex;gap:18px;flex-wrap:wrap;font-size:.85rem;color:var(--fraco);margin-top:8px}
+.legenda{display:flex;gap:18px;flex-wrap:wrap;font-size:.85rem;color:var(--suave);margin-top:8px}
 .legenda span{display:flex;align-items:center;gap:7px}
 .legenda i{width:22px;height:4px;border-radius:2px;display:block}
 
@@ -284,9 +303,9 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 .marcos{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .marco{
   padding:8px 14px;border-radius:999px;border:1px solid var(--linha);
-  background:var(--fundo);font-weight:700;font-size:.9rem;color:var(--fraco);
+  background:var(--papel);font-weight:700;font-size:.9rem;color:var(--suave);
 }
-.marco.batido{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
+.marco.batido{background:var(--tinta);border-color:var(--tinta);color:var(--clara)}
 
 /* ---------- Estante de ciclos ---------- */
 .estante{display:grid;gap:16px}
@@ -301,22 +320,22 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
   content:"";position:absolute;left:0;top:0;bottom:0;width:14px;
   background:repeating-linear-gradient(
     135deg,
-    var(--azul)   0px, var(--azul)   14px,
-    var(--preto) 14px, var(--preto)  28px,
-    var(--branco)28px, var(--branco) 42px
+    var(--primaria)   0px, var(--primaria)   14px,
+    var(--escura) 14px, var(--escura)  28px,
+    var(--clara)28px, var(--clara) 42px
   );
   border-right:1px solid var(--linha);
 }
 .trofeu h3{font-size:1.1rem}
-.trofeu .periodo{font-size:.85rem;color:var(--fraco);margin:2px 0 12px}
+.trofeu .periodo{font-size:.85rem;color:var(--suave);margin:2px 0 12px}
 .trofeu .num-linha{display:flex;flex-wrap:wrap;gap:16px}
-.trofeu .num-linha div b{display:block;font-size:1.35rem;color:var(--escuro);font-variant-numeric:tabular-nums;line-height:1.1}
-.trofeu .num-linha div span{font-size:.74rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.5px}
-.prateleira{height:10px;border-radius:0 0 var(--raio) var(--raio);background:linear-gradient(90deg,var(--escuro),var(--azul));margin-top:14px}
+.trofeu .num-linha div b{display:block;font-size:1.35rem;color:var(--tinta);font-variant-numeric:tabular-nums;line-height:1.1}
+.trofeu .num-linha div span{font-size:.74rem;color:var(--suave);text-transform:uppercase;letter-spacing:.5px}
+.prateleira{height:10px;border-radius:0 0 var(--raio) var(--raio);background:linear-gradient(90deg,var(--tinta),var(--primaria));margin-top:14px}
 
 /* ---------- Cartas ---------- */
 .cartao-revisao{
-  background:linear-gradient(160deg,#FFFFFF,#F7FAFD);
+  background:var(--card);
   border:1px solid var(--linha);border-radius:20px;box-shadow:var(--sombra);
   min-height:clamp(220px,38vh,340px);display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:16px;padding:26px 22px;text-align:center;
@@ -324,19 +343,18 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 }
 .cartao-revisao .faixa-topo{
   position:absolute;left:0;right:0;top:0;height:6px;
-  background:repeating-linear-gradient(135deg,
-    var(--azul) 0 14px, var(--preto) 14px 28px, var(--branco) 28px 42px);
+  background:var(--faixas);
 }
 .carta-texto{font-size:clamp(1.15rem,3.6vw,1.6rem);font-weight:700;line-height:1.4;max-width:38ch}
-.carta-resposta{font-size:clamp(1rem,3vw,1.35rem);font-weight:600;color:var(--azul);line-height:1.45;max-width:40ch}
+.carta-resposta{font-size:clamp(1rem,3vw,1.35rem);font-weight:600;color:var(--primaria);line-height:1.45;max-width:40ch}
 .carta-lacuna{
-  background:#E8F3FB;border-bottom:2px solid var(--azul);border-radius:4px;
+  background:var(--primaria-fundo);border-bottom:2px solid var(--primaria);border-radius:4px;
   padding:0 6px;color:transparent;user-select:none;
 }
-.carta-lacuna.aberta{color:var(--azul);background:#E8F3FB;user-select:auto}
-.carta-dica{font-size:.82rem;color:var(--fraco);letter-spacing:.4px}
-.carta-meta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:.78rem;color:var(--fraco)}
-.carta-meta span{background:var(--fundo);border:1px solid var(--linha);border-radius:999px;padding:3px 10px}
+.carta-lacuna.aberta{color:var(--primaria);background:var(--primaria-fundo);user-select:auto}
+.carta-dica{font-size:.82rem;color:var(--suave);letter-spacing:.4px}
+.carta-meta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:.78rem;color:var(--suave)}
+.carta-meta span{background:var(--papel);border:1px solid var(--linha);border-radius:999px;padding:3px 10px}
 .notas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
 .bt-nota{
   min-height:66px;border-radius:16px;border:1px solid var(--linha);background:var(--card);
@@ -344,57 +362,57 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
   transition:transform .12s ease;
 }
 .bt-nota:active{transform:scale(.96)}
-.bt-nota small{font-weight:600;font-size:.72rem;color:var(--fraco)}
-.bt-nota.travei{border-color:#F0C9C6;color:#B3261E;background:#FFF6F5}
-.bt-nota.quase{border-color:#F2DFB0;color:#8A5A00;background:#FFFAF0}
-.bt-nota.bem{border-color:#C9E3F3;color:var(--azul);background:#F2F9FE}
+.bt-nota small{font-weight:600;font-size:.72rem;color:var(--suave)}
+.bt-nota.travei{border-color:var(--erro-borda);color:var(--erro);background:var(--erro-fundo)}
+.bt-nota.quase{border-color:var(--alerta-borda);color:var(--alerta-tinta);background:var(--alerta-fundo)}
+.bt-nota.bem{border-color:var(--primaria-borda);color:var(--primaria);background:var(--primaria-fundo)}
 .baralho li{align-items:flex-start}
 .baralho .frente{flex:1;min-width:0;font-weight:600}
-.baralho .frente small{display:block;font-weight:500;color:var(--fraco);font-size:.78rem;
+.baralho .frente small{display:block;font-weight:500;color:var(--suave);font-size:.78rem;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .selo-degrau{
-  font-size:.72rem;font-weight:800;color:var(--azul);background:#EAF5FC;
-  border:1px solid #C9E3F3;border-radius:999px;padding:3px 9px;white-space:nowrap;
+  font-size:.72rem;font-weight:800;color:var(--primaria);background:var(--primaria-fundo);
+  border:1px solid var(--primaria-borda);border-radius:999px;padding:3px 9px;white-space:nowrap;
 }
-.selo-degrau.hoje{background:var(--escuro);border-color:var(--escuro);color:var(--branco)}
+.selo-degrau.hoje{background:var(--tinta);border-color:var(--tinta);color:var(--clara)}
 .barras-dia{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:12px}
 .barras-dia div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
 .barras-dia .haste{flex:1;width:100%;display:flex;align-items:flex-end}
-.barras-dia .haste i{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--azul2),var(--azul));min-height:3px;display:block}
-.barras-dia small{font-size:.68rem;color:var(--fraco)}
+.barras-dia .haste i{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--acento),var(--primaria));min-height:3px;display:block}
+.barras-dia small{font-size:.68rem;color:var(--suave)}
 
 /* ---------- Tabela do campeonato ---------- */
 .tabela{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .tabela th{
   text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.7px;
-  color:var(--fraco);padding:8px 6px;border-bottom:2px solid var(--linha);font-weight:800;
+  color:var(--suave);padding:8px 6px;border-bottom:2px solid var(--linha);font-weight:800;
 }
 .tabela td{padding:12px 6px;border-bottom:1px solid var(--linha);font-weight:600}
 .tabela tr:last-child td{border-bottom:0}
-.tabela .pos{width:38px;color:var(--fraco);font-weight:800}
+.tabela .pos{width:38px;color:var(--suave);font-weight:800}
 .tabela .nome{font-weight:700}
-.tabela .nome small{display:block;font-weight:500;font-size:.74rem;color:var(--fraco)}
-.tabela .pts{font-weight:800;color:var(--azul);text-align:right}
-.tabela .num{text-align:right;color:var(--fraco);font-size:.9rem}
-.tabela tr.eu td{background:#F2F9FE}
-.tabela tr.lider td{background:linear-gradient(90deg,#FFF9E8,transparent)}
-.tabela tr.lider .pos{color:#B98900}
+.tabela .nome small{display:block;font-weight:500;font-size:.74rem;color:var(--suave)}
+.tabela .pts{font-weight:800;color:var(--primaria);text-align:right}
+.tabela .num{text-align:right;color:var(--suave);font-size:.9rem}
+.tabela tr.eu td{background:var(--primaria-fundo)}
+.tabela tr.lider td{background:linear-gradient(90deg,var(--ouro-fundo),transparent)}
+.tabela tr.lider .pos{color:var(--ouro)}
 .titulo-linha{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--linha)}
 .titulo-linha:last-child{border-bottom:0}
 .titulo-linha b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.titulo-linha small{color:var(--fraco);font-size:.8rem;display:block;font-weight:500}
+.titulo-linha small{color:var(--suave);font-size:.8rem;display:block;font-weight:500}
 .taca{font-size:1.3rem;flex:0 0 auto}
-.trofeu.campeao{border-color:#E8C766;box-shadow:0 0 0 3px rgba(232,199,102,.3),var(--sombra)}
-.trofeu.campeao::before{background:linear-gradient(180deg,#F2D98B,#B98900)}
+.trofeu.campeao{border-color:var(--ouro-clara);box-shadow:0 0 0 3px rgba(232,199,102,.3),var(--sombra)}
+.trofeu.campeao::before{background:linear-gradient(180deg,var(--ouro-clara),var(--ouro))}
 .trofeu .coroa{position:absolute;top:14px;right:16px;font-size:1.35rem}
 .selo-liga{
-  display:inline-block;padding:4px 12px;border-radius:999px;background:var(--fundo);
-  border:1px solid var(--linha);font-size:.78rem;color:var(--fraco);font-weight:700;
+  display:inline-block;padding:4px 12px;border-radius:999px;background:var(--papel);
+  border:1px solid var(--linha);font-size:.78rem;color:var(--suave);font-weight:700;
 }
 
 /* ---------- Aviso de armazenamento ---------- */
 .aviso-armazem{
-  background:#FFF4E5;border-bottom:1px solid #F3D9B0;color:#7A4E00;
+  background:var(--alerta-fundo);border-bottom:1px solid var(--alerta-borda);color:var(--alerta-tinta);
   padding:10px 16px;font-size:.9rem;text-align:center;
 }
 
@@ -411,19 +429,19 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 @keyframes sobe{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
 .modal-corpo{padding:22px}
 .modal-corpo h2{font-size:1.35rem;margin-bottom:6px}
-.modal-corpo .frase{font-size:1.05rem;color:var(--azul);font-weight:700;margin:0 0 14px}
-.modal-corpo .detalhe{color:var(--fraco);font-size:.94rem;margin:0 0 18px}
+.modal-corpo .frase{font-size:1.05rem;color:var(--primaria);font-weight:700;margin:0 0 14px}
+.modal-corpo .detalhe{color:var(--suave);font-size:.94rem;margin:0 0 18px}
 .modal-corpo .linha-bts{margin-top:6px}
 
 /* ---------- Avisos flutuantes (recorde, marco) ---------- */
 .toaster{position:fixed;left:0;right:0;bottom:16px;z-index:70;display:flex;flex-direction:column;
   align-items:center;gap:10px;pointer-events:none;padding:0 14px}
 .aviso{
-  pointer-events:auto;background:var(--card);border:1px solid #BFE0F2;border-radius:14px;
+  pointer-events:auto;background:var(--card);border:1px solid var(--primaria-borda);border-radius:14px;
   padding:12px 18px;max-width:520px;box-shadow:0 0 0 3px rgba(13,128,191,.14),0 10px 26px rgba(10,42,67,.18);
   animation:sobe .25s ease;font-weight:600;
 }
-.aviso b{display:block;font-size:.76rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--azul)}
+.aviso b{display:block;font-size:.76rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--primaria)}
 .aviso.brilho{animation:sobe .25s ease, brilha 2.4s ease-in-out 2}
 @keyframes brilha{
   0%,100%{box-shadow:0 0 0 3px rgba(13,128,191,.14),0 10px 26px rgba(10,42,67,.18)}
@@ -513,7 +531,7 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
             <button class="ficha" data-min="50">50 min</button>
           </div>
           <hr class="divisor">
-          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--escuro)">Aviso com o app fora da tela</p>
+          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--tinta)">Aviso com o app fora da tela</p>
           <div class="fichas" id="modosAviso" style="margin-top:8px">
             <button class="ficha" data-modo="nada">Desligado</button>
             <button class="ficha" data-modo="fim">Só no fim</button>
@@ -522,7 +540,11 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
           </div>
           <p class="sub" id="subAlarmeFundo" style="margin-top:10px"></p>
           <hr class="divisor">
-          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--escuro)">Bloquear o que distrai</p>
+          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--tinta)">Tema</p>
+          <div class="fichas" id="fichasTema" style="margin-top:8px"></div>
+          <p class="sub" style="margin-top:10px">As cores e as frases do app vêm do tema escolhido.</p>
+          <hr class="divisor">
+          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--tinta)">Bloquear o que distrai</p>
           <div class="fichas" style="margin-top:8px">
             <button class="ficha" id="fichaLembreteFoco">Lembrar do Modo Foco</button>
           </div>
@@ -628,8 +650,8 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
       <p class="sub" id="comparacaoResumo">Cadastra um ciclo na Estante pra ligar a comparação.</p>
       <canvas class="tela-canvas" id="canvasComparacao"></canvas>
       <div class="legenda">
-        <span><i style="background:#0D80BF"></i> ciclo atual</span>
-        <span><i style="background:#111111"></i> ciclo anterior</span>
+        <span><i style="background:var(--primaria)"></i> ciclo atual</span>
+        <span><i style="background:var(--escura)"></i> ciclo anterior</span>
       </div>
     </div>
 
@@ -653,10 +675,10 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
       </div>
       <div class="legenda-calor">
         <span>menos</span>
-        <i style="background:#EAF0F5;border:1px solid rgba(10,42,67,.05)"></i>
-        <i style="background:#BEDFF1"></i><i style="background:#7CC0E4"></i>
-        <i style="background:#2E90C9"></i><i style="background:#0D80BF"></i>
-        <i style="background:#0A2A43"></i>
+        <i style="background:var(--calor0);border:1px solid var(--linha)"></i>
+        <i style="background:var(--calor1)"></i><i style="background:var(--calor2)"></i>
+        <i style="background:var(--calor3)"></i><i style="background:var(--calor4)"></i>
+        <i style="background:var(--calor5)"></i>
         <span>mais</span>
       </div>
     </div>
@@ -1068,6 +1090,7 @@ function estadoNovo() {
       duracao: 30,          // minutos do bloco de foco
       modoAviso: 'fim',     // 'nada' | 'fim' | 'inteiro' — quando a trilha entra
       lembreteFoco: true,   // pergunta pelo Modo Foco do Android antes do bloco
+      tema: 'gremio',       // arquivo em temas/<id>.json
       pausaCurta: 5,        // pausa entre blocos
       pausaLonga: 15,       // pausa maior, no fim do ciclo de focos
       focosAteLonga: 3,     // quantos focos até a pausa maior
@@ -1179,12 +1202,146 @@ function ciclosEncerrados() {
     .slice().sort((a, b) => (a.fimReal < b.fimReal ? 1 : -1));
 }
 
-/* ============================ 4. VOZES DO APP ============================
-   Textos originais, no vocabulário da arquibancada tricolor. Nada de letra
-   de canto, hino ou música de torcida. Sorteados sem repetir o anterior.
+/* ============================== 3.5 TEMA ==============================
+   Tema como dado: cores e frases moram em temas/<id>.json e o código nunca
+   referencia clube nenhum — só carrega o arquivo escolhido. Nenhuma cor de
+   identidade fica escrita no CSS; tudo é var(--…), e este módulo escreve as
+   variáveis no :root. Trocar de tema não recarrega a página.
    ===================================================================== */
 
-const VOZ = {
+let temaAtual = null;
+let temasDisponiveis = [{ id: 'gremio', nome: 'Tricolor' }];
+
+/** Lê uma cor já resolvida do :root — o canvas precisa do valor, não do var(). */
+function corDoTema(nome) {
+  try {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+    return v || '#000000';
+  } catch (erro) {
+    return '#000000';
+  }
+}
+
+function paraRGB(hex) {
+  const h = String(hex).replace('#', '').trim();
+  const c = h.length === 3 ? h.split('').map((x) => x + x).join('') : h;
+  return [parseInt(c.slice(0, 2), 16) || 0, parseInt(c.slice(2, 4), 16) || 0, parseInt(c.slice(4, 6), 16) || 0];
+}
+
+/** Mistura duas cores: t=0 devolve a primeira, t=1 devolve a segunda. */
+function misturaHex(a, b, t) {
+  const x = paraRGB(a), y = paraRGB(b);
+  const p = (i) => Math.round(x[i] + (y[i] - x[i]) * t).toString(16).padStart(2, '0');
+  return '#' + p(0) + p(1) + p(2);
+}
+
+function comAlfa(hex, alfa) {
+  const c = paraRGB(hex);
+  return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + alfa + ')';
+}
+
+/** Escreve as cores do tema no :root e troca as frases do app. */
+function aplicaTema(tema) {
+  if (!tema || !tema.cores) return;
+  const c = tema.cores;
+  const raiz = document.documentElement.style;
+  const poe = (chave, valor) => { if (valor) raiz.setProperty(chave, valor); };
+
+  poe('--primaria', c.primaria);
+  poe('--acento', c.acento || c.primaria);
+  poe('--escura', c.escura);
+  poe('--clara', c.clara);
+  poe('--papel', c.papel);
+  poe('--tinta', c.tinta);
+  poe('--suave', c.suave);
+  poe('--pausa-papel', c.pausa_papel || c.papel);
+  poe('--pausa-acento', c.pausa_acento || c.tinta);
+
+  // Derivados: o tema declara só as cores base, o resto é calculado
+  poe('--card', c.clara);
+  poe('--linha', misturaHex(c.papel, c.tinta, 0.12));
+  poe('--trilho', misturaHex(c.papel, c.tinta, 0.08));
+  poe('--primaria-fundo', misturaHex(c.clara, c.primaria, 0.10));
+  poe('--primaria-borda', misturaHex(c.clara, c.primaria, 0.30));
+  poe('--sombra', '0 2px 10px ' + comAlfa(c.tinta, 0.09));
+
+  // Escala do mapa de calor: do papel até a tinta, passando pela primária
+  poe('--calor0', misturaHex(c.papel, c.tinta, 0.06));
+  poe('--calor1', misturaHex(c.clara, c.primaria, 0.24));
+  poe('--calor2', misturaHex(c.clara, c.primaria, 0.50));
+  poe('--calor3', misturaHex(c.clara, c.primaria, 0.78));
+  poe('--calor4', c.primaria);
+  poe('--calor5', misturaHex(c.primaria, c.tinta, 0.72));
+
+  const f = (Array.isArray(tema.faixas) && tema.faixas.length >= 3)
+    ? tema.faixas : [c.primaria, c.escura, c.clara];
+  poe('--faixas', 'repeating-linear-gradient(135deg,' +
+      f[0] + ' 0 22px,' + f[1] + ' 22px 44px,' + f[2] + ' 44px 66px)');
+
+  VOZ = Object.assign({}, FRASES_BASE, tema.frases || {});
+
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta && c.primaria) meta.setAttribute('content', c.primaria);
+
+  temaAtual = tema;
+}
+
+async function buscaTema(id) {
+  try {
+    const r = await fetch('./temas/' + encodeURIComponent(id) + '.json');
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (erro) {
+    return null;     // sem o arquivo, seguem as cores e frases de reserva
+  }
+}
+
+async function carregaIndiceDeTemas() {
+  try {
+    const r = await fetch('./temas/indice.json');
+    if (!r.ok) return;
+    const dados = await r.json();
+    if (Array.isArray(dados.temas) && dados.temas.length) temasDisponiveis = dados.temas;
+  } catch (erro) { /* fica com a lista de reserva */ }
+}
+
+/** Troca de tema em tempo real, sem recarregar. */
+async function trocaTema(id) {
+  const tema = await buscaTema(id);
+  if (!tema) { avisa('Tema', 'Não achei esse tema.'); return; }
+  estado.prefs.tema = id;
+  salvaEstado();
+  aplicaTema(tema);
+  desenhaSaudacao();               // a saudação na tela ainda era do tema antigo
+  atualizaTudo();
+  desenhaTimer();
+  if (!$('#tela-progresso').classList.contains('oculto')) desenhaComparacao();
+}
+
+async function iniciaTema() {
+  await carregaIndiceDeTemas();
+  const tema = await buscaTema(estado.prefs.tema || 'gremio');
+  if (tema) { aplicaTema(tema); atualizaTudo(); }
+  desenhaFichasDeTema();
+}
+
+function desenhaFichasDeTema() {
+  const caixa = $('#fichasTema');
+  if (!caixa) return;
+  const atual = estado.prefs.tema || 'gremio';
+  caixa.innerHTML = temasDisponiveis.map((t) => (
+    '<button class="ficha' + (t.id === atual ? ' ativa' : '') + '" data-tema="' +
+    escapaHTML(t.id) + '">' + escapaHTML(t.nome) + '</button>'
+  )).join('');
+}
+
+/* ============================ 4. VOZES DO APP ============================
+   Estas são as frases de reserva, usadas até o arquivo do tema carregar.
+   As que valem vêm de temas/<id>.json — o código nunca cita clube nenhum.
+   Textos originais: nada de letra de canto, hino ou música de torcida.
+   ===================================================================== */
+
+const FRASES_BASE = {
   manha: [
     'Bom dia, Davi. Dia de copar.',
     'Levanta que a bola vai rolar, Davi.',
@@ -1350,6 +1507,9 @@ const VOZ = {
     'Marco novo: {h}h, Davi.'
   ]
 };
+
+/* As frases valem enquanto o tema não carrega; o arquivo do tema troca todas. */
+let VOZ = FRASES_BASE;
 
 const ultimaFalada = {};
 
@@ -2582,7 +2742,7 @@ function desenhaListaTudo() {
     let cabeca = '';
     if (chave !== ultimoDia) {
       ultimoDia = chave;
-      cabeca = '<li style="border-bottom:0;padding-bottom:2px"><b style="font-size:.82rem;letter-spacing:1px;text-transform:uppercase;color:#5C6E80">' +
+      cabeca = '<li style="border-bottom:0;padding-bottom:2px"><b style="font-size:.82rem;letter-spacing:1px;text-transform:uppercase;color:var(--suave)">' +
                dataCurta(chave) + ' · ' + fmtDuracao(minutosDoDia(chave)) + '</b></li>';
     }
     return cabeca +
@@ -2770,8 +2930,8 @@ function desenhaComparacao() {
   const py = (m) => mT + altura - (m / maxMin) * altura;
 
   // Grade e rótulos
-  ctx.strokeStyle = '#E1E8EF';
-  ctx.fillStyle = '#5C6E80';
+  ctx.strokeStyle = corDoTema('--linha');
+  ctx.fillStyle = corDoTema('--suave');
   ctx.font = '11px system-ui, sans-serif';
   ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) {
@@ -2793,12 +2953,12 @@ function desenhaComparacao() {
     ctx.setLineDash([]);
   };
 
-  linha(serieAnterior, '#111111', 2, true);
-  linha(serieAtual, '#0D80BF', 3, false);
+  linha(serieAnterior, corDoTema('--escura'), 2, true);
+  linha(serieAtual, corDoTema('--primaria'), 3, false);
 
   // Ponto de hoje
   if (serieAtual.length) {
-    ctx.fillStyle = '#0D80BF';
+    ctx.fillStyle = corDoTema('--primaria');
     ctx.beginPath();
     ctx.arc(px(serieAtual.length - 1), py(serieAtual[serieAtual.length - 1]), 4.5, 0, Math.PI * 2);
     ctx.fill();
@@ -2806,7 +2966,7 @@ function desenhaComparacao() {
 }
 
 function desenhaEixoVazio(ctx, L, A, texto) {
-  ctx.fillStyle = '#5C6E80';
+  ctx.fillStyle = corDoTema('--suave');
   ctx.font = '13px system-ui, sans-serif';
   ctx.fillText(texto, 12, A / 2);
 }
@@ -2973,6 +3133,11 @@ $('#modosAviso').addEventListener('click', async (ev) => {
 });
 
 $('#btTestarAlarme').addEventListener('click', () => { testaAlarmeEmSegundoPlano(); });
+
+$('#fichasTema').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-tema]');
+  if (bt) trocaTema(bt.dataset.tema);
+});
 
 $('#fichaLembreteFoco').addEventListener('click', () => {
   estado.prefs.lembreteFoco = !estado.prefs.lembreteFoco;
@@ -4087,6 +4252,7 @@ function inicia() {
   atualizaTudo();
   desenhaTimer();
   retomaTimerSalvo();
+  iniciaTema();                   // cores e frases vêm do arquivo de tema
   leConviteDaURL();               // convite chegando por link
   if (temLiga() && estado.campeonato.meuNome) sincronizaCampeonato(true);
 

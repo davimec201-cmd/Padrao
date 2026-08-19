@@ -1,0 +1,126 @@
+{
+  "id": "neutro",
+  "nome": "Neutro",
+  "cores": {
+    "primaria": "#2E6E4E",
+    "escura": "#1B2A22",
+    "clara": "#FFFFFF",
+    "papel": "#F4F6F4",
+    "tinta": "#1B2A22",
+    "suave": "#5F6F66",
+    "acento": "#3D8C64",
+    "pausa_papel": "#F2F2F2",
+    "pausa_acento": "#1B2A22"
+  },
+  "faixas": ["#2E6E4E", "#1B2A22", "#FFFFFF"],
+  "frases": {
+    "manha": [
+      "Bom dia. O dia começa agora.",
+      "Primeiro tempo do dia.",
+      "Manhã limpa, cabeça limpa.",
+      "Café tomado, bola no centro.",
+      "Bom dia. Escala o time e vai.",
+      "Cedo é quando rende mais."
+    ],
+    "tarde": [
+      "Boa tarde. Segundo tempo.",
+      "Tarde rende.",
+      "Meio de jogo é onde se decide.",
+      "Boa tarde. Entra em campo.",
+      "Tem tempo. Bota um bloco na conta.",
+      "Escolhe o assunto que eu boto o relógio."
+    ],
+    "noite": [
+      "Boa noite. Ainda dá tempo.",
+      "Jogo noturno.",
+      "Um bloco à noite já muda o placar.",
+      "Fim de dia: acréscimo também vale.",
+      "Boa noite. Fecha bem o dia.",
+      "Um tempo só e tu fecha bem."
+    ],
+    "madrugada": [
+      "Madrugada. Se entrar, entra inteiro.",
+      "Silêncio total: hora boa de render.",
+      "Tarde da noite e tu firme.",
+      "Um bloco curto agora e cama.",
+      "Madrugada rende quando ninguém atrapalha."
+    ],
+    "jaEstudouHoje": [
+      "Já tem {min} no placar hoje.",
+      "Placar aberto. Amplia.",
+      "Tu já jogou hoje. Mais um?",
+      "Bom ritmo. Mantém a pressão.",
+      "O dia já é teu. Aumenta a vantagem.",
+      "Mais um bloco e vira goleada."
+    ],
+    "retomada": [
+      "Voltou. Time completo de novo.",
+      "Bola no centro, recomeça.",
+      "Recomeço vale campanha inteira.",
+      "Sem retrospecto: hoje é hoje.",
+      "Voltar é o mais difícil, e tu já fez.",
+      "Jogo novo, placar zerado pra todo mundo."
+    ],
+    "iniciaBloco": [
+      "Bloco rolando. Foco em {assunto}.",
+      "Apitou. {assunto} é o adversário.",
+      "Tamo em campo.",
+      "{min} de trabalho. Vai.",
+      "Marca em cima do {assunto}.",
+      "Silêncio na arena. Concentra."
+    ],
+    "concluiBloco": [
+      "Bloco fechado.",
+      "{min} no bolso.",
+      "Trabalho feito.",
+      "Golaço. {assunto} anotado.",
+      "Mais um pra campanha.",
+      "Isso vale ponto na tabela."
+    ],
+    "pausaLonga": [
+      "Intervalo grande. Aproveita.",
+      "Tempo técnico.",
+      "Levanta, anda, bebe água.",
+      "Vestiário. Volta inteiro.",
+      "Descanso de verdade agora."
+    ],
+    "fimPausa": [
+      "Pausa encerrada. Volta pro jogo.",
+      "Intervalo acabou.",
+      "Segundo tempo.",
+      "O juiz chamou.",
+      "Descanso pago. Vamo.",
+      "Pronto pra mais um?"
+    ],
+    "recorde": [
+      "Recorde novo.",
+      "Tu passou de ti mesmo.",
+      "Marca batida.",
+      "Melhor que qualquer dia anterior.",
+      "Tabela atualizada: o recorde é teu.",
+      "Nunca tinha rendido tanto assim."
+    ],
+    "encerraCiclo": [
+      "Taça levantada. {nome} encerrado.",
+      "Campanha fechada.",
+      "Mais um título na sala.",
+      "{nome} fica guardado pra sempre.",
+      "Fim de mata-mata. Tu passou.",
+      "Troféu guardado. Bora pro próximo."
+    ],
+    "marco": [
+      "{h}h de estudo. Marco batido.",
+      "{h}h na vitrine.",
+      "{h}h acumuladas. Campanha grande.",
+      "Marco de {h}h. Respeito.",
+      "Chegou nas {h}h."
+    ],
+    "lembreteFoco": [
+      "Tranca o que atrapalha antes de entrar em campo.",
+      "Adversário de hoje é a notificação.",
+      "Cabeça no jogo: bloqueia o resto.",
+      "Fecha a arena antes do apito.",
+      "Um toque agora poupa meia hora depois."
+    ]
+  }
+}
