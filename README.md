@@ -200,6 +200,8 @@ entram quando o markdown pede. Abre no tablet e no computador.
 | [`DEPLOY.md`](DEPLOY.md) | colocar no ar pelo tablet, sem terminal |
 | [`design/tokens.md`](design/tokens.md) | de onde veio cada cor, tamanho e medida |
 | [`diagramador/README.md`](diagramador/README.md) | como o código se organiza |
+| [`PROMPT_MESTRE.md`](PROMPT_MESTRE.md) | o pedido inteiro, para reconstruir em outro lugar |
+| [`.claude/skills/ebook-teaformation/`](.claude/skills/ebook-teaformation/) | as regras da marca como skill, para usar em qualquer conversa |
 
 Antes de baixar, o app mostra um relatório de QA com 15 verificações — margem,
 ficha quebrada, fonte embutida, contraste, cor fora da paleta, logo, textos

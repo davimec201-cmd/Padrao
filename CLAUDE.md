@@ -64,7 +64,19 @@ python3 diagramador/testes/test_diagramador.py        # tem que dar 0 falhas
 O e-book de exemplo (`exemplo/porto_seguro.md`) precisa sair com QA sem
 nenhuma falha crítica.
 
-### 6. Onde as coisas estão
+### 6. Levar estas regras para outra conversa
+
+Duas formas, conforme o caso:
+
+- **`.claude/skills/ebook-teaformation/`** — a skill. Vale em qualquer sessão
+  neste repositório, e o `.skill` empacotado instala no perfil para valer também
+  no Cowork e no claude.ai. É o caminho para *usar* o sistema.
+- **`PROMPT_MESTRE.md`** — o pedido inteiro, corrigido pela realidade da
+  construção. É o caminho para *reconstruir* o sistema em outro lugar.
+
+Se mexer nas regras aqui, atualize os dois — eles são cópia, não referência.
+
+### 7. Onde as coisas estão
 
 | Precisa mexer em | Vá em |
 |---|---|

@@ -27,7 +27,7 @@ CATALOGO: dict[str, TipoDeBloco] = {
     "capa": TipoDeBloco(
         nome="capa",
         rotulo="Capa",
-        descricao="Capa do material: título, subtítulo curto, ilustração de personagem, marca e supervisão técnica.",
+        descricao="Capa do material: título, subtítulo curto, marca e supervisão técnica. Ilustração de personagem só quando o material pede.",
         diretiva=None,
         campos=("titulo", "subtitulo", "personagem", "psicologa", "crp"),
         automatico=True,
