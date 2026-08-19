@@ -147,9 +147,55 @@ instalado, funciona 100% offline.
 | **Histórico** | Hoje, últimos 7 dias em barras, lista completa com opção de corrigir o assunto ou apagar o registro, exportar e importar tudo em JSON. |
 | **Cartas** | Flashcards com prazo: escada de 1, 2, 4, 8 e 16 dias, teto pela data da prova e reta final nos últimos 3 dias. Travei / Quase / Mandei bem, lacunas com `{{chaves}}`, revisão livre fora da fila e edição de qualquer campo, inclusive degrau e data. Ao encerrar o ciclo, o baralho é guardado junto com ele. |
 | **Progresso** | Mapa de calor anual, estante de ciclos, comparação em tempo real com o ciclo anterior, contador vitalício de horas com marcos de 100/250/500/1000h, recordes pessoais e os números do baralho do ciclo. |
+| **Tabela** | Campeonato com os amigos: classificação por horas copadas no ciclo (1 hora = 1 ponto, empate no desempate por dias ativos), campeão congelado quando o ciclo fecha, sala de troféus e campeão geral por número de títulos. Quem termina em primeiro ganha acabamento dourado no objeto da Estante. |
 
 Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
 murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
+
+#### O campeonato
+
+A tabela é a única parte do app que fala com a rede. Usa o **Realtime Database
+do Firebase pela API REST**, com `fetch` puro — sem SDK, porque a biblioteca do
+Firebase vem de CDN e baixar biblioteca quebraria o funcionamento offline. Se a
+rede falhar, o resto do app não muda e a última tabela baixada continua na tela.
+
+O endereço do banco não fica no código: cada jogador entra uma vez pelo link de
+convite, e o **código da liga funciona como senha do grupo** — quem não recebeu
+o convite não acha a tabela. O app publica só quatro números por jogador: nome,
+minutos do ciclo, dias ativos e blocos. Nenhum assunto de estudo sai do aparelho.
+
+**Criar a liga** (uma vez, quem for o dono):
+
+1. `console.firebase.google.com` → **Adicionar projeto** (plano Spark, grátis,
+   sem cartão) → pode desligar o Google Analytics.
+2. No menu, **Realtime Database** → **Criar banco de dados** → região mais
+   próxima → começar em **modo de teste**.
+3. Em **Regras**, colar e publicar:
+
+   ```json
+   {
+     "rules": {
+       "ligas": {
+         "$liga": {
+           ".read": true,
+           ".write": true
+         }
+       }
+     }
+   }
+   ```
+
+   Leitura e escrita liberadas dentro de `ligas`, e nada fora dela. Sem conta
+   para ninguém; a proteção é o código da liga ser secreto. É campeonato entre
+   amigos, na confiança: qualquer participante consegue editar a própria linha.
+4. Copiar o endereço do banco (algo como
+   `https://seu-projeto-default-rtdb.firebaseio.com`).
+5. No app: aba **Tabela** → **Preencher na mão** → colar o endereço, escolher um
+   código de liga e o nome do campeonato → **Criar a liga**.
+6. **Convidar o grupo** gera o link que configura o app de quem receber.
+
+O plano grátis dá 20 mil escritas por dia; um grupo de amigos usa algumas
+dezenas. Não há como cair na cobrança sem trocar de plano de propósito.
 
 #### Onde os dados ficam
 
