@@ -483,9 +483,11 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
             <button class="ficha" data-min="50">50 min</button>
           </div>
           <hr class="divisor">
-          <div class="fichas" style="margin-top:16px">
-            <button class="ficha" id="fichaAlarmeFundo">Avisar fora do app</button>
-            <button class="ficha" id="fichaTrilhaSilenciosa">Não abaixar outros apps</button>
+          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--escuro)">Aviso com o app fora da tela</p>
+          <div class="fichas" id="modosAviso" style="margin-top:8px">
+            <button class="ficha" data-modo="nada">Desligado</button>
+            <button class="ficha" data-modo="fim">Só no fim</button>
+            <button class="ficha" data-modo="inteiro">Bloco inteiro</button>
             <button class="ficha" id="btTestarAlarme">Testar (20s)</button>
           </div>
           <p class="sub" id="subAlarmeFundo" style="margin-top:8px"></p>
@@ -943,8 +945,7 @@ function estadoNovo() {
     marcosVistos: [],  // marcos do contador vitalício já comemorados
     prefs: {
       duracao: 30,          // minutos do bloco de foco
-      alarmeFundo: true,    // avisa com o app fora da tela
-      trilhaSilenciosa: true, // trilha em silêncio: não abaixa o som de outros apps
+      modoAviso: 'fim',     // 'nada' | 'fim' | 'inteiro' — quando a trilha entra
       pausaCurta: 5,        // pausa entre blocos
       pausaLonga: 15,       // pausa maior, no fim do ciclo de focos
       focosAteLonga: 3,     // quantos focos até a pausa maior
@@ -978,6 +979,10 @@ function carregaEstado() {
     ? salvo.revisoesPorDia : {};
   if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
   Object.keys(LIMITES).forEach((chave) => { estado.prefs[chave] = limita(chave, estado.prefs[chave]); });
+  // Vinha dos ajustes antigos, que eram dois liga-desliga
+  if (['nada', 'fim', 'inteiro'].indexOf(estado.prefs.modoAviso) === -1) {
+    estado.prefs.modoAviso = (salvo.prefs && salvo.prefs.alarmeFundo === false) ? 'nada' : 'fim';
+  }
 }
 
 function salvaEstado() {
@@ -1376,25 +1381,28 @@ function alarme(tipo) {
    abaixar outros apps" volta com o tom de fundo.
    ===================================================== */
 
-const TAXA_TRILHA = 8000;        // 8 kHz, 8 bits: 8 KB por segundo
+const TAXA_TRILHA = 6000;        // 6 kHz, 16 bits: 12 KB por segundo
 const SEG_ALARME = 3;            // espaço reservado pro alarme no fim
+const SEG_ANTES = 120;           // quando a trilha entra, no modo "só no fim"
 
-/** Soma uma onda na trilha (8 bits, silêncio = 128). */
-function somaNaTrilha(bytes, inicioSeg, duracao, gerador) {
+let timerDaTrilha = null;        // espera pra começar a trilha perto do fim
+
+/** Soma uma onda na trilha (16 bits com sinal, silêncio = 0). */
+function somaNaTrilha(amostras, inicioSeg, duracao, gerador) {
   const inicio = Math.round(inicioSeg * TAXA_TRILHA);
   const n = Math.round(duracao * TAXA_TRILHA);
   for (let i = 0; i < n; i++) {
     const pos = inicio + i;
-    if (pos < 0 || pos >= bytes.length) continue;
-    const v = (bytes[pos] - 128) / 127 + gerador(i / TAXA_TRILHA);
-    bytes[pos] = Math.max(0, Math.min(255, Math.round(v * 127 + 128)));
+    if (pos < 0 || pos >= amostras.length) continue;
+    const v = amostras[pos] / 32767 + gerador(i / TAXA_TRILHA);
+    amostras[pos] = Math.max(-32768, Math.min(32767, Math.round(v * 32767)));
   }
 }
 
 /** Grava o alarme no fim da trilha: toque de gol no foco, apito na pausa. */
-function gravaAlarmeNaTrilha(bytes, inicioSeg, tipo) {
+function gravaAlarmeNaTrilha(amostras, inicioSeg, tipo) {
   const nyquist = TAXA_TRILHA / 2;
-  const sino = (t0, freq, dur, vol) => somaNaTrilha(bytes, t0, dur, (t) => {
+  const sino = (t0, freq, dur, vol) => somaNaTrilha(amostras, t0, dur, (t) => {
     const env = Math.exp(-4.2 * t / dur) * vol;
     let v = Math.sin(2 * Math.PI * freq * t);
     if (freq * 2 < nyquist) v += 0.3 * Math.sin(2 * Math.PI * freq * 2 * t);
@@ -1407,13 +1415,13 @@ function gravaAlarmeNaTrilha(bytes, inicioSeg, tipo) {
     return;
   }
 
-  // Apito de árbitro. As frequências descem em relação ao alarme do primeiro
-  // plano porque a trilha é de 8 kHz e nada acima de 4 kHz cabe nela.
-  const sopro = (t0, dur, vol) => somaNaTrilha(bytes, t0, dur, (t) => {
+  // Apito de árbitro. Fica mais grave que o alarme de primeiro plano porque
+  // a trilha é de 6 kHz e nada acima de 3 kHz cabe nela sem distorcer.
+  const sopro = (t0, dur, vol) => somaNaTrilha(amostras, t0, dur, (t) => {
     const ataque = Math.min(1, t / 0.012);
     const solta = Math.min(1, Math.max(0, (dur - t) / 0.05));
     const trinado = 0.7 + 0.3 * Math.sin(2 * Math.PI * 22 * t);
-    const corpo = 0.55 * Math.sin(2 * Math.PI * 2950 * t) + 0.3 * Math.sin(2 * Math.PI * 3450 * t);
+    const corpo = 0.55 * Math.sin(2 * Math.PI * 2400 * t) + 0.3 * Math.sin(2 * Math.PI * 2750 * t);
     return corpo * trinado * ataque * solta * vol;
   });
   sopro(inicioSeg, 0.26, 0.34);
@@ -1422,40 +1430,27 @@ function gravaAlarmeNaTrilha(bytes, inicioSeg, tipo) {
 }
 
 /**
- * Monta a trilha inteira do bloco. O corpo é preenchido de uma vez, então
- * mesmo uma trilha de 50 minutos fica pronta num piscar.
+ * Monta a trilha: silêncio digital até o fim e o alarme gravado no final.
+ * 16 bits de propósito — a versão de 8 bits saía com chiado no tablet, que é
+ * um formato que o decodificador do Android trata mal.
  */
 function montaTrilha(msRestante, tipo) {
   const segundos = Math.max(1, msRestante / 1000);
   const quadrosCorpo = Math.round(segundos * TAXA_TRILHA);
   const quadros = quadrosCorpo + SEG_ALARME * TAXA_TRILHA;
-  const buf = new ArrayBuffer(44 + quadros);
+  const buf = new ArrayBuffer(44 + quadros * 2);
   const v = new DataView(buf);
   const texto = (p, t) => { for (let i = 0; i < t.length; i++) v.setUint8(p + i, t.charCodeAt(i)); };
-  texto(0, 'RIFF');  v.setUint32(4, 36 + quadros, true);
+  texto(0, 'RIFF');  v.setUint32(4, 36 + quadros * 2, true);
   texto(8, 'WAVE');  texto(12, 'fmt ');
   v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-  v.setUint32(24, TAXA_TRILHA, true); v.setUint32(28, TAXA_TRILHA, true);
-  v.setUint16(32, 1, true); v.setUint16(34, 8, true);
-  texto(36, 'data'); v.setUint32(40, quadros, true);
+  v.setUint32(24, TAXA_TRILHA, true); v.setUint32(28, TAXA_TRILHA * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  texto(36, 'data'); v.setUint32(40, quadros * 2, true);
 
-  const bytes = new Uint8Array(buf, 44, quadros);
-  bytes.fill(128);                       // silêncio digital: não pede foco de áudio
-
-  if (!estado.prefs.trilhaSilenciosa) {
-    // Modo antigo: tom de 40 Hz inaudível segurando a aba acordada. Um segundo
-    // é calculado e o resto é cópia — senão meia hora de trilha levaria quase
-    // um segundo de conta na hora de começar o bloco.
-    const umSegundo = new Uint8Array(TAXA_TRILHA);
-    for (let i = 0; i < TAXA_TRILHA; i++) {
-      umSegundo[i] = Math.round(0.02 * Math.sin(2 * Math.PI * 40 * i / TAXA_TRILHA) * 127 + 128);
-    }
-    for (let p = 0; p < quadrosCorpo; p += TAXA_TRILHA) {
-      bytes.set(umSegundo.subarray(0, Math.min(TAXA_TRILHA, quadrosCorpo - p)), p);
-    }
-  }
-
-  gravaAlarmeNaTrilha(bytes, quadrosCorpo / TAXA_TRILHA, tipo);
+  // Int16Array já nasce zerado: silêncio exato, sem chiado e sem estalo
+  const amostras = new Int16Array(buf, 44, quadros);
+  gravaAlarmeNaTrilha(amostras, quadrosCorpo / TAXA_TRILHA, tipo);
   return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
 }
 
@@ -1465,21 +1460,21 @@ function restanteDaTrilha() {
   return trilha.duration - SEG_ALARME - trilha.currentTime;
 }
 
-/**
- * Põe a trilha do bloco em andamento pra tocar. Se já está tocando em
- * sincronia com o relógio do bloco, não refaz.
- */
-function agendaAlarmeDoTimer() {
-  const t = estado.timer;
-  if (!t || t.pausadoEm || !estado.prefs.alarmeFundo) { cancelaAlarmeAgendado(); return; }
+function limpaTimerDaTrilha() {
+  clearTimeout(timerDaTrilha);
+  timerDaTrilha = null;
+}
 
+/** Monta e toca a trilha do que falta do bloco. */
+function ligaTrilhaAgora() {
+  const t = estado.timer;
+  if (!t || t.pausadoEm) return;
   const falta = restanteMs(t) / 1000;
   const naTrilha = restanteDaTrilha();
   if (trilha && !trilha.paused && naTrilha !== null && Math.abs(naTrilha - falta) < 3) {
     ligaSessaoDeMidia();
-    return;
+    return;                            // já está tocando na hora certa
   }
-
   cancelaAlarmeAgendado();
   try {
     urlTrilha = montaTrilha(restanteMs(t), t.modo);
@@ -1499,7 +1494,32 @@ function agendaAlarmeDoTimer() {
   }
 }
 
+/**
+ * Decide quando a trilha entra, conforme o modo escolhido.
+ *
+ * O nó da questão: no Android, qualquer mídia tocando pede foco de áudio, e o
+ * sistema pausa quem estava tocando antes. Não dá pra manter o app acordado em
+ * segundo plano sem mexer no som dos outros — então quem escolhe é o Davi.
+ */
+function agendaAlarmeDoTimer() {
+  limpaTimerDaTrilha();
+  const t = estado.timer;
+  const modo = estado.prefs.modoAviso || 'fim';
+  if (!t || t.pausadoEm || modo === 'nada') { cancelaAlarmeAgendado(); return; }
+
+  const faltaMs = restanteMs(t);
+  if (modo === 'inteiro' || faltaMs <= (SEG_ANTES + 10) * 1000) {
+    ligaTrilhaAgora();
+    return;
+  }
+
+  // Modo "só no fim": a música segue intacta até faltar SEG_ANTES segundos
+  cancelaAlarmeAgendado();
+  timerDaTrilha = setTimeout(() => { agendaAlarmeDoTimer(); }, faltaMs - SEG_ANTES * 1000);
+}
+
 function cancelaAlarmeAgendado() {
+  limpaTimerDaTrilha();
   try {
     if (trilha) { trilha.pause(); trilha.removeAttribute('src'); trilha.load(); }
   } catch (erro) { /* ignora */ }
@@ -2252,28 +2272,23 @@ function desenhaFoco() {
   });
 
   // Ajuste do alarme em segundo plano
-  const ligado = !!estado.prefs.alarmeFundo;
-  const ficha = $('#fichaAlarmeFundo');
-  ficha.classList.toggle('ativa', ligado);
-  ficha.textContent = 'Avisar fora do app: ' + (ligado ? 'ligado' : 'desligado');
-  $('#btTestarAlarme').classList.toggle('oculto', !ligado);
-  const silenciosa = estado.prefs.trilhaSilenciosa !== false;
-  const fichaSilencio = $('#fichaTrilhaSilenciosa');
-  fichaSilencio.classList.toggle('oculto', !ligado);
-  fichaSilencio.classList.toggle('ativa', silenciosa);
-  fichaSilencio.textContent = 'Não abaixar outros apps: ' + (silenciosa ? 'sim' : 'não');
+  const modo = estado.prefs.modoAviso || 'fim';
+  $$('#modosAviso .ficha[data-modo]').forEach((f) => {
+    f.classList.toggle('ativa', f.dataset.modo === modo);
+  });
+  $('#btTestarAlarme').classList.toggle('oculto', modo === 'nada');
 
   let recado;
-  if (!ligado) {
-    recado = 'Com a tela bloqueada, o alarme só sai quando tu voltar pro app. O tempo do bloco segue certo do mesmo jeito.';
+  if (modo === 'nada') {
+    recado = 'Nenhum som de fundo: a tua música fica intacta. O alarme só sai quando tu voltar pro app — o tempo do bloco segue certo do mesmo jeito.';
   } else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
     recado = 'A notificação está bloqueada pra este site. Libera em Configurações do Chrome → Site (ou no cadeado da barra de endereço) → Notificações.';
   } else if (!temNotificacao()) {
     recado = 'Falta liberar a notificação: toca em "Testar (20s)" e aceita o pedido. Sem ela, o aviso não aparece com o app fechado.';
-  } else if (estado.prefs.trilhaSilenciosa !== false) {
-    recado = 'O alarme vai gravado no áudio do bloco, e o áudio corre em silêncio: o Spotify não abaixa enquanto tu estuda, só na hora do toque. Se em algum bloco o aviso falhar, desliga o "Não abaixar outros apps".';
+  } else if (modo === 'fim') {
+    recado = 'A trilha do alarme só entra nos 2 minutos finais: a tua música toca livre quase o bloco inteiro e só é interrompida no fim. Se o tablet dormir fundo antes disso, o aviso pode não sair — aí usa "Bloco inteiro".';
   } else {
-    recado = 'Com um tom de fundo inaudível segurando o app acordado. É mais garantido, mas o Android abaixa o som dos outros apps durante o bloco inteiro.';
+    recado = 'A trilha toca do começo ao fim do bloco: é o modo mais garantido, mas o Android pausa a música de outros apps enquanto isso.';
   }
   $('#subAlarmeFundo').textContent = recado;
 
@@ -2745,25 +2760,18 @@ $('#ajustesPausa').addEventListener('click', (ev) => {
 });
 
 /* ---- Alarme em segundo plano ---- */
-$('#fichaAlarmeFundo').addEventListener('click', async () => {
-  estado.prefs.alarmeFundo = !estado.prefs.alarmeFundo;
-  salvaEstado();
-  if (estado.prefs.alarmeFundo) {
-    agendaAlarmeDoTimer();
-    desenhaFoco();
-    await pedePermissaoNotificacao();   // o pedido precisa sair de um toque
-  } else {
-    cancelaAlarmeAgendado();
-  }
-  desenhaFoco();
-});
-
-$('#fichaTrilhaSilenciosa').addEventListener('click', () => {
-  estado.prefs.trilhaSilenciosa = !(estado.prefs.trilhaSilenciosa !== false);
+$('#modosAviso').addEventListener('click', async (ev) => {
+  const bt = ev.target.closest('.ficha[data-modo]');
+  if (!bt) return;
+  estado.prefs.modoAviso = bt.dataset.modo;
   salvaEstado();
   cancelaAlarmeAgendado();
-  agendaAlarmeDoTimer();      // refaz a trilha do bloco em andamento, se houver
+  agendaAlarmeDoTimer();               // vale já pro bloco em andamento
   desenhaFoco();
+  if (estado.prefs.modoAviso !== 'nada') {
+    await pedePermissaoNotificacao();  // o pedido precisa sair de um toque
+    desenhaFoco();
+  }
 });
 
 $('#btTestarAlarme').addEventListener('click', () => { testaAlarmeEmSegundoPlano(); });
