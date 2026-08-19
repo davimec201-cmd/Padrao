@@ -363,6 +363,35 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 .barras-dia .haste i{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--azul2),var(--azul));min-height:3px;display:block}
 .barras-dia small{font-size:.68rem;color:var(--fraco)}
 
+/* ---------- Tabela do campeonato ---------- */
+.tabela{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tabela th{
+  text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--fraco);padding:8px 6px;border-bottom:2px solid var(--linha);font-weight:800;
+}
+.tabela td{padding:12px 6px;border-bottom:1px solid var(--linha);font-weight:600}
+.tabela tr:last-child td{border-bottom:0}
+.tabela .pos{width:38px;color:var(--fraco);font-weight:800}
+.tabela .nome{font-weight:700}
+.tabela .nome small{display:block;font-weight:500;font-size:.74rem;color:var(--fraco)}
+.tabela .pts{font-weight:800;color:var(--azul);text-align:right}
+.tabela .num{text-align:right;color:var(--fraco);font-size:.9rem}
+.tabela tr.eu td{background:#F2F9FE}
+.tabela tr.lider td{background:linear-gradient(90deg,#FFF9E8,transparent)}
+.tabela tr.lider .pos{color:#B98900}
+.titulo-linha{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--linha)}
+.titulo-linha:last-child{border-bottom:0}
+.titulo-linha b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.titulo-linha small{color:var(--fraco);font-size:.8rem;display:block;font-weight:500}
+.taca{font-size:1.3rem;flex:0 0 auto}
+.trofeu.campeao{border-color:#E8C766;box-shadow:0 0 0 3px rgba(232,199,102,.3),var(--sombra)}
+.trofeu.campeao::before{background:linear-gradient(180deg,#F2D98B,#B98900)}
+.trofeu .coroa{position:absolute;top:14px;right:16px;font-size:1.35rem}
+.selo-liga{
+  display:inline-block;padding:4px 12px;border-radius:999px;background:var(--fundo);
+  border:1px solid var(--linha);font-size:.78rem;color:var(--fraco);font-weight:700;
+}
+
 /* ---------- Aviso de armazenamento ---------- */
 .aviso-armazem{
   background:#FFF4E5;border-bottom:1px solid #F3D9B0;color:#7A4E00;
@@ -431,6 +460,7 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
   <button data-tela="historico">Histórico</button>
   <button data-tela="progresso">Progresso</button>
   <button data-tela="cartas">Cartas</button>
+  <button data-tela="tabela">Tabela</button>
   <button data-tela="estante">Estante</button>
 </nav>
 
@@ -738,6 +768,91 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 
   </section>
 
+  <!-- ================= TELA: TABELA ================= -->
+  <section class="tela oculto" id="tela-tabela">
+
+    <!-- Entrada no campeonato: só aparece enquanto não está configurado -->
+    <div class="cartao oculto" id="painelEntrarLiga">
+      <div class="faixas faixas-fina" style="margin:-18px -18px 14px"></div>
+      <h2>Entrar no campeonato</h2>
+      <p class="sub">Cola o convite que teu grupo mandou, ou preenche na mão se tu for o dono da liga.</p>
+      <div class="campos">
+        <div>
+          <label class="rot" for="campoConvite">Convite</label>
+          <input type="text" id="campoConvite" placeholder="Cola aqui o link do convite">
+        </div>
+      </div>
+      <div class="linha-bts" style="margin-top:12px">
+        <button class="bt bt-azul" id="btUsarConvite">Entrar com o convite</button>
+        <button class="bt bt-fantasma" id="btAbrirManual">Preencher na mão</button>
+      </div>
+      <div class="oculto" id="camposManuais" style="margin-top:16px">
+        <div class="campos">
+          <div>
+            <label class="rot" for="campoBanco">Endereço do banco (Firebase)</label>
+            <input type="text" id="campoBanco" placeholder="https://seu-projeto-default-rtdb.firebaseio.com">
+          </div>
+          <div>
+            <label class="rot" for="campoLiga">Código da liga</label>
+            <input type="text" id="campoLiga" maxlength="40" placeholder="copa-medicina-2026">
+          </div>
+          <div>
+            <label class="rot" for="campoNomeLiga">Nome do campeonato</label>
+            <input type="text" id="campoNomeLiga" maxlength="40" placeholder="Brasileirão da Medicina">
+          </div>
+        </div>
+        <div class="linha-bts" style="margin-top:12px">
+          <button class="bt bt-azul" id="btCriarLiga">Criar a liga</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="cartao oculto" id="painelTabela">
+      <div class="faixas faixas-fina" style="margin:-18px -18px 14px"></div>
+      <h2 id="tituloCampeonato">Tabela</h2>
+      <p class="sub" id="resumoTabela"></p>
+      <div style="overflow-x:auto">
+        <table class="tabela" id="tabelaClassificacao"></table>
+      </div>
+      <div class="linha-bts" style="margin-top:16px">
+        <button class="bt bt-azul" id="btAtualizarTabela">Atualizar</button>
+        <button class="bt" id="btConvidar">Convidar o grupo</button>
+        <button class="bt bt-fantasma" id="btFecharRodada">Fechar o ciclo</button>
+      </div>
+    </div>
+
+    <!-- Ajustes do jogador -->
+    <div class="cartao oculto" id="painelJogador">
+      <h2>Meu nome na tabela</h2>
+      <p class="sub">É assim que o pessoal te vê. O app manda teu nome, as horas do ciclo, os dias ativos e os blocos — nada mais.</p>
+      <div class="campos campos-3">
+        <div>
+          <label class="rot" for="campoMeuNome">Teu nome</label>
+          <input type="text" id="campoMeuNome" maxlength="24" placeholder="Davi">
+        </div>
+        <div>
+          <label class="rot" for="campoLigaAtual">Liga</label>
+          <input type="text" id="campoLigaAtual" disabled>
+        </div>
+        <div>
+          <button class="bt bt-azul" id="btSalvarJogador">Salvar</button>
+        </div>
+      </div>
+      <div class="linha-bts" style="margin-top:14px">
+        <button class="bt bt-perigo" id="btSairDaLiga">Sair do campeonato</button>
+      </div>
+    </div>
+
+    <!-- Troféus -->
+    <div class="cartao oculto" id="painelTitulos">
+      <h2>Sala de troféus</h2>
+      <p class="sub" id="resumoTitulos"></p>
+      <div id="listaTitulos"></div>
+    </div>
+
+  </section>
+
   <!-- ================= TELA: ESTANTE ================= -->
   <section class="tela oculto" id="tela-estante">
 
@@ -963,6 +1078,16 @@ function estadoNovo() {
                        //  proximaEm, criadaEm, ultimaEm, vezes, travei, quase,
                        //  mandeiBem, guardada}
     revisoesPorDia: {}, // {'AAAA-MM-DD': quantas revisões}
+    campeonato: {       // liga com os amigos, via Realtime Database pela API REST
+      banco: '',        // endereço do banco, sem barra no fim
+      liga: '',         // código da liga — funciona também como senha do grupo
+      nome: '',         // nome do campeonato
+      meuId: null,      // identidade deste aparelho na tabela
+      meuNome: '',
+      tabela: [],       // última tabela baixada, pro app funcionar sem rede
+      titulos: [],      // campeões de cada ciclo já fechado
+      em: null          // quando foi a última sincronização
+    },
     timer: null        // bloco em andamento (sobrevive a fechar o app)
   };
 }
@@ -984,6 +1109,10 @@ function carregaEstado() {
   estado.cartas = Array.isArray(salvo.cartas) ? salvo.cartas : [];
   estado.revisoesPorDia = (salvo.revisoesPorDia && typeof salvo.revisoesPorDia === 'object')
     ? salvo.revisoesPorDia : {};
+  estado.campeonato = Object.assign(base.campeonato, salvo.campeonato || {});
+  if (!Array.isArray(estado.campeonato.tabela)) estado.campeonato.tabela = [];
+  if (!Array.isArray(estado.campeonato.titulos)) estado.campeonato.titulos = [];
+  if (!estado.campeonato.meuId) estado.campeonato.meuId = idNovo();
   if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
   Object.keys(LIMITES).forEach((chave) => { estado.prefs[chave] = limita(chave, estado.prefs[chave]); });
   // Vinha dos ajustes antigos, que eram dois liga-desliga
@@ -1931,6 +2060,7 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
 
   const quebrados = atualizaRecordes(antes.recordes);
   const marcosNovos = verificaMarcos();
+  if (temLiga() && estado.campeonato.meuNome) sincronizaCampeonato(true);
 
   desenhaTimer();
   atualizaTudo();
@@ -2722,7 +2852,10 @@ function desenhaEstante() {
 
   $('#estante').innerHTML = encerrados.map((c) => {
     const e = estatCiclo(c);
-    return '<article class="trofeu">' +
+    const camp = e.campeonato || (c.congelado && c.congelado.campeonato) || null;
+    const campeao = !!(camp && camp.posicao === 1);
+    return '<article class="trofeu' + (campeao ? ' campeao' : '') + '">' +
+      (campeao ? '<span class="coroa" title="Campeão do ciclo">👑</span>' : '') +
       '<h3>' + escapaHTML(c.nome) + '</h3>' +
       '<p class="periodo">' + dataCurta(c.inicio) + ' → ' + dataCurta(c.fimReal) +
       ' · ' + (diasEntre(c.inicio, c.fimReal) + 1) + ' dias</p>' +
@@ -2734,6 +2867,9 @@ function desenhaEstante() {
         (e.cartas ? '<div><b>' + e.cartas + '</b><span>cartas</span></div>' +
                     '<div><b>' + (e.revisoes || 0) + '</b><span>revisões</span></div>' : '') +
       '</div>' +
+      (camp ? '<p class="sub" style="margin-top:12px">' +
+        (campeao ? 'Campeão do ' : camp.posicao + 'º de ' + camp.de + ' no ') +
+        escapaHTML(camp.nome) + (campeao ? ' 🏆' : '') + '</p>' : '') +
       '<div class="prateleira"></div>' +
       '</article>';
   }).join('');
@@ -2743,6 +2879,7 @@ function desenhaEstante() {
 
 function atualizaTudo() {
   desenhaCabecalho();
+  desenhaTabela();
   desenhaFoco();
   desenhaCartas();
   desenhaHistorico();
@@ -2754,6 +2891,10 @@ function vaiPara(nome) {
   $$('#abas button').forEach((b) => b.classList.toggle('ativa', b.dataset.tela === nome));
   $$('.tela').forEach((t) => t.classList.toggle('oculto', t.id !== 'tela-' + nome));
   if (nome === 'progresso') desenhaComparacao();   // canvas precisa estar visível
+  if (nome === 'tabela' && temLiga() && estado.campeonato.meuNome) {
+    const velha = !estado.campeonato.em || (Date.now() - estado.campeonato.em) > 300000;
+    if (velha) sincronizaCampeonato(true);
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2908,6 +3049,16 @@ function encerraCiclo(ciclo) {
     cartas: cartasDoCiclo.length,
     revisoes: cartasDoCiclo.reduce((soma, c) => soma + (c.vezes || 0), 0)
   };
+
+  // Como o Davi terminou no campeonato, congelado junto com o resto
+  const posicao = temLiga() ? minhaPosicao() : null;
+  if (posicao) {
+    ciclo.congelado.campeonato = {
+      nome: estado.campeonato.nome || 'Campeonato',
+      posicao: posicao.posicao,
+      de: posicao.de
+    };
+  }
   // As cartas da campanha saem da fila, mas continuam inteiras: dá pra rever
   // quando quiser pelo modo livre, e pra trazer de volta editando a carta.
   cartasDoCiclo.forEach((c) => { c.guardada = true; });
@@ -3539,6 +3690,394 @@ $('#listaBaralho').addEventListener('click', (ev) => {
   if (carta) abreEditor(carta);
 });
 
+/* ======================= 12. CAMPEONATO =======================
+   Liga com os amigos usando o Realtime Database do Firebase pela API REST.
+
+   Sem SDK de propósito: a biblioteca do Firebase vem de CDN, e baixar
+   biblioteca quebraria o "funciona offline" do app. Com fetch puro, a
+   tabela é a única parte que precisa de rede — se ela falhar, o resto do
+   app segue igual e a última tabela baixada continua na tela.
+
+   O endereço do banco e o código da liga não ficam no código: cada um cola
+   o convite uma vez. O código da liga também é a senha do grupo — quem não
+   tem o convite não acha a tabela.
+   ============================================================= */
+
+let sincronizando = false;
+
+const temLiga = () => !!(estado.campeonato.banco && estado.campeonato.liga);
+
+/**
+ * Identidade deste aparelho na tabela, criada na primeira vez que precisa.
+ * Não dá pra criar só ao carregar o estado salvo: em instalação nova não há
+ * nada salvo, e o boletim acabava indo parar num jogador "null".
+ */
+function meuIdDoCampeonato() {
+  if (!estado.campeonato.meuId) {
+    estado.campeonato.meuId = idNovo();
+    salvaEstado();
+  }
+  return estado.campeonato.meuId;
+}
+
+/** Endereço de um caminho dentro da liga, no formato que o Firebase espera. */
+function urlDaLiga(caminho) {
+  const base = String(estado.campeonato.banco).replace(/\/+$/, '');
+  const liga = encodeURIComponent(estado.campeonato.liga);
+  return base + '/ligas/' + liga + (caminho ? '/' + caminho : '') + '.json';
+}
+
+/** O que este aparelho publica: só o resumo do ciclo, nada de assunto. */
+function meuBoletim() {
+  const ciclo = cicloAtivo();
+  if (!ciclo) return null;
+  const est = estatCiclo(ciclo);
+  return {
+    nome: estado.campeonato.meuNome || 'Sem nome',
+    min: est.minutos,
+    dias: est.diasAtivos,
+    blocos: est.blocos,
+    ciclo: ciclo.nome,
+    em: Date.now()
+  };
+}
+
+/**
+ * Manda o meu boletim e baixa a liga inteira.
+ * Tudo em try/catch: sem rede, o app cai de volta na tabela guardada.
+ */
+async function sincronizaCampeonato(silencioso) {
+  if (!temLiga() || sincronizando) return false;
+  sincronizando = true;
+  desenhaTabela();
+  try {
+    const meu = meuBoletim();
+    if (meu) {
+      await fetch(urlDaLiga('jogadores/' + meuIdDoCampeonato()), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(meu)
+      });
+    }
+
+    const resposta = await fetch(urlDaLiga(''), { cache: 'no-store' });
+    if (!resposta.ok) throw new Error('resposta ' + resposta.status);
+    const dados = (await resposta.json()) || {};
+
+    const jogadores = dados.jogadores || {};
+    estado.campeonato.tabela = Object.keys(jogadores).map((id) => (
+      Object.assign({ id: id }, jogadores[id])
+    ));
+    estado.campeonato.titulos = Array.isArray(dados.titulos)
+      ? dados.titulos.filter(Boolean)
+      : Object.keys(dados.titulos || {}).map((k) => dados.titulos[k]);
+    if (dados.nome) estado.campeonato.nome = dados.nome;
+    estado.campeonato.em = Date.now();
+    salvaEstado();
+    desenhaTabela();
+    if (!silencioso) avisa('Tabela', 'Tabela atualizada.');
+    return true;
+  } catch (erro) {
+    if (!silencioso) {
+      avisa('Tabela', 'Não consegui falar com o servidor agora. A tabela na tela é a última que baixou.');
+    }
+    return false;
+  } finally {
+    sincronizando = false;
+    desenhaTabela();
+  }
+}
+
+/** Ordena por horas; empate vai pro que teve mais dias ativos, depois blocos. */
+function classificacao() {
+  return estado.campeonato.tabela.slice().sort((a, b) => (
+    (b.min || 0) - (a.min || 0) ||
+    (b.dias || 0) - (a.dias || 0) ||
+    (b.blocos || 0) - (a.blocos || 0) ||
+    String(a.nome || '').localeCompare(String(b.nome || ''))
+  ));
+}
+
+/** Minha posição na tabela agora, ou null se eu não estiver nela. */
+function minhaPosicao() {
+  const lista = classificacao();
+  const meu = meuIdDoCampeonato();
+  const i = lista.findIndex((j) => j.id === meu);
+  return i === -1 ? null : { posicao: i + 1, de: lista.length, linha: lista[i] };
+}
+
+/** Convite: o link que configura o app de quem receber. */
+function linkDeConvite() {
+  const carga = {
+    b: estado.campeonato.banco,
+    l: estado.campeonato.liga,
+    n: estado.campeonato.nome
+  };
+  const codigo = btoa(unescape(encodeURIComponent(JSON.stringify(carga))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return location.origin + location.pathname + '#liga=' + codigo;
+}
+
+function leConvite(texto) {
+  try {
+    const bruto = String(texto).trim();
+    const marca = bruto.indexOf('#liga=');
+    let codigo = marca === -1 ? bruto : bruto.slice(marca + 6);
+    codigo = codigo.replace(/-/g, '+').replace(/_/g, '/');
+    const carga = JSON.parse(decodeURIComponent(escape(atob(codigo))));
+    if (!carga.b || !carga.l) return null;
+    return carga;
+  } catch (erro) {
+    return null;
+  }
+}
+
+function entraNaLiga(carga) {
+  estado.campeonato.banco = String(carga.b).replace(/\/+$/, '');
+  estado.campeonato.liga = carga.l;
+  estado.campeonato.nome = carga.n || 'Campeonato';
+  salvaEstado();
+  atualizaTudo();
+  vaiPara('tabela');
+  if (!estado.campeonato.meuNome) {
+    avisa('Campeonato', 'Entrou na liga. Bota teu nome aí embaixo pra aparecer na tabela.');
+    setTimeout(() => $('#campoMeuNome').focus(), 300);
+  } else {
+    sincronizaCampeonato(false);
+  }
+}
+
+/**
+ * Fecha o ciclo do campeonato: congela a tabela como título e limpa os
+ * boletins pro próximo ciclo começar do zero. Qualquer um do grupo pode
+ * fechar, e o resultado vale pra todo mundo porque fica gravado na liga.
+ */
+async function fechaRodada() {
+  const lista = classificacao();
+  if (!lista.length) { avisa('Tabela', 'Não tem ninguém na tabela pra coroar.'); return; }
+  const campeao = lista[0];
+
+  abreModal({
+    titulo: 'Fechar o ciclo do campeonato?',
+    frase: campeao.nome + ' leva a taça com ' + fmtHoras(campeao.min || 0) + '.',
+    detalhe: 'A tabela vira título pra todo mundo do grupo e os boletins zeram pro próximo ciclo. ' +
+             'Só faz isso quando o ciclo tiver acabado de verdade.',
+    botoes: [
+      { texto: 'Fechar e coroar', tipo: 'bt-azul', acao: async () => {
+          fechaModal();
+          const titulo = {
+            ciclo: campeao.ciclo || 'Ciclo',
+            fim: chaveHoje(),
+            campeaoId: campeao.id,
+            campeaoNome: campeao.nome,
+            tabela: lista.map((j) => ({ id: j.id, nome: j.nome, min: j.min, dias: j.dias, blocos: j.blocos }))
+          };
+          try {
+            const novos = estado.campeonato.titulos.concat([titulo]);
+            await fetch(urlDaLiga('titulos'), {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(novos)
+            });
+            await fetch(urlDaLiga('jogadores'), { method: 'DELETE' });
+            estado.campeonato.titulos = novos;
+            estado.campeonato.tabela = [];
+            salvaEstado();
+            atualizaTudo();
+            avisa('Campeonato', campeao.nome + ' é campeão do ciclo!', true);
+          } catch (erro) {
+            avisa('Tabela', 'Não consegui gravar o título agora. Tenta de novo com internet.');
+          }
+        } },
+      { texto: 'Ainda não', tipo: '', acao: fechaModal }
+    ]
+  });
+}
+
+/** Campeão geral: mais títulos; empate vai pra quem somou mais horas. */
+function quadroDeTitulos() {
+  const por = {};
+  estado.campeonato.titulos.forEach((t) => {
+    if (!t || !t.campeaoId) return;
+    if (!por[t.campeaoId]) por[t.campeaoId] = { nome: t.campeaoNome, titulos: 0, min: 0 };
+    por[t.campeaoId].titulos++;
+    por[t.campeaoId].nome = t.campeaoNome;
+  });
+  estado.campeonato.titulos.forEach((t) => {
+    (t && t.tabela ? t.tabela : []).forEach((linha) => {
+      if (!por[linha.id]) por[linha.id] = { nome: linha.nome, titulos: 0, min: 0 };
+      por[linha.id].min += linha.min || 0;
+      if (!por[linha.id].nome) por[linha.id].nome = linha.nome;
+    });
+  });
+  return Object.keys(por).map((id) => Object.assign({ id: id }, por[id]))
+    .sort((a, b) => b.titulos - a.titulos || b.min - a.min);
+}
+
+/* ---------- Desenho ---------- */
+
+function desenhaTabela() {
+  const c = estado.campeonato;
+  const dentro = temLiga();
+  $('#painelEntrarLiga').classList.toggle('oculto', dentro);
+  $('#painelTabela').classList.toggle('oculto', !dentro);
+  $('#painelJogador').classList.toggle('oculto', !dentro);
+  $('#painelTitulos').classList.toggle('oculto', !dentro);
+  if (!dentro) return;
+
+  $('#tituloCampeonato').textContent = c.nome || 'Campeonato';
+  if (document.activeElement !== $('#campoMeuNome')) $('#campoMeuNome').value = c.meuNome || '';
+  $('#campoLigaAtual').value = c.liga;
+  $('#btAtualizarTabela').textContent = sincronizando ? 'Atualizando…' : 'Atualizar';
+  $('#btAtualizarTabela').disabled = sincronizando;
+
+  const lista = classificacao();
+  const eu = minhaPosicao();
+
+  const partes = [];
+  if (!c.meuNome) partes.push('Bota teu nome aqui embaixo pra entrar na tabela.');
+  else if (!cicloAtivo()) partes.push('Sem campanha aberta: cadastra o ciclo na Estante pra pontuar.');
+  else if (eu) partes.push('Tu está em ' + eu.posicao + 'º de ' + eu.de + '.');
+  if (c.em) partes.push('Atualizada ' + hojeOuData(c.em) + '.');
+  else partes.push('Toca em Atualizar pra buscar a tabela.');
+  $('#resumoTabela').textContent = partes.join(' ');
+
+  if (!lista.length) {
+    $('#tabelaClassificacao').innerHTML =
+      '<tr><td class="vazio">Ninguém publicou boletim ainda. Toca em Atualizar pra mandar o teu.</td></tr>';
+  } else {
+    $('#tabelaClassificacao').innerHTML =
+      '<thead><tr><th class="pos">#</th><th>Jogador</th><th class="num">Dias</th>' +
+      '<th class="num">Blocos</th><th class="pts">Pontos</th></tr></thead><tbody>' +
+      lista.map((j, i) => {
+        const classes = [];
+        if (j.id === meuIdDoCampeonato()) classes.push('eu');
+        if (i === 0) classes.push('lider');
+        return '<tr class="' + classes.join(' ') + '">' +
+          '<td class="pos">' + (i + 1) + 'º</td>' +
+          '<td class="nome">' + escapaHTML(j.nome || 'Sem nome') +
+            '<small>' + fmtHoras(j.min || 0) + (j.ciclo ? ' · ' + escapaHTML(j.ciclo) : '') + '</small></td>' +
+          '<td class="num">' + (j.dias || 0) + '</td>' +
+          '<td class="num">' + (j.blocos || 0) + '</td>' +
+          '<td class="pts">' + Math.floor((j.min || 0) / 60) + '</td>' +
+          '</tr>';
+      }).join('') + '</tbody>';
+  }
+
+  // Sala de troféus
+  const quadro = quadroDeTitulos();
+  const campeaoGeral = quadro.filter((q) => q.titulos > 0)[0] || null;
+  $('#resumoTitulos').textContent = c.titulos.length
+    ? c.titulos.length + (c.titulos.length === 1 ? ' ciclo fechado. ' : ' ciclos fechados. ') +
+      (campeaoGeral ? campeaoGeral.nome + ' lidera com ' + campeaoGeral.titulos +
+        (campeaoGeral.titulos === 1 ? ' título.' : ' títulos.') : '')
+    : 'Nenhum ciclo fechado ainda. O primeiro campeão sai quando alguém fechar o ciclo.';
+
+  $('#listaTitulos').innerHTML = c.titulos.length
+    ? c.titulos.slice().reverse().map((t) => (
+        '<div class="titulo-linha"><span class="taca">🏆</span>' +
+        '<b>' + escapaHTML(t.campeaoNome || 'Alguém') +
+        '<small>' + escapaHTML(t.ciclo || 'Ciclo') + ' · fechado em ' + dataCurta(t.fim) + '</small></b>' +
+        '</div>'
+      )).join('') +
+      (quadro.length ? '<p class="sub" style="margin-top:14px">' +
+        quadro.map((q) => escapaHTML(q.nome) + ': ' + q.titulos + (q.titulos === 1 ? ' título' : ' títulos')).join(' · ') +
+        '</p>' : '')
+    : '';
+}
+
+/** "hoje às 14:03" ou "em 12 de mar" — pra mostrar quando a tabela veio. */
+function hojeOuData(ts) {
+  const chave = chaveDia(ts);
+  if (chave === chaveHoje()) return 'hoje às ' + horaDoDia(ts);
+  if (chave === chaveMais(chaveHoje(), -1)) return 'ontem às ' + horaDoDia(ts);
+  return 'em ' + dataCurta(chave);
+}
+
+/* ---------- Eventos ---------- */
+
+$('#btUsarConvite').addEventListener('click', () => {
+  const carga = leConvite($('#campoConvite').value);
+  if (!carga) { avisa('Convite', 'Esse convite não parece válido. Copia o link inteiro.'); return; }
+  entraNaLiga(carga);
+});
+
+$('#btAbrirManual').addEventListener('click', () => {
+  $('#camposManuais').classList.toggle('oculto');
+});
+
+$('#btCriarLiga').addEventListener('click', () => {
+  const banco = $('#campoBanco').value.trim();
+  const liga = $('#campoLiga').value.trim();
+  if (!/^https?:\/\//.test(banco)) { avisa('Liga', 'O endereço do banco começa com https://'); return; }
+  if (!liga) { avisa('Liga', 'Escolhe um código pra liga. Ele também é a senha do grupo.'); return; }
+  entraNaLiga({ b: banco, l: liga, n: $('#campoNomeLiga').value.trim() || 'Campeonato' });
+});
+
+$('#btSalvarJogador').addEventListener('click', () => {
+  estado.campeonato.meuNome = $('#campoMeuNome').value.trim().slice(0, 24);
+  salvaEstado();
+  desenhaTabela();
+  if (estado.campeonato.meuNome) sincronizaCampeonato(false);
+  else avisa('Tabela', 'Sem nome tu não aparece na tabela.');
+});
+
+$('#btAtualizarTabela').addEventListener('click', () => sincronizaCampeonato(false));
+
+$('#btConvidar').addEventListener('click', async () => {
+  const link = linkDeConvite();
+  const texto = 'Bora pro ' + (estado.campeonato.nome || 'campeonato') + ' no Copeiro: ' + link;
+  try {
+    if (navigator.share) { await navigator.share({ text: texto }); return; }
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(link);
+      avisa('Convite', 'Link copiado. Cola no grupo.');
+      return;
+    }
+    throw new Error('sem clipboard');
+  } catch (erro) {
+    abreModal({
+      titulo: 'Convite do campeonato',
+      frase: 'Manda esse link pro grupo.',
+      detalhe: '<input type="text" id="modalEntrada" value="' + escapaHTML(link) + '">',
+      botoes: [{ texto: 'Fechar', tipo: 'bt-azul', acao: fechaModal }]
+    });
+  }
+});
+
+$('#btFecharRodada').addEventListener('click', fechaRodada);
+
+$('#btSairDaLiga').addEventListener('click', () => {
+  abreModal({
+    titulo: 'Sair do campeonato?',
+    frase: 'Este aparelho para de publicar e de ver a tabela.',
+    detalhe: 'Teu histórico de estudo não é tocado. Dá pra voltar depois com o mesmo convite.',
+    botoes: [
+      { texto: 'Sair', tipo: 'bt-perigo', acao: () => {
+          estado.campeonato.banco = '';
+          estado.campeonato.liga = '';
+          estado.campeonato.tabela = [];
+          estado.campeonato.titulos = [];
+          estado.campeonato.em = null;
+          salvaEstado();
+          fechaModal();
+          atualizaTudo();
+        } },
+      { texto: 'Cancelar', tipo: '', acao: fechaModal }
+    ]
+  });
+});
+
+/** Convite que chega pelo link: entra na liga e limpa o endereço. */
+function leConviteDaURL() {
+  const marca = location.hash.indexOf('#liga=');
+  if (marca === -1) return;
+  const carga = leConvite(location.hash);
+  history.replaceState(null, '', location.pathname + location.search);
+  if (!carga) { avisa('Convite', 'Esse convite não parece válido.'); return; }
+  entraNaLiga(carga);
+}
+
 /* ---- Início ---- */
 function inicia() {
   carregaEstado();
@@ -3548,6 +4087,8 @@ function inicia() {
   atualizaTudo();
   desenhaTimer();
   retomaTimerSalvo();
+  leConviteDaURL();               // convite chegando por link
+  if (temLiga() && estado.campeonato.meuNome) sincronizaCampeonato(true);
 
   // Primeiro toque em qualquer lugar destrava o áudio no Android
   document.addEventListener('pointerdown', garanteAudioUmaVez, { once: true });
