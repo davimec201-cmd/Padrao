@@ -1,26 +1,132 @@
 ---
 name: ebook-teaformation
-description: Design system e regras de marca da TEA Formation (Universo TEAnimal, Vale da Harmonia) para produzir e-books, cartilhas, materiais de apoio e qualquer peça da marca. Use sempre que aparecer TEA Formation, TEAnimal, Vale da Harmonia, Mamãe Urso, Porto Seguro, diagramador, ficha de atividade, e-book terapêutico, material para crianças autistas, ou quando pedirem cor, fonte, capa, layout, markdown de e-book, supervisão técnica ou CRP de material da marca — mesmo que não citem "TEA Formation" pelo nome, se o contexto for material para criança autista dessa marca. Traz a paleta medida, a tipografia, o catálogo de blocos, o formato do markdown e as regras que não podem ser quebradas.
+description: Diagrama e-books, cartilhas e materiais da TEA Formation (Universo TEAnimal, Vale da Harmonia) — recebe um markdown e devolve o PDF pronto para vender, com relatório de QA. Traz também o design system medido, o formato de escrita e as regras de marca. Use sempre que aparecer TEA Formation, TEAnimal, Vale da Harmonia, Mamãe Urso, Porto Seguro, diagramador, ficha de atividade, e-book terapêutico ou material para criança autista — e principalmente quando pedirem para diagramar, gerar o PDF, montar o e-book, rodar o diagramador, ou quando colarem/anexarem um markdown de material da marca. Vale também para escrever o conteúdo, escolher cor, fonte, capa, layout, ou conferir supervisão técnica e CRP.
 ---
 
-# Materiais da TEA Formation
+# E-books da TEA Formation
 
-Este é o design system da TEA Formation / Universo TEAnimal, descoberto medindo em
-pixel as cartilhas aprovadas e congelado em tokens. Ele existe para que material
-novo saia igual ao que já foi aprovado — sem reinventar cor, medida ou hierarquia
-a cada peça.
+Esta skill faz duas coisas, e a primeira é a que costuma ser pedida:
+
+1. **Diagrama** — recebe um markdown e roda o diagramador, que devolve o PDF no
+   padrão visual da marca, um relatório de QA e a imagem de cada página.
+2. **Ensina o padrão** — o design system medido, o formato de escrita e as
+   regras de marca, para escrever material novo ou revisar o que já existe.
 
 **A ideia central: isto é um renderizador determinístico, não um gerador de
-design.** O design foi decidido uma vez. Em produção o modelo só classifica um
-trecho em um tipo de bloco do catálogo; ele não escolhe cor, fonte, espaçamento,
-margem nem hierarquia. Material com cara de IA acontece quando o modelo decide
-layout na hora — aqui ele nunca decide. Trecho que não encaixa em nenhum bloco
-vira o bloco genérico e **entra no relatório**, em vez de virar layout inventado.
+design.** O design foi decidido uma vez, medido nas cartilhas aprovadas e
+congelado em tokens. Cor, fonte, espaçamento, margem e hierarquia já estão
+resolvidos no CSS — você não escolhe nenhum deles. Material com cara de IA
+acontece quando o modelo decide layout na hora; aqui ele nunca decide.
+
+Sua única decisão é **classificar cada trecho em um tipo de bloco do catálogo**.
+Trecho que não encaixa vira o bloco genérico e entra no relatório, em vez de
+virar layout inventado.
+
+## Diagramar um material
+
+O script vive em `scripts/diagramar.py` e roda com Python 3.11+. Ele não usa
+rede nem chave de API: quem classifica é você, aqui na sessão.
+
+### 1. Salve o markdown em um arquivo
+
+Se o material veio colado na conversa, grave como `.md` antes de rodar. Se veio
+como arquivo, use o caminho dele.
+
+### 2. Veja o que precisa de rótulo
+
+```bash
+python3 scripts/diagramar.py material.md --trechos
+```
+
+Sai um JSON com os trechos que o markdown não tipou sozinho — os que não têm
+diretiva `:::`. Lista vazia significa que não há nada a decidir; pule para o
+passo 4.
+
+### 3. Decida um rótulo para cada trecho
+
+Leia cada `resumo` e escolha **um** tipo, usando as regras da próxima seção.
+Grave assim, um objeto por trecho:
+
+```json
+{"classificacoes": [
+  {"indice": 1, "tipo": "secao_conceitual", "confianca": "alta",
+   "motivo": "explica o que é uma crise: conceito e mecanismo"},
+  {"indice": 4, "tipo": "dicas_praticas", "confianca": "alta",
+   "motivo": "cinco títulos imperativos, um parágrafo cada"}
+]}
+```
+
+`confianca: "alta"` aplica o rótulo. `"baixa"` mantém o trecho genérico e
+registra o caso no relatório — e é a resposta certa quando você hesita.
+Responda para **todos** os trechos, inclusive os que continuam
+`secao_conceitual`: confirmar também é decidir, e o que ficar sem resposta
+aparece no relatório como pendência.
+
+### 4. Gere
+
+```bash
+python3 scripts/diagramar.py material.md --classificacao classificacao.json
+```
+
+Um material de 20 páginas leva cerca de 4 segundos. Saem, ao lado do markdown:
+
+- `material.pdf` — o material diagramado;
+- `material-qa.md` — o relatório completo;
+- `material-paginas/p01.png…` — cada página como imagem.
+
+Código de saída 0 quer dizer que passou; **2 quer dizer que o PDF saiu mas o QA
+achou falha crítica** — nesse caso resolva antes de entregar.
+
+### 5. Confira e entregue
+
+Leia o resumo do QA. Se houver falha ou aviso, olhe a imagem da página citada
+antes de decidir — o relatório diz *o quê* e *onde*, a imagem diz se incomoda.
+Entregue o PDF e diga em uma linha o que o QA achou.
+
+O material não está pronto para publicar só porque o QA ficou verde: o
+diagramador cuida da forma, a revisão clínica é da equipe técnica. Diga isso ao
+entregar.
+
+### Trocar o tipo de um bloco depois
+
+Quando o fundador olhar o PDF e disser "essa página devia ser uma caixa de
+atenção", não edite o markdown nem o CSS — troque o tipo do bloco pelo número
+que o relatório mostra:
+
+```bash
+echo '{"7": "caixa_atencao"}' > correcoes.json
+python3 scripts/diagramar.py material.md --classificacao classificacao.json --correcoes correcoes.json
+```
+
+Outras opções: `--saida` (caminho do PDF), `--sem-miniaturas`, `--json`
+(relatório em JSON), `--blocos` (lista dos blocos com a página de cada um).
+
+## Como escolher o rótulo
+
+Sete tipos entram nessa decisão. Todos os outros vêm de diretiva `:::` explícita
+no markdown ou são automáticos, e não se toca neles.
+
+| Tipo | A forma característica |
+|---|---|
+| `secao_conceitual` | explicação, conceito, mecanismo — **é o padrão** |
+| `carta_abertura` | texto em segunda pessoa dirigido a quem lê, com despedida ou assinatura; costuma abrir o material |
+| `caixa_atencao` | aviso curto, ressalva clínica, ponto crítico; poucas linhas |
+| `dicas_praticas` | vários títulos curtos imperativos, cada um com um parágrafo |
+| `roda_conversa` | lista de perguntas para fazer à criança |
+| `voz_personagem` | fala de um personagem do Vale da Harmonia, em tom afetivo |
+| `secao_encerramento` | fecho do material: o que observar daqui para frente, quando buscar ajuda |
+
+Na dúvida responda `secao_conceitual` com confiança baixa. Não é desistir: é o
+comportamento correto do sistema, porque um trecho genérico bem diagramado é
+melhor que um bloco errado, e o caso fica registrado para revisão humana.
+
+Você escolhe só o rótulo. Não reescreva o texto, não reordene os trechos, não
+crie tipo novo, não mexa no CSS.
 
 ## As quatro regras que não se quebram
 
-Estas vêm do fundador e valem para qualquer material. Errar nelas custa mais caro
-que qualquer detalhe visual.
+Vêm do fundador e valem para qualquer material. Errar nelas custa mais caro que
+qualquer detalhe visual — e o QA confere todas.
 
 ### 1. Supervisão técnica é dado fixo
 
@@ -30,8 +136,9 @@ que qualquer detalhe visual.
 | CRP | **12/15726** |
 | Especialidade | **Especialista em autismo (TEA) e em Terapia ABA** |
 
-Nunca invente outro nome, outro CRP ou outra especialidade — nem em exemplo, nem
-em rascunho, nem em teste. Se o material for de outra profissional, o usuário diz
+Está em `scripts/design/tokens.json` e o script preenche sozinho. Nunca invente
+outro nome, outro CRP ou outra especialidade — nem em exemplo, nem em rascunho,
+nem em teste. Se o material for de outra profissional, o usuário diz
 explicitamente; sem isso, é a Ingrid.
 
 ### 2. Personagem só quando pedirem
@@ -46,9 +153,9 @@ Sem pedido, a capa é tipográfica com a peça do quebra-cabeça da marca.
 ### 3. Cor institucional é o padrão
 
 A paleta padrão é a da **TEA Formation**: azul `#0193C8`, branco, bege `#F9F4E5`,
-navy `#1F2D3D` no texto. As cores do **Universo TEAnimal** (coral, verde, amarelo,
-roxo, tons dos habitantes) são do braço infantil e só entram quando o material
-pede `tema: teanimal`.
+navy `#1F2D3D` no texto. As cores do **Universo TEAnimal** (coral, verde,
+amarelo, roxo, tons dos habitantes) são do braço infantil e só entram quando o
+material pede `tema: teanimal`.
 
 A lógica do tema institucional, que ajuda a decidir rápido: **azul é pedagógico,
 bege é apoio, navy é crítico.**
@@ -65,7 +172,7 @@ final — com este texto, sem variação:
 E o disclaimer, na página final:
 
 > Este material educativo não substitui avaliação, diagnóstico ou acompanhamento
-> terapêutico individualizado. Supervisão técnica: [nome], CRP [número].
+> terapêutico individualizado. Supervisão técnica: {nome}, CRP {crp}.
 
 ## Linguagem da marca
 
@@ -74,56 +181,43 @@ Use: **criança autista**, **no espectro**, **crise (meltdown)**.
 Nunca use: *portador*, *sofre de*, *anjo azul*, *superpoderes*, *doente*,
 *criança normal*. Se um desses aparecer no texto que te deram, **sinalize e não
 corrija sozinho** — a palavra é decisão de quem escreveu, e trocar por conta
-própria muda o sentido clínico sem a pessoa saber.
+própria muda o sentido clínico sem a pessoa saber. O QA também pega, e também
+só avisa.
 
 O tom: um especialista em desenvolvimento infantil que também acolhe. Nem
 panfleto clínico, nem fofura genérica. Evite clichê de IA — "descubra o mundo
 de", "jornada mágica", "conexão profunda" são proibidos pelo manual da marca.
 
-## O que fazer, conforme o pedido
+## Quando algo dá errado
 
-**Escrever o conteúdo de um e-book ou material** → leia
-`references/formato-markdown.md`. É a convenção de escrita: cabeçalho, nove
-marcações `:::`, e o que o sistema preenche sozinho. Comece de
-`assets/modelo-ebook.md`, que já tem a estrutura montada.
+**`faltam dependências`** — o script diz o que instalar. Ele precisa de
+`weasyprint`, `pymupdf`, `jinja2`, `fonttools`, `numpy` e das bibliotecas de
+sistema do WeasyPrint (Pango, Cairo, fontconfig). Em ambiente sem Python nem
+terminal, a skill ainda serve para escrever e revisar — só não gera o PDF.
 
-**Diagramar, gerar o PDF, mexer no app** → leia `references/diagramador.md`. Diz
-como rodar, o que o QA verifica e onde fica cada peça do código.
+**Ficha de atividade não cabe em uma página** — o sistema já tentou reduzir a
+escala até 88%. Não quebre a ficha nem invente layout: peça para encurtar o
+texto ou dividir em duas atividades. É o que o relatório manda fazer.
 
-**Escolher cor, tamanho, medida — ou criar uma peça nova fora do e-book** → leia
-`references/design-system.md`. Tem a paleta com procedência, a escala
-tipográfica, o grid e os dois temas. Se você estiver prestes a escolher um valor
-de cor ou de espaçamento "no olho", pare e pegue o token de lá: existe um valor
-medido para quase tudo, e usar outro é o que faz o material parecer de outra
-marca.
+**Cor fora da paleta do tema** — alguma cor entrou que não é token. Não ajuste
+o CSS para acomodar: descubra de onde veio (quase sempre uma imagem nova ou o
+tema errado no cabeçalho).
 
-**Revisar um material pronto** → confira nesta ordem, que é a mesma do QA
-automático: textos obrigatórios literais, supervisão técnica correta, nenhum
-personagem sem pedido, nenhuma cor fora do tema ativo, contraste de corpo
-≥ 4.5:1, e nenhum termo de linguagem proibida.
+**Personagem sem pedido** — falha crítica por definição. Tire o personagem ou
+confirme com o fundador que ele foi pedido.
 
-## Se você tiver o repositório em mãos
+## Para ir mais fundo
 
-Quando o projeto `Padrao` estiver disponível, o sistema completo já existe em
-`diagramador/` e a fonte de verdade dos valores é `design/tokens.json` — leia de
-lá em vez de copiar números desta skill, porque o arquivo pode ter evoluído.
-Rode `python3 diagramador/testes/test_diagramador.py` antes de dar qualquer
-coisa por pronta.
+**Escrever o conteúdo** → `references/formato-markdown.md`: cabeçalho, as nove
+marcações `:::` e o que o sistema preenche sozinho. Comece de
+`assets/modelo-ebook.md`. Um material completo de verdade, com quase todos os
+blocos, está em `assets/exemplo-porto-seguro.md`.
 
-Sem o repositório, esta skill se sustenta sozinha: os valores nas referências
-são os mesmos, congelados.
+**Mexer no sistema** → `references/diagramador.md`: as peças do código, o que o
+QA verifica e as armadilhas que já custaram caro.
 
-## Onde os números foram medidos
-
-Vale saber para não desconfiar deles: as quatro cartilhas aprovadas foram
-rasterizadas a 100 dpi (2428×3445 px, escala 11.562 px/mm sobre A4) e amostradas
-em pixel. Daí saíram a largura do bloco de conteúdo (151.4mm, idêntica nas
-quatro), o raio dos cards (8.2mm), o avanço de linha do corpo (17.2–18.1pt) e até
-os tons de pelo dos personagens. Onde a skill diz "medido", há um número atrás;
-onde diz "derivado", há uma fórmula.
-
-Uma ressalva que evita erro comum: cartilha é narrativa ilustrada de 4 páginas,
-com balão de 30pt. E-book é leitura longa de 30–50 páginas. **Não reproduza
-quadrinho em tipografia de leitura** — o corpo de 11.5pt/17.5pt saiu do card
-informativo da cartilha, que é o único lugar dela com texto de leitura de
-verdade, não dos balões.
+**Escolher cor, medida, tipografia — ou criar peça fora do e-book** →
+`references/design-system.md`: paleta com procedência, escala tipográfica, grid
+e os dois temas. Se você estiver prestes a escolher um valor "no olho", pare e
+pegue o token de lá: existe valor medido para quase tudo, e usar outro é o que
+faz o material parecer de outra marca.

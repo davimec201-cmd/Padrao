@@ -1,12 +1,18 @@
 # Diagramador de e-books — TEA Formation
 
-Web app que recebe um markdown e devolve um PDF diagramado no padrão visual da
-TEA Formation, pronto para vender. Feito para usar do navegador do tablet.
+Recebe um markdown e devolve um PDF diagramado no padrão visual da TEA
+Formation, pronto para vender. Roda por linha de comando, dentro de uma sessão:
 
-**Subir o markdown → esperar → olhar o preview → baixar.** Sem parada no meio.
+```bash
+python3 diagramar.py material.md --trechos                        # o que falta decidir
+python3 diagramar.py material.md --classificacao classificacao.json
+```
+
+Saem o PDF, o relatório de QA em markdown e a imagem de cada página. Um material
+de 20 páginas leva ~4 segundos. Sem servidor, sem senha, sem chave de API.
 
 - Como escrever o markdown: [`../FORMATO.md`](../FORMATO.md)
-- Como colocar no ar: [`../DEPLOY.md`](../DEPLOY.md)
+- Como usar dentro de uma sessão: [`../.claude/skills/ebook-teaformation/SKILL.md`](../.claude/skills/ebook-teaformation/SKILL.md)
 - De onde veio cada decisão visual: [`../design/tokens.md`](../design/tokens.md)
 
 ## Três regras de marca que o sistema garante
@@ -16,7 +22,7 @@ TEA Formation, pronto para vender. Feito para usar do navegador do tablet.
 2. **Paleta institucional por padrão.** Azul, branco e bege. As cores lúdicas
    entram com `tema: teanimal`.
 3. **Supervisão técnica registrada.** Ingrid Ceron, CRP 12/15726 — vem de
-   `design/tokens.json` e já chega preenchida na interface.
+   `design/tokens.json` e o diagramador preenche sozinho.
 
 As três têm verificação no QA. Detalhes em [`../CLAUDE.md`](../CLAUDE.md).
 
@@ -26,9 +32,9 @@ As três têm verificação no QA. Detalhes em [`../CLAUDE.md`](../CLAUDE.md).
 
 - O design system foi descoberto uma vez, medido em pixel nas cartilhas
   aprovadas, e congelado em `../design/tokens.json`.
-- Em produção o LLM tem **uma** função: escolher o rótulo do bloco para os
-  trechos que a estrutura do markdown não tipou. Ele não escolhe cor, fonte,
-  espaçamento, margem nem hierarquia. Nunca.
+- O modelo tem **uma** função: escolher o rótulo do bloco para os trechos que a
+  estrutura do markdown não tipou. Ele não escolhe cor, fonte, espaçamento,
+  margem nem hierarquia. Nunca.
 - Todo layout vem de CSS escrito à mão: `tema/base.css` e `tema/blocos.css`.
 - Trecho que não encaixa em nenhum bloco vira o genérico mais próximo e **entra
   no relatório** — o sistema não inventa layout.
@@ -42,25 +48,26 @@ nunca decide.
 markdown
    │
    ├─ marcacao.py ......... front matter, diretivas ::: e markdown padrão → blocos
-   ├─ classificador.py .... só os trechos sem diretiva; devolve um rótulo, nada mais
-   ├─ conversao.py ........ troca de tipo preservando o conteúdo (LLM e interface)
+   ├─ classificador.py .... pedido() monta o que falta decidir; aplicar() recebe
+   │                        a resposta e impõe as salvaguardas
+   ├─ conversao.py ........ troca de tipo preservando o conteúdo
    ├─ renderizador.py ..... blocos → HTML → PDF (sumário em 2 passadas, encaixe de ficha)
-   ├─ qa.py ............... 15 verificações sobre o PDF, o layout e o markdown
-   └─ pipeline.py ......... amarra tudo e reporta progresso
+   ├─ qa.py ............... 17 verificações sobre o PDF, o layout e o markdown
+   └─ pipeline.py ......... amarra tudo
                               │
-                         principal.py (FastAPI) + estatico/ (a interface)
+                           cli.py ← ../diagramar.py
 ```
 
 | Arquivo | O que faz |
 |---|---|
 | `app/catalogo.py` | os 14 tipos de bloco, seus campos e qual diretiva os produz |
 | `app/marcacao.py` | leitura do markdown; escapa HTML do autor antes de qualquer coisa |
-| `app/classificador.py` | chamada ao Claude, restrita a rótulos do catálogo |
+| `app/classificador.py` | monta o pedido de rótulos e aplica a resposta, restrita ao catálogo |
 | `app/conversao.py` | converte um bloco em outro tipo sem perder texto |
 | `app/titulo.py` | título de capa com contorno, em SVG, com encaixe por medida real |
 | `app/renderizador.py` | montagem, sumário com página real, encaixe de ficha longa |
 | `app/qa.py` | o relatório que substitui a revisão detalhada |
-| `app/seguranca.py` | senha e cookie assinado |
+| `app/cli.py` | a linha de comando: `--trechos`, `--classificacao`, `--correcoes` |
 | `tema/tokens.css` | **gerado** de `design/tokens.json` — não editar à mão |
 | `tema/base.css`, `tema/blocos.css` | layout, escrito à mão e versionado |
 
@@ -68,10 +75,16 @@ markdown
 
 ```bash
 pip install -r ../requirements.txt
-export SENHA_APP=umasenha
-export ANTHROPIC_API_KEY=sk-ant-...       # opcional: sem ela o app funciona igual
-uvicorn diagramador.app.principal:app --reload --port 8000
+python3 diagramar.py exemplo/porto_seguro.md --saida /tmp/porto.pdf
 ```
+
+O WeasyPrint precisa de Pango, Cairo e fontconfig no sistema. Código de saída 0
+quer dizer que passou; 2 quer dizer que o PDF saiu com falha crítica no QA.
+
+Quem classifica os trechos é o modelo que está conduzindo a sessão. Para
+automação sem ninguém na sala existe `--usar-api`, que precisa de
+`ANTHROPIC_API_KEY` e do pacote `anthropic` (está em
+`requirements-ferramentas.txt`, não no runtime).
 
 ## Testes
 
@@ -86,18 +99,20 @@ O teste de ponta a ponta gera o e-book de exemplo inteiro e exige QA sem falha.
 
 ```bash
 python3 diagramador/ferramentas/gerar_tokens_css.py       # tokens.json → tokens.css
-python3 diagramador/ferramentas/verificar_fontes.py       # roda também no build
+python3 diagramador/ferramentas/verificar_fontes.py       # confere @font-face embutida
 python3 diagramador/ferramentas/preparar_ilustracoes.py <pasta>   # JPG → PNG recortado
 python3 diagramador/ferramentas/amostra_ficha.py          # amostra da ficha
+python3 diagramador/ferramentas/empacotar_skill.py --zip  # atualiza e empacota a skill
 ```
 
 ## O que o QA verifica
 
 Texto dentro da mancha · ficha inteira em uma página · órfãs e viúvas · fontes
-embutidas · contraste ≥ 4.5:1 no corpo · **nenhuma cor fora dos tokens** · logo em
-toda página na mesma posição · fundamentação científica literal exatamente duas
-vezes · disclaimer legal · nenhum placeholder · sumário com página real · todo o
-texto do markdown presente · linguagem da marca · ilustrações resolvidas ·
-classificação sem caso pendente.
+embutidas · contraste ≥ 4.5:1 no corpo (nos dois temas) · **nenhuma cor fora dos
+tokens do tema ativo** · logo em toda página na mesma posição · fundamentação
+científica literal exatamente duas vezes · disclaimer legal · nenhum placeholder ·
+sumário com página real · todo o texto do markdown presente · linguagem da marca ·
+**nenhum personagem sem pedido** · ilustrações resolvidas · **supervisão técnica
+igual à registrada** · classificação sem caso pendente.
 
 Verde é o que passou. O que falhou diz **qual página** e **o quê**.

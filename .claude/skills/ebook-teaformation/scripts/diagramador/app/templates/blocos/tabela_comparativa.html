@@ -1,0 +1,10 @@
+<table class="tabela-comparativa" id="b{{ indice }}">
+  <thead>
+    <tr>{% for cabecalho in bloco.dados.cabecalhos %}<th>{{ cabecalho }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for linha in bloco.dados.linhas %}
+    <tr>{% for celula in linha %}<td>{{ celula }}</td>{% endfor %}</tr>
+    {% endfor %}
+  </tbody>
+</table>

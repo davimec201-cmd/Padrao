@@ -1,7 +1,8 @@
 # FORMATO.md — como escrever o markdown de um e-book
 
 Tudo aqui é markdown comum. Só existem **nove** marcações especiais, e cada uma
-tem a cara do que ela faz. Escreva no editor de texto do tablet e mande no app.
+tem a cara do que ela faz. Escreva em qualquer editor de texto e peça a
+diagramação.
 
 Duas regras que valem para o arquivo inteiro:
 
@@ -34,8 +35,8 @@ você pedir**:
 | `tema` | `teanimal` troca a paleta para as cores lúdicas. **Sem este campo, o material sai na paleta institucional** |
 | `especialidade` | linha embaixo do nome da psicóloga na capa |
 
-**Nome da psicóloga e CRP você não escreve aqui** — já vêm preenchidos no app
-com o registro da TEA Formation (Ingrid Ceron, CRP 12/15726) e entram sozinhos
+**Nome da psicóloga e CRP você não escreve aqui** — o diagramador preenche
+sozinho com o registro da TEA Formation (Ingrid Ceron, CRP 12/15726) e entram sozinhos
 na capa, na carta e na página final.
 
 ### Personagem e cores lúdicas: opcionais, e só a pedido
@@ -173,7 +174,7 @@ Com carinho,
 :::
 ```
 
-`{psicologa}` e `{crp}` são preenchidos pelo app.
+`{psicologa}` e `{crp}` são preenchidos pelo diagramador.
 
 ### `:::dicas` — dicas para o adulto
 
@@ -266,7 +267,7 @@ Você **não** escreve nada disso:
 | Capa | Do cabeçalho do arquivo |
 | Sumário com número de página real | Depois da carta, se o material tiver seções |
 | Logo no rodapé de toda página | Sempre, mesma posição |
-| Supervisão técnica (nome, CRP, especialidade) | Do registro da marca, preenchido no app |
+| Supervisão técnica (nome, CRP, especialidade) | Do registro da marca, preenchido pelo diagramador |
 | Fundamentação científica | Na capa e na página final, literal, exatamente duas vezes |
 | Disclaimer legal com nome e CRP | Na página final |
 | Numeração de página | Sempre |

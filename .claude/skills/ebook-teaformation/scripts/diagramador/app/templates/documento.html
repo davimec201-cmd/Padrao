@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="{{ tema }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ meta.titulo }}</title>
+</head>
+<body>
+
+{# rodapé: elementos correntes, saem do fluxo e aparecem em toda página #}
+<div class="rodape-titulo">{{ meta.titulo }}<span class="pagina"></span></div>
+<div class="marca-rodape"><img src="{{ marca }}" alt=""><span class="marca-tea">TEA</span><span
+  class="marca-formation">Formation</span></div>
+
+{{ corpo }}
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+{% import 'conteudo.html' as c %}
+<aside class="caixa-atencao" id="b{{ indice }}">
+  <span class="rotulo">{{ bloco.dados.rotulo }}</span>
+  {{ c.render(bloco.dados.corpo) }}
+</aside>

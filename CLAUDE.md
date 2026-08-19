@@ -45,7 +45,17 @@ institucional, e `temas.teanimal` re-aponta os papéis de acento. Trocar de tema
 não muda estrutura, grid nem tipografia. O QA avisa quando encontra cor de um
 universo em material do outro.
 
-### 4. O sistema é um renderizador determinístico
+### 4. O sistema é uma skill, não um app
+
+O jeito de usar é: colar o markdown na sessão e pedir para diagramar. A skill
+`ebook-teaformation` roda `scripts/diagramar.py`, e sai PDF + relatório de QA +
+imagem de cada página. Não há servidor, senha, deploy nem chave de API — quem
+classifica os trechos é o modelo que está conduzindo a conversa.
+
+O app web (FastAPI, Render, Docker) foi descartado por decisão do fundador em
+2026-08-19. O código está no histórico do git; não ressuscite sem pedido.
+
+### 5. O sistema é um renderizador determinístico
 
 - Design descoberto uma vez, medido nas cartilhas, congelado em tokens.
 - Em produção o LLM só **classifica trecho em tipo de bloco**. Não escolhe cor,
@@ -54,17 +64,23 @@ universo em material do outro.
 - Trecho que não encaixa vira o bloco genérico e **entra no relatório**. Nunca
   invente layout novo em runtime.
 
-### 5. Antes de dar por pronto
+### 6. Antes de dar por pronto
 
 ```bash
 python3 diagramador/ferramentas/gerar_tokens_css.py   # se mexeu em tokens.json
 python3 diagramador/testes/test_diagramador.py        # tem que dar 0 falhas
+python3 diagramador/ferramentas/empacotar_skill.py    # leva a mudança para a skill
 ```
 
 O e-book de exemplo (`exemplo/porto_seguro.md`) precisa sair com QA sem
 nenhuma falha crítica.
 
-### 6. Levar estas regras para outra conversa
+A skill carrega uma cópia do runtime porque precisa rodar sem o repositório por
+perto. A direção é só uma — repositório → skill — e o empacotador é quem a
+percorre. Nunca edite `.claude/skills/ebook-teaformation/scripts/` à mão;
+`test_skill_esta_em_dia` falha quando o empacotador é esquecido.
+
+### 7. Levar estas regras para outra conversa
 
 Duas formas, conforme o caso:
 
@@ -76,7 +92,7 @@ Duas formas, conforme o caso:
 
 Se mexer nas regras aqui, atualize os dois — eles são cópia, não referência.
 
-### 7. Onde as coisas estão
+### 8. Onde as coisas estão
 
 | Precisa mexer em | Vá em |
 |---|---|
@@ -84,5 +100,6 @@ Se mexer nas regras aqui, atualize os dois — eles são cópia, não referênci
 | como um bloco é desenhado | `diagramador/tema/blocos.css` |
 | como o markdown é lido | `diagramador/app/marcacao.py` |
 | o que o QA verifica | `diagramador/app/qa.py` |
-| a interface | `diagramador/app/estatico/` |
+| as opções da linha de comando | `diagramador/app/cli.py` |
+| como a skill é montada | `diagramador/ferramentas/empacotar_skill.py` |
 | a convenção de escrita | `FORMATO.md` |

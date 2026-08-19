@@ -20,13 +20,14 @@ Sou fundador da TEA Formation, startup brasileira de materiais terapêuticos e
 educacionais para crianças autistas (Universo TEAnimal / Vale da Harmonia). Vendo
 e-books direto ao consumidor e distribuo para clínicas.
 
-Quero um **aplicativo web** em que eu envio um arquivo markdown com o conteúdo de
-um e-book e recebo de volta um PDF diagramado no padrão visual da TEA Formation,
-pronto para vender. Uso pelo navegador — **tablet e computador**.
+Quero uma **skill** que eu invoque numa sessão: colo o markdown do e-book,
+peço para diagramar, e recebo o PDF no padrão visual da TEA Formation, pronto
+para vender. Nada de servidor, senha, deploy ou chave de API — o trabalho
+acontece na sessão, com um script Python que a skill carrega.
 
-**Automatize o máximo possível.** Meu envolvimento deve ser: subir o markdown,
-esperar, olhar o resultado, baixar. Uma revisão rápida no final e pronto. Não me
-faça editar JSON, ajustar layout ou responder perguntas no meio do processo.
+**Automatize o máximo possível.** Meu envolvimento deve ser: mandar o markdown,
+esperar, olhar o resultado. Uma revisão rápida no final e pronto. Não me faça
+editar JSON, ajustar layout ou responder perguntas no meio do processo.
 
 ---
 
@@ -87,7 +88,7 @@ Fundamentação científica exatamente duas vezes — capa e página final:
 Disclaimer na página final:
 
 > Este material educativo não substitui avaliação, diagnóstico ou acompanhamento
-> terapêutico individualizado. Supervisão técnica: [nome], CRP [número].
+> terapêutico individualizado. Supervisão técnica: {nome}, CRP {crp}.
 
 Linguagem: "criança autista", "no espectro", "crise (meltdown)". Nunca
 "portador", "sofre de", "anjo azul", "superpoderes". Termo proibido no markdown
@@ -154,26 +155,34 @@ Comentário `<!-- -->` não vai para o PDF.
 
 ---
 
-## O aplicativo
+## O programa
 
-Python + FastAPI. Parse próprio do markdown com diretivas. Renderização em HTML +
-CSS Paged Media via **WeasyPrint**. Fontes embutidas via `@font-face` com os
-arquivos locais — nunca CDN, nunca fonte substituta. Front-end em HTML/CSS/JS
-simples, sem framework.
+Python puro, sem servidor. Parse próprio do markdown com diretivas. Renderização
+em HTML + CSS Paged Media via **WeasyPrint**. Fontes embutidas via `@font-face`
+com os arquivos locais — nunca CDN, nunca fonte substituta.
 
-Interface mobile-first com alvos de toque grandes, e layout de duas colunas a
-partir de 1024px para o computador. Fluxo: upload do `.md` (ou colar o texto) →
-campos de supervisão já preenchidos → botão Gerar → barra de progresso com a
-etapa atual → miniaturas das páginas → relatório de QA → download.
+Uma linha de comando com dois passos, e o segundo é o único obrigatório:
+
+```bash
+python3 diagramar.py material.md --trechos                        # o que falta decidir
+python3 diagramar.py material.md --classificacao classificacao.json
+```
+
+O primeiro lista, em JSON, os trechos que o markdown não tipou sozinho. Quem
+está na sessão decide um rótulo do catálogo para cada um — **é a única coisa que
+um modelo decide neste sistema**, e por isso não precisa de chamada de API. O
+segundo diagrama, confere e grava: PDF, relatório de QA em markdown e a imagem
+de cada página. Código de saída 2 quando o QA acha falha crítica.
 
 **Sem checkpoint intermediário.** A revisão acontece uma vez, no final.
 
-**Correção de exceção:** na miniatura de cada página, um seletor para trocar o
-tipo de bloco e um botão de regerar. Sem editar JSON.
+**Correção de exceção:** `--correcoes '{"7": "caixa_atencao"}'` troca o tipo de
+um bloco pelo número que o relatório mostra. Sem editar JSON à mão, sem mexer no
+markdown, sem tocar no CSS.
 
-Senha simples (o app não fica aberto na internet) e chave de API em variável de
-ambiente. Deploy no Render com `Dockerfile` (WeasyPrint precisa de libs de
-sistema) e `render.yaml`, com passo a passo executável pelo tablet.
+A skill precisa rodar sem o repositório por perto, então ela carrega uma cópia
+do runtime, das fontes, das ilustrações e dos tokens. Um empacotador mantém a
+cópia em dia numa direção só, e um teste falha quando ele é esquecido.
 
 ---
 
@@ -235,4 +244,6 @@ contraditório ou inviável.
 Geração de ilustração ou arte (o sistema consome de `assets/ilustracoes/`, não
 cria). Redação, correção ou reescrita de conteúdo — o texto entra como está.
 Revisão clínica: todo material continua passando por validação profissional, e o
-app deve exibir esse lembrete na tela de download. EPUB, versão web, slides.
+sistema deve repetir esse lembrete ao entregar o PDF. EPUB, versão web, slides.
+Servidor, deploy, autenticação — o app web foi construído e descartado; se
+voltar a fazer sentido, o código está no histórico do git.

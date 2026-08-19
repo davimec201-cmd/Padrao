@@ -1,0 +1,5 @@
+{% import 'conteudo.html' as c %}
+<section class="encerramento" id="b{{ indice }}">
+  {% if bloco.dados.titulo %}<h2 class="abre-secao">{{ bloco.dados.titulo }}</h2>{% endif %}
+  {{ c.render(bloco.dados.corpo) }}
+</section>

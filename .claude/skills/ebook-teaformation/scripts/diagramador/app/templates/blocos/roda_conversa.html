@@ -1,0 +1,6 @@
+<section class="roda-conversa-secao" id="b{{ indice }}">
+  {% if bloco.dados.titulo %}<h2 class="abre-secao">{{ bloco.dados.titulo }}</h2>{% endif %}
+  <div class="roda-conversa">
+    <ol>{% for pergunta in bloco.dados.perguntas %}<li>{{ pergunta }}</li>{% endfor %}</ol>
+  </div>
+</section>

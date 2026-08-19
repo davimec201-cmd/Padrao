@@ -181,31 +181,48 @@ configurar. Todos os caminhos são relativos: funciona em qualquer subpasta.
 
 ### `diagramador/`
 
-Aplicação web que transforma markdown em e-book diagramado no padrão da TEA
-Formation. Roda no Render, uso pelo navegador do tablet: sobe o markdown,
-espera, olha o preview, baixa o PDF.
+Transforma markdown em e-book diagramado no padrão da TEA Formation, pronto para
+vender. O jeito de usar é a **skill `ebook-teaformation`**: colar o markdown na
+sessão e pedir para diagramar. Saem o PDF, um relatório de QA e a imagem de cada
+página, em cerca de 4 segundos. Sem servidor, sem senha, sem chave de API.
 
 O sistema é um **renderizador determinístico, não um gerador de design**. O
 design foi medido uma vez nas cartilhas aprovadas e congelado em
-`design/tokens.json`; em produção o LLM só classifica trecho em tipo de bloco —
-não escolhe cor, fonte, espaçamento nem hierarquia. Layout é CSS escrito à mão.
+`design/tokens.json`; o modelo só classifica trecho em tipo de bloco — não
+escolhe cor, fonte, espaçamento nem hierarquia. Layout é CSS escrito à mão.
 
 Por padrão o material sai na paleta institucional (azul, branco, bege) e **sem
 personagem**: as cores e os personagens do Universo TEAnimal são opcionais e só
-entram quando o markdown pede. Abre no tablet e no computador.
+entram quando o markdown pede.
 
 | Documento | Para quê |
 |---|---|
+| [`.claude/skills/ebook-teaformation/`](.claude/skills/ebook-teaformation/) | **a skill** — é por aqui que o trabalho acontece |
 | [`FORMATO.md`](FORMATO.md) | como escrever o markdown de um e-book |
-| [`DEPLOY.md`](DEPLOY.md) | colocar no ar pelo tablet, sem terminal |
 | [`design/tokens.md`](design/tokens.md) | de onde veio cada cor, tamanho e medida |
 | [`diagramador/README.md`](diagramador/README.md) | como o código se organiza |
 | [`PROMPT_MESTRE.md`](PROMPT_MESTRE.md) | o pedido inteiro, para reconstruir em outro lugar |
-| [`.claude/skills/ebook-teaformation/`](.claude/skills/ebook-teaformation/) | as regras da marca como skill, para usar em qualquer conversa |
 
-Antes de baixar, o app mostra um relatório de QA com 15 verificações — margem,
-ficha quebrada, fonte embutida, contraste, cor fora da paleta, logo, textos
-obrigatórios, sumário conferido, linguagem da marca. Verde é o que passou; o que
-falhou diz a página e o quê.
+São 17 verificações de QA — margem, ficha quebrada, fonte embutida, contraste,
+cor fora da paleta do tema, logo, textos obrigatórios literais, sumário
+conferido, linguagem da marca, personagem sem pedido, supervisão técnica. Verde
+é o que passou; o que falhou diz a página e o quê.
 
-**Rodar:** `uvicorn diagramador.app.principal:app` com `SENHA_APP` definida.
+**Rodar:**
+
+```bash
+pip install -r requirements.txt
+python3 diagramar.py exemplo/porto_seguro.md --saida /tmp/porto.pdf
+```
+
+**Instalar a skill em outra sessão** (Cowork, claude.ai, outro repositório):
+
+```bash
+python3 diagramador/ferramentas/empacotar_skill.py --zip   # gera ebook-teaformation.skill
+```
+
+O `.skill` é autocontido — leva o runtime, as fontes, as ilustrações e os
+tokens, e roda sem este repositório por perto.
+
+O app web que existia antes (FastAPI + Render) foi descartado em 2026-08-19; o
+código está no histórico do git.

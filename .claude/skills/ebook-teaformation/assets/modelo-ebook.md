@@ -7,7 +7,7 @@ subtitulo: Uma linha curta que explica o que ele entrega
        personagem: mamae_urso      → personagem do TEAnimal na capa
        tema: teanimal              → paleta lúdica em vez da institucional
      Sem essas linhas: paleta institucional e nenhum personagem.
-     Nome e CRP da supervisão o app preenche sozinho. -->
+     Nome e CRP da supervisão o diagramador preenche sozinho. -->
 
 :::carta
 Primeiro parágrafo da carta, falando direto com quem vai ler.

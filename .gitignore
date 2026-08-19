@@ -5,3 +5,6 @@ venv/
 .env
 diagramador/saida/
 diagramador/tmp/
+
+# artefato de build: `python3 diagramador/ferramentas/empacotar_skill.py --zip`
+ebook-teaformation.skill

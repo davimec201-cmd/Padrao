@@ -4,8 +4,9 @@ Rodar: python3 -m pytest diagramador/testes -q
 (ou: python3 diagramador/testes/test_diagramador.py, sem pytest)
 
 Cobrem o que quebra em silêncio: leitura do markdown, conversão de tipo,
-salvaguardas do classificador, fonte embutida, e o e-book de exemplo inteiro
-passando no QA.
+salvaguardas do classificador, fonte embutida, a linha de comando de ponta a
+ponta, a skill em dia com o repositório, e o e-book de exemplo inteiro passando
+no QA.
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ sys.path.insert(0, str(RAIZ / "diagramador"))
 from app import qa  # noqa: E402
 from app.catalogo import CATALOGO, escolhiveis  # noqa: E402
 from app.renderizador import TOKENS  # noqa: E402
-from app.classificador import candidatos, classificar  # noqa: E402
+from app.classificador import aplicar, candidatos, classificar, pedido  # noqa: E402
 from app.conversao import converter  # noqa: E402
 from app.marcacao import ler  # noqa: E402
 from app.pipeline import gerar  # noqa: E402
@@ -234,6 +235,139 @@ def test_comentario_do_autor_nao_vai_para_o_pdf():
     documento = pymupdf.open(stream=entrega.pdf, filetype="pdf")
     texto = "".join(pagina.get_text() for pagina in documento)
     assert "nota interna" not in texto
+
+
+# --------------------------------------------- classificação feita na sessão
+
+
+def test_pedido_traz_so_os_trechos_sem_diretiva():
+    _, blocos = ler(EXEMPLO)
+    bruto = pedido(blocos)
+    indices = [t["indice"] for t in bruto["trechos"]]
+
+    assert indices == candidatos(blocos)
+    assert all(blocos[i].procedencia == "estrutura" for i in indices)
+    assert all(t["resumo"].strip() for t in bruto["trechos"])
+
+
+def test_aplicar_impoe_as_mesmas_salvaguardas_da_api():
+    _, blocos = ler(EXEMPLO)
+    alvos = candidatos(blocos)
+    assert len(alvos) >= 2, "o exemplo precisa ter trecho sem diretiva"
+
+    resultado = aplicar(blocos, [
+        {"indice": alvos[0], "tipo": "caixa_atencao", "confianca": "alta", "motivo": "x"},
+        {"indice": alvos[1], "tipo": "roda_conversa", "confianca": "baixa", "motivo": "na dúvida"},
+        {"indice": alvos[0], "tipo": "capa", "confianca": "alta", "motivo": "fora do catálogo"},
+        {"indice": 9999, "tipo": "caixa_atencao", "confianca": "alta", "motivo": "índice inválido"},
+    ])
+
+    assert resultado.rodou and resultado.aplicadas == 1
+    assert blocos[alvos[0]].tipo == "caixa_atencao"
+    assert blocos[alvos[1]].tipo == "secao_conceitual"
+    assert "confiança baixa" in blocos[alvos[1]].observacao
+
+
+def test_confirmar_o_generico_com_confianca_alta_encerra_o_caso():
+    # o material está classificado: nenhum trecho pode continuar "por conferir"
+    _, blocos = ler(EXEMPLO)
+    alvos = candidatos(blocos)
+    aplicar(blocos, [
+        {"indice": i, "tipo": "secao_conceitual", "confianca": "alta", "motivo": "explicação"}
+        for i in alvos
+    ])
+    assert candidatos(blocos) == []
+
+
+def test_sem_classificacao_o_relatorio_lista_cada_trecho_pendente():
+    entrega = gerar(EXEMPLO, NOME, CRP)
+    achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Classificação")
+    assert achado.estado == qa.AVISO
+    assert "não passaram por classificação" in achado.resumo
+
+
+def test_relatorio_endereca_o_bloco_pelo_indice_que_correcoes_usa():
+    # o número que o relatório mostra tem que ser o mesmo que --trechos lista e
+    # que --correcoes aceita; senão a correção cai no bloco errado
+    _, blocos = ler(EXEMPLO)
+    alvo = candidatos(blocos)[0]
+
+    entrega = gerar(EXEMPLO, NOME, CRP)
+    achado = next(a for a in entrega.relatorio.achados if a.verificacao == "Classificação")
+    assert any(d.startswith(f"bloco {alvo}:") for d in achado.detalhes), achado.detalhes
+
+    corrigida = gerar(EXEMPLO, NOME, CRP, correcoes={alvo: "caixa_atencao"})
+    trocado = [b for b in corrigida.blocos if b.indice_fonte == alvo]
+    assert len(trocado) == 1 and trocado[0].tipo == "caixa_atencao"
+
+
+# ----------------------------------------------------- linha de comando e skill
+
+
+def test_cli_do_markdown_ao_pdf():
+    import json
+    import subprocess
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as pasta:
+        pasta = Path(pasta)
+        material = pasta / "material.md"
+        material.write_text(EXEMPLO, encoding="utf-8")
+
+        listagem = subprocess.run(
+            [sys.executable, str(RAIZ / "diagramar.py"), str(material), "--trechos"],
+            capture_output=True, text=True, check=True,
+        )
+        trechos = json.loads(listagem.stdout)["trechos"]
+        assert trechos, "o exemplo precisa ter trecho para classificar"
+
+        decisao = pasta / "classificacao.json"
+        decisao.write_text(json.dumps({"classificacoes": [
+            {"indice": t["indice"], "tipo": "secao_conceitual",
+             "confianca": "alta", "motivo": "explicação"}
+            for t in trechos
+        ]}), encoding="utf-8")
+
+        geracao = subprocess.run(
+            [sys.executable, str(RAIZ / "diagramar.py"), str(material),
+             "--classificacao", str(decisao), "--sem-miniaturas"],
+            capture_output=True, text=True,
+        )
+        assert geracao.returncode == 0, geracao.stdout + geracao.stderr
+        assert (pasta / "material.pdf").read_bytes()[:4] == b"%PDF"
+
+        relatorio = (pasta / "material-qa.md").read_text(encoding="utf-8")
+        assert "0 falha(s)" in relatorio
+        assert SUPERVISAO["crp"] in relatorio
+
+
+def test_skill_esta_em_dia():
+    # a skill carrega uma cópia do runtime para rodar sem o repositório; se
+    # alguém mexeu no original e esqueceu o empacotador, é aqui que aparece
+    import subprocess
+
+    conferencia = subprocess.run(
+        [sys.executable, str(RAIZ / "diagramador" / "ferramentas" / "empacotar_skill.py"),
+         "--conferir"],
+        capture_output=True, text=True,
+    )
+    assert conferencia.returncode == 0, conferencia.stdout
+
+
+def test_skill_repete_a_supervisao_e_a_fundamentacao_sem_variar():
+    skill = (RAIZ / ".claude" / "skills" / "ebook-teaformation" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert SUPERVISAO["nome"] in skill and SUPERVISAO["crp"] in skill
+    assert SUPERVISAO["especialidade"] in skill
+    # a citação vem em bloco de citação e quebrada em várias linhas: comparar
+    # sem marcador nem espaço é o que pega troca de palavra de verdade
+    sem_citacao = "\n".join(
+        linha[2:] if linha.startswith("> ") else linha for linha in skill.splitlines()
+    )
+    for literal in ("fundamentacao_cientifica", "disclaimer_legal"):
+        texto = TOKENS["texto_fixo"][literal]
+        assert "".join(texto.split()) in "".join(sem_citacao.split()), literal
 
 
 # ---------------------------------------------------------- ponta a ponta

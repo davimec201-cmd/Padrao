@@ -1,0 +1,719 @@
+/* blocos.css — catálogo de blocos. Um componente isolado por bloco.
+   Escrito à mão, versionado, revisável. O LLM não encosta aqui: ele só
+   escolhe QUAL bloco usar; o desenho de cada um está congelado neste arquivo. */
+
+/* ============================================================ 1. capa */
+
+.capa {
+  position: relative;
+  page: capa;
+  width: var(--pagina-largura);
+  height: var(--pagina-altura);
+  break-after: page;
+  overflow: hidden;
+  background: var(--cor-fundo-palco);
+}
+
+.capa-texto {
+  position: absolute;
+  top: 20mm;
+  left: var(--margem-lateral);
+  width: var(--largura-conteudo);
+  text-align: center;
+}
+
+/* o título vem em SVG (contorno de traço), gerado por app/titulo.py */
+.capa-titulo-svg { display: block; margin: 0 auto; }
+
+.capa-subtitulo {
+  display: inline-block;
+  margin-top: var(--esp-sm);
+  padding: 3.6mm 8mm;
+  border-radius: var(--raio-pill);
+  background: var(--cor-acento-material);
+  color: var(--cor-acento-material-texto);
+  font-family: var(--fonte-titulo);
+  font-size: var(--capa-subtitulo-tamanho);
+  line-height: var(--capa-subtitulo-entrelinha);
+  font-weight: var(--capa-subtitulo-peso);
+  max-width: 130mm;
+}
+
+.capa-ilustracao {
+  position: absolute;
+  left: 50%;
+  bottom: 46mm;
+  transform: translateX(-50%);
+  max-height: 146mm;
+  max-width: 118mm;
+  width: auto;
+}
+
+/* capa sem personagem — o padrão. Fica tipográfica: título, tarja, e a peça da
+   marca centrada no espaço que a ilustração ocuparia. Nada de personagem do
+   Universo TEAnimal sem o material pedir. */
+.capa-selo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 46mm;
+  height: 146mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.capa-selo img {
+  width: 42mm;
+  height: auto;
+  opacity: 0.9;
+}
+.capa-tipografica .capa-texto { top: 42mm; }
+
+.capa-rodape {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--pagina-largura);
+  padding: var(--esp-md) var(--margem-lateral) var(--esp-sm);
+  background: var(--cor-fundo-bloco);
+  border-top-left-radius: 50% var(--faixa-apice);
+  border-top-right-radius: 50% var(--faixa-apice);
+  text-align: center;
+}
+
+.capa-assinatura {
+  max-width: 132mm;
+  margin: 0 auto var(--esp-xs);
+  font-family: var(--fonte-titulo);
+  font-size: var(--capa-assinatura-tamanho);
+  line-height: var(--capa-assinatura-entrelinha);
+  font-weight: var(--capa-assinatura-peso);
+  color: var(--cor-texto-corpo);
+}
+.capa-assinatura .rotulo-supervisao {
+  display: block;
+  font-size: var(--rotulo-tamanho);
+  font-weight: var(--rotulo-peso);
+  letter-spacing: var(--rotulo-tracking);
+  text-transform: uppercase;
+  color: var(--cor-destaque-pedagogico-texto);
+  margin-bottom: 1mm;
+}
+
+.capa-fundamentacao {
+  max-width: 128mm;
+  margin: var(--esp-xs) auto 0;
+  padding-top: var(--esp-xs);
+  border-top: var(--hairline) solid var(--cor-linha-divisoria);
+  font-family: var(--fonte-leitura);
+  font-size: 7.5pt;
+  line-height: 1.45;
+  color: var(--cor-texto-secundario);
+}
+
+.capa-marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6mm;
+  margin: var(--esp-sm) 0 0;
+  font-family: var(--fonte-titulo);
+  font-size: 10pt;
+  color: var(--cor-texto-corpo);
+}
+.capa-marca img { height: 6mm; }
+.capa-marca .marca-tea { font-weight: 700; }
+.capa-marca .capa-universo { color: var(--cor-texto-secundario); }
+
+/* ================================================== 2. carta de abertura */
+
+.carta {
+  max-width: var(--largura-conteudo);
+}
+.carta > p + p { text-indent: 0; }
+
+.carta-assinatura p { margin-bottom: 0; }
+
+.carta-assinatura {
+  margin-top: var(--esp-md);
+  font-family: var(--fonte-titulo);
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--cor-texto-corpo);
+  border-top: var(--hairline) solid var(--cor-linha-divisoria);
+  padding-top: var(--esp-sm);
+  break-inside: avoid;
+}
+
+/* ============================================================ 3. sumário */
+
+.sumario {
+  max-width: var(--largura-conteudo);
+  break-before: page;
+}
+
+.sumario ol {
+  list-style: none;
+  padding: 0;
+  margin: var(--esp-md) 0 0;
+}
+
+.sumario li {
+  display: flex;
+  align-items: baseline;
+  gap: 2mm;
+  font-family: var(--fonte-leitura);
+  font-size: var(--sumario-item-tamanho);
+  line-height: var(--sumario-item-entrelinha);
+  font-weight: var(--sumario-item-peso);
+  margin: 0;
+}
+
+.sumario .guia {
+  flex: 1;
+  border-bottom: var(--hairline) dotted var(--cor-linha-divisoria);
+  transform: translateY(-0.8mm);
+}
+
+.sumario .num-pagina {
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-destaque-pedagogico-texto);
+}
+
+.sumario li.grupo {
+  margin-top: var(--esp-md);
+  font-family: var(--fonte-titulo);
+  font-size: var(--h3-tamanho);
+  font-weight: 600;
+  color: var(--cor-texto-titulo);
+}
+.sumario li.grupo .guia { border-bottom: none; }
+
+/* ================================================= 4. seção conceitual */
+
+.secao-conceitual { max-width: var(--largura-conteudo); }
+.secao-conceitual > h2:first-child { margin-top: 0; }
+
+/* =============================================== 5. tabela comparativa */
+
+.tabela-comparativa {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: var(--esp-md) 0;
+  break-inside: avoid;
+  border-radius: var(--raio-card);
+  overflow: hidden;
+  box-shadow: var(--sombra-card);
+}
+
+.tabela-comparativa thead th {
+  font-family: var(--fonte-titulo);
+  font-size: var(--rotulo-tamanho);
+  font-weight: var(--rotulo-peso);
+  letter-spacing: var(--rotulo-tracking);
+  text-transform: uppercase;
+  text-align: left;
+  padding: var(--esp-sm) var(--esp-sm);
+  background: var(--cor-destaque-pedagogico);
+  color: var(--cor-texto-sobre-cor);
+  width: 50%;
+}
+.tabela-comparativa thead th + th {
+  border-left: var(--hairline) solid rgba(255, 255, 255, 0.35);
+}
+
+.tabela-comparativa td {
+  padding: var(--esp-sm);
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  background: var(--cor-fundo-bloco);
+  vertical-align: top;
+}
+.tabela-comparativa tr:nth-child(even) td { background: var(--cor-fundo-bloco-secundario); }
+.tabela-comparativa td + td { border-left: var(--hairline) solid var(--cor-linha-divisoria); }
+
+/* ==================================================== 6. caixa de atenção */
+
+.caixa-atencao {
+  margin: var(--esp-md) 0;
+  padding: var(--esp-sm) var(--esp-md);
+  border-left: var(--filete) solid var(--cor-atencao-filete);
+  border-radius: 0 var(--raio-card) var(--raio-card) 0;
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao-texto);
+  break-inside: avoid;
+}
+
+.caixa-atencao .rotulo {
+  color: var(--cor-atencao-texto);
+  display: block;
+  margin-bottom: var(--esp-xs);
+  opacity: 0.85;
+}
+.caixa-atencao p { color: var(--cor-atencao-texto); }
+
+.caixa-atencao p {
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+}
+
+/* ================================================= 7. abertura de bloco */
+
+.abertura-bloco {
+  page: abertura;
+  break-before: page;
+  break-after: page;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 225mm;
+  color: var(--cor-divisoria-texto);
+}
+
+.abertura-bloco .numero {
+  font-family: var(--fonte-display);
+  font-size: var(--numero-bloco-tamanho);
+  line-height: var(--numero-bloco-entrelinha);
+  font-weight: var(--numero-bloco-peso);
+  color: var(--cor-divisoria-texto);
+  margin-bottom: var(--esp-sm);
+}
+
+.abertura-bloco h1 {
+  font-size: 34pt;
+  color: var(--cor-divisoria-texto);
+}
+
+.abertura-bloco .frase {
+  margin-top: var(--esp-md);
+  padding-top: var(--esp-sm);
+  border-top: var(--filete) solid var(--cor-divisoria-texto);
+  max-width: 110mm;
+  font-family: var(--fonte-leitura);
+  font-size: 13pt;
+  line-height: 1.45;
+}
+
+/* =============================================== 8. ficha de atividade */
+
+/* --ficha-escala é o único valor que o pipeline mexe em runtime, e não é uma
+   decisão de design: é ajuste numérico de encaixe (100% → 88%, em passos de 4%)
+   para uma ficha longa caber em uma página. Toda redução vai para o relatório. */
+
+/* Uma ficha por página: é assim no Porto Seguro e é o que garante que ela
+   nunca quebre entre páginas — o bloco recebe a altura inteira da mancha. */
+.ficha {
+  break-before: page;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.ficha-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-sm);
+  margin-bottom: var(--esp-xs);
+}
+
+.ficha-numero {
+  flex: 0 0 auto;
+  min-width: 15mm;
+  height: 15mm;
+  padding: 0 3mm;
+  border-radius: var(--raio-pill);
+  background: var(--cor-acento-material);
+  color: var(--cor-acento-material-texto);
+  font-family: var(--fonte-display);
+  font-size: var(--numero-ficha-tamanho);
+  font-weight: var(--numero-ficha-peso);
+  line-height: 15mm;
+  text-align: center;
+}
+
+.ficha-titulo { flex: 1; }
+
+.ficha-titulo .rotulo {
+  display: block;
+  margin-bottom: 0.8mm;
+}
+
+.ficha-titulo h2 {
+  margin: 0;
+  font-family: var(--fonte-display);
+  font-size: 20pt;
+  line-height: 1.15;
+}
+
+/* par objetivo / princípio — o único lugar do miolo com cor plena */
+.ficha-par {
+  display: flex;
+  gap: var(--gap-colunas);
+  margin-bottom: var(--esp-sm);
+  break-inside: avoid;
+}
+
+.ficha-par > div {
+  flex: 1 1 0;
+  padding: var(--esp-xs) var(--esp-sm);
+  background: var(--cor-destaque-pedagogico-wash);
+  border-left: var(--filete) solid var(--cor-destaque-pedagogico);
+  border-radius: 0 var(--raio-card) var(--raio-card) 0;
+}
+
+.ficha-par .rotulo {
+  display: block;
+  margin-bottom: var(--esp-xs);
+}
+
+.ficha-par p {
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  margin: 0;
+}
+
+.ficha-materiais {
+  margin-bottom: var(--esp-xs);
+  padding-left: var(--esp-sm);
+  border-left: var(--filete) solid var(--cor-linha-divisoria);
+  break-inside: avoid;
+}
+.ficha-materiais p { margin: 0; }
+.ficha-materiais .personagem {
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  color: var(--cor-texto-corpo);
+}
+
+.ficha-passos { margin-bottom: var(--esp-sm); }
+.ficha-passos h3 { margin-top: 0; margin-bottom: var(--esp-xs); }
+.ficha-passos ol { margin-bottom: 0; }
+.ficha-passos li {
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  margin-bottom: var(--esp-xs);
+}
+
+/* par mais fácil / mais desafiador */
+.ficha-niveis {
+  display: flex;
+  gap: var(--gap-colunas);
+  margin-bottom: var(--esp-sm);
+  break-inside: avoid;
+}
+
+.ficha-niveis > div {
+  flex: 1 1 0;
+  padding: var(--esp-xs) var(--esp-sm);
+}
+
+.ficha-niveis .facil {
+  background: var(--cor-facil-wash);
+  border-left: var(--filete) solid var(--cor-facil-filete);
+  border-radius: 0 var(--raio-card) var(--raio-card) 0;
+}
+.ficha-niveis .desafiador {
+  background: var(--cor-desafiador-wash);
+  border-left: var(--filete) solid var(--cor-desafiador-filete);
+  border-radius: 0 var(--raio-card) var(--raio-card) 0;
+}
+
+.ficha-niveis .rotulo {
+  display: block;
+  margin-bottom: var(--esp-xs);
+  color: var(--cor-texto-corpo);
+}
+
+.ficha-niveis p {
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  margin: 0;
+}
+
+.ficha-observar {
+  padding: var(--esp-sm) var(--esp-md);
+  border-left: var(--filete) solid var(--cor-observar-filete);
+  border-radius: 0 var(--raio-card) var(--raio-card) 0;
+  background: var(--cor-observar-fundo);
+  box-shadow: var(--sombra-card);
+  break-inside: avoid;
+}
+
+.ficha-observar .rotulo {
+  display: block;
+  margin-bottom: var(--esp-xs);
+  color: var(--cor-texto-corpo);
+}
+
+.ficha-observar p {
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  margin: 0;
+}
+
+/* =========================================== 9. formulário imprimível */
+
+.formulario {
+  max-width: var(--largura-conteudo);
+  break-before: page;
+}
+
+.formulario h1 {
+  font-size: 22pt;
+  margin-bottom: var(--esp-xs);
+}
+
+.formulario .instrucao {
+  font-size: var(--nota-tamanho);
+  line-height: var(--nota-entrelinha);
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--esp-md);
+}
+
+.formulario-ficha {
+  padding: var(--esp-md);
+  margin-bottom: var(--esp-md);
+  border: var(--hairline) solid var(--cor-linha-divisoria);
+  border-radius: var(--raio-card);
+  background: var(--cor-fundo-bloco);
+  break-inside: avoid;
+}
+
+.formulario-campo {
+  font-family: var(--fonte-titulo);
+  font-size: var(--formulario-campo-tamanho);
+  line-height: var(--formulario-campo-entrelinha);
+  font-weight: var(--formulario-campo-peso);
+}
+
+.formulario-campo .linha {
+  display: inline-block;
+  border-bottom: var(--hairline) solid var(--cor-texto-corpo);
+  min-width: 22mm;
+  height: 1em;
+}
+.formulario-campo .linha.longa { min-width: 62mm; }
+.formulario-campo .linha.total { display: block; min-width: 0; width: 100%; }
+
+.formulario-campo .caixinha {
+  display: inline-block;
+  width: 3.4mm;
+  height: 3.4mm;
+  margin-right: 1.2mm;
+  border: var(--hairline) solid var(--cor-texto-corpo);
+  border-radius: 0.7mm;
+  transform: translateY(0.4mm);
+}
+
+/* ==================================================== 10. encerramento */
+
+.encerramento { max-width: var(--largura-conteudo); }
+
+.encerramento .voz-personagem {
+  margin-top: var(--esp-lg);
+  padding: var(--esp-md);
+  break-inside: avoid;
+}
+.encerramento .voz-personagem .rotulo { display: block; margin-bottom: var(--esp-xs); }
+
+/* ==================================================== 11. página final */
+
+.pagina-final {
+  page: final;
+  break-before: page;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 230mm;
+  text-align: center;
+}
+
+.pagina-final img.peca {
+  width: 18mm;
+  height: auto;
+  margin: 0 auto var(--esp-md);
+}
+
+.pagina-final .fundamentacao {
+  max-width: 140mm;
+  margin: 0 auto var(--esp-md);
+  padding: var(--esp-md);
+  border-radius: var(--raio-card);
+  background: var(--cor-fundo-bloco);
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  box-shadow: var(--sombra-card);
+}
+
+.pagina-final .disclaimer {
+  max-width: 140mm;
+  margin: 0 auto;
+  font-size: var(--nota-tamanho);
+  line-height: var(--nota-entrelinha);
+  color: var(--cor-texto-secundario);
+}
+
+.pagina-final .marca-final {
+  margin-top: var(--esp-lg);
+  font-family: var(--fonte-titulo);
+  font-size: 9pt;
+  color: var(--cor-texto-corpo);
+}
+
+/* ============================================ blocos extra dos materiais
+   de apoio (padrões recorrentes encontrados nos 5 materiais analisados) */
+
+/* dicas para o adulto: título curto imperativo + parágrafo */
+.dicas { margin: var(--esp-md) 0; }
+
+.dica {
+  padding: var(--esp-sm) var(--esp-md);
+  margin-bottom: var(--esp-sm);
+  border-radius: var(--raio-card);
+  background: var(--cor-fundo-bloco);
+  border-left: var(--filete) solid var(--cor-destaque-pedagogico);
+  break-inside: avoid;
+}
+.dica h3 { margin: 0 0 var(--esp-xs); }
+.dica p {
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  margin: 0;
+}
+
+/* roda de conversa: perguntas numeradas para ler com a criança */
+.roda-conversa {
+  padding: var(--esp-md);
+  border-radius: var(--raio-card);
+  background: var(--cor-fundo-bloco);
+  box-shadow: var(--sombra-card);
+}
+.roda-conversa ol { counter-reset: pergunta; list-style: none; padding-left: 0; margin: 0; }
+.roda-conversa li {
+  counter-increment: pergunta;
+  position: relative;
+  padding-left: 7mm;
+  margin-bottom: var(--esp-sm);
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+  break-inside: avoid;
+}
+.roda-conversa li::before {
+  content: counter(pergunta);
+  position: absolute;
+  left: 0;
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  color: var(--cor-destaque-pedagogico-texto);
+}
+
+/* ============================================ ajuste de encaixe da ficha
+   Único valor que o pipeline mexe, e não é decisão de design: é redução
+   numérica para uma ficha longa caber em uma página. Redefine variáveis
+   dentro do próprio bloco — o desenho continua idêntico, só menor.
+   Toda redução aplicada vai para o relatório de QA. */
+
+.ficha.escala-96 { --corpo-pequeno-tamanho: 9.6pt; --esp-xs: 3.0mm; --esp-sm: 5.9mm; --esp-md: 8.9mm; }
+.ficha.escala-92 { --corpo-pequeno-tamanho: 9.2pt; --corpo-tamanho: 11pt; --esp-xs: 2.8mm; --esp-sm: 5.7mm; --esp-md: 8.6mm; }
+.ficha.escala-88 { --corpo-pequeno-tamanho: 8.8pt; --corpo-tamanho: 10.6pt; --esp-xs: 2.7mm; --esp-sm: 5.5mm; --esp-md: 8.2mm; }
+.ficha.escala-92 .ficha-titulo h2,
+.ficha.escala-88 .ficha-titulo h2 { font-size: 18pt; }
+
+/* ================================================== tabela simples (3+ colunas) */
+
+.tabela-simples {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--esp-md) 0;
+  break-inside: avoid;
+  font-size: var(--corpo-pequeno-tamanho);
+  line-height: var(--corpo-pequeno-entrelinha);
+}
+.tabela-simples th {
+  text-align: left;
+  padding: var(--esp-xs) var(--esp-sm);
+  font-family: var(--fonte-titulo);
+  font-size: var(--rotulo-tamanho);
+  font-weight: var(--rotulo-peso);
+  letter-spacing: var(--rotulo-tracking);
+  text-transform: uppercase;
+  color: var(--cor-destaque-pedagogico-texto);
+  border-bottom: var(--filete) solid var(--cor-destaque-pedagogico);
+}
+.tabela-simples td {
+  padding: var(--esp-xs) var(--esp-sm);
+  border-bottom: var(--hairline) solid var(--cor-linha-divisoria);
+  vertical-align: top;
+}
+
+/* ============================================================ citação */
+
+.citacao {
+  margin: var(--esp-md) 0;
+  padding-left: var(--esp-md);
+  border-left: var(--filete) solid var(--cor-linha-divisoria);
+  font-size: 12.5pt;
+  line-height: 1.5;
+  color: var(--cor-texto-corpo);
+  break-inside: avoid;
+}
+
+/* =========================================== voz do personagem (bloco) */
+
+.voz-personagem {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-md);
+  margin: var(--esp-lg) 0;
+  padding: var(--esp-md);
+  border-radius: 0 var(--raio-card) var(--raio-card) 0;
+  border-left: var(--filete) solid var(--cor-voz-filete);
+  background: var(--cor-voz-fundo);
+  break-inside: avoid;
+}
+.voz-personagem .voz-ilustracao {
+  flex: 0 0 auto;
+  width: 26mm;
+  height: auto;
+}
+.voz-personagem .voz-texto { flex: 1; }
+.voz-personagem .rotulo {
+  display: block;
+  margin-bottom: var(--esp-xs);
+  color: var(--cor-texto-corpo);
+}
+.voz-personagem p { margin-bottom: var(--esp-xs); }
+.voz-personagem p:last-child { margin-bottom: 0; }
+
+/* ============================================ abertura de seção corrida */
+
+h2.abre-secao {
+  margin-top: 0;
+  padding-bottom: var(--esp-xs);
+  border-bottom: var(--hairline) solid var(--cor-linha-divisoria);
+}
+
+.secao-conceitual,
+.dicas,
+.roda-conversa-secao,
+.encerramento {
+  margin-bottom: var(--esp-lg);
+}
+
+/* seção com título abre página nova; sem título, continua a anterior */
+.secao-conceitual:has(> h2.abre-secao),
+.dicas:has(> h2.abre-secao),
+.roda-conversa-secao:has(> h2.abre-secao),
+.encerramento:has(> h2.abre-secao) {
+  break-before: page;
+}
+.capa + .secao-conceitual,
+.sumario + .secao-conceitual { break-before: auto; }
+
+/* ------------------------------------------------ sumário: item e grupo */
+
+.sumario .rotulo-item { white-space: nowrap; }
+.sumario li.grupo .rotulo-item { white-space: normal; }

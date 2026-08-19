@@ -1,0 +1,8 @@
+{% import 'conteudo.html' as c %}
+<aside class="voz-personagem" id="b{{ indice }}">
+  {% if bloco.dados.ilustracao %}<img class="voz-ilustracao" src="{{ bloco.dados.ilustracao }}" alt="">{% endif %}
+  <div class="voz-texto">
+    {% if bloco.dados.titulo %}<span class="rotulo">{{ bloco.dados.titulo }}</span>{% endif %}
+    {{ c.render(bloco.dados.corpo) }}
+  </div>
+</aside>

@@ -1,5 +1,8 @@
-# Só para as ferramentas de preparação, que rodam na máquina e não no serviço:
-# recorte de fundo das ilustrações e leitura das referências.
+# Só para as ferramentas de preparação, que rodam na máquina e não no caminho
+# normal do material: recorte de fundo das ilustrações, leitura das referências
+# e a classificação por API (que na sessão não é usada — quem classifica é o
+# modelo que está conduzindo a conversa).
 -r requirements.txt
 pillow==12.3.0
 scipy==1.17.1
+anthropic==0.122.0

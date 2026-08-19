@@ -1,0 +1,7 @@
+{% import 'conteudo.html' as c %}
+<section class="pagina carta" id="b{{ indice }}">
+  {{ c.render(bloco.dados.corpo) }}
+  {% if bloco.dados.assinatura %}
+  <div class="carta-assinatura">{{ c.render(bloco.dados.assinatura) }}</div>
+  {% endif %}
+</section>

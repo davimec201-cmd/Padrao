@@ -1,7 +1,8 @@
 # Design system — valores congelados
 
-Fonte de verdade: `design/tokens.json` no repositório `Padrao`. Se você tiver o
-repositório, leia de lá. Esta cópia existe para quando não tiver.
+Fonte de verdade: `design/tokens.json`. Esta página é gerada a partir dele
+por `diagramador/ferramentas/empacotar_skill.py` — não edite à mão, edite o
+tokens e rode o empacotador.
 
 Todo valor aqui é **medido** nas cartilhas aprovadas, veio do **manual** de
 identidade, ou é **derivado** por fórmula de um dos dois. Não há valor escolhido
@@ -50,18 +51,18 @@ rediagramar, e o que impede o coral de virar cor de texto por engano.
 
 | Papel | Institucional | TEAnimal | Para quê |
 |---|---|---|---|
-| `fundo_palco` | `#F9F4E5` | `—` |  |
-| `fundo_bloco` | `#FFFFFF` | `—` |  |
-| `fundo_bloco_ficha` | `#FFFFFF` | `—` |  |
-| `fundo_bloco_secundario` | `#F1E9D5` | `—` |  |
-| `texto_corpo` | `#1F2D3D` | `—` |  |
-| `texto_titulo` | `#1F2D3D` | `—` |  |
-| `texto_secundario` | `#5A6675` | `—` |  |
-| `texto_sobre_cor` | `#FFFFFF` | `—` |  |
+| `fundo_palco` | `#F9F4E5` | — |  |
+| `fundo_bloco` | `#FFFFFF` | — |  |
+| `fundo_bloco_ficha` | `#FFFFFF` | — |  |
+| `fundo_bloco_secundario` | `#F1E9D5` | — |  |
+| `texto_corpo` | `#1F2D3D` | — |  |
+| `texto_titulo` | `#1F2D3D` | — |  |
+| `texto_secundario` | `#5A6675` | — |  |
+| `texto_sobre_cor` | `#FFFFFF` | — |  |
 | `linha_divisoria` | `#E5DCC3` | `#E0BC95` | no tema TEAnimal vira o tom de pelo da Mamãe Urso |
-| `destaque_pedagogico` | `#0193C8` | `—` | objetivo terapêutico e princípio ABA-TCC |
-| `destaque_pedagogico_texto` | `#016E96` | `—` |  |
-| `destaque_pedagogico_wash` | `#E6F4FA` | `—` |  |
+| `destaque_pedagogico` | `#0193C8` | — | objetivo terapêutico e princípio ABA-TCC |
+| `destaque_pedagogico_texto` | `#016E96` | — |  |
+| `destaque_pedagogico_wash` | `#E6F4FA` | — |  |
 | `acento_material` | `#016E96` | `#FF7345` | preenchimento do pill de capa e do número da ficha; texto branco por cima |
 | `acento_material_texto` | `#FFFFFF` | `#1F2D3D` | texto sobre acento_material |
 | `acento_material_wash` | `#F1E9D5` | `#FFF1EC` |  |
@@ -78,7 +79,7 @@ rediagramar, e o que impede o coral de virar cor de texto por engano.
 | `voz_fundo` | `#F1E9D5` | `#FFF1EC` |  |
 | `voz_filete` | `#0193C8` | `#FF7345` |  |
 | `capa_contorno` | `#39A6D8` | `#FF7345` | contorno do título de capa |
-| `logo_azul` | `#39A6D8` | `—` |  |
+| `logo_azul` | `#39A6D8` | — |  |
 | `atencao_texto` | `#FFFFFF` | `#1F2D3D` |  |
 
 ### As três regras de cor
@@ -94,27 +95,27 @@ rediagramar, e o que impede o coral de virar cor de texto por engano.
    lúdica, peça o tema; não misture.
 
 Todo texto de corpo (≤13pt) fica ≥ 4.5:1 nos dois temas. São 32 pares conferidos
-a cada geração.
+a cada geração, pelo QA.
 
 ## Tipografia
 
-- **Display e títulos:** Poppins Bold
-- **Interface, rótulos, rodapé:** Poppins
-- **Leitura longa:** Manrope
+- **Display e títulos de capa:** Poppins (Bold, SemiBold)
+- **Títulos, rótulos e rodapé:** Poppins (Regular, Medium, SemiBold, Bold, Italic)
+- **Leitura longa (o corpo do texto):** Manrope (Regular, Medium, SemiBold, Bold, ExtraBold)
 
-Omnes Huggies (a fonte arredondada das capas de cartilha) foi **descartada por
-decisão do fundador**. Display é Poppins Bold.
+Omnes Huggies (a face arredondada das capas de cartilha) foi **descartada por
+decisão do fundador**. O papel de display ficou com Poppins Bold.
 
 | Nível | pt | Entrelinha | Peso | Observação |
 |---|---|---|---|---|
-| `capa_titulo` | 46 | 1.05 | 700 | medido 62pt/1.22 e contorno ~0.08em na CARTILHA_04 p1; reduzido a 46pt com ajuste automáti |
+| `capa_titulo` | 46 | 1.05 | 700 | medido 62pt/1.22 e contorno ~0.08em na CARTILHA_04 p1; reduzido a 46pt com ajuste automático de encaixe |
 | `capa_subtitulo` | 15 | 1.3 | 600 | medido — pill de 16.4mm × 140.6mm, r 3.9mm, CARTILHA_04 p1; texto virou navy por contraste |
 | `capa_assinatura` | 9.5 | 1.45 | 500 |  |
 | `h1` | 28 | 1.12 | 700 |  |
 | `h2` | 16.5 | 1.25 | 600 |  |
 | `h3` | 12.5 | 1.3 | 600 |  |
 | `rotulo` | 8.5 | 1.2 | 600 | estrutura do Porto Seguro; cor e caixa vindas das cartilhas |
-| `corpo` | 11.5 | 1.52 | 400 | medido: avanço de linha 17.2–18.1pt no card coral da CARTILHA_01 p4 → 11.5pt × 1.52 = 17.5 |
+| `corpo` | 11.5 | 1.52 | 400 | medido: avanço de linha 17.2–18.1pt no card coral da CARTILHA_01 p4 → 11.5pt × 1.52 = 17.5pt |
 | `corpo_destaque` | 11.5 | 1.52 | 700 |  |
 | `corpo_pequeno` | 10 | 1.5 | 400 |  |
 | `nota` | 9.5 | 1.5 | 400 |  |
@@ -134,8 +135,7 @@ vertical do material aprovado.
 - Margens: topo 22mm, base 20mm, laterais **29mm**
 - Largura de conteúdo: **152mm** — medido, idêntico nas 4 cartilhas
 - Medida de linha: ~72 caracteres
-- Base vertical: **6.2mm** (= 17.5pt, o avanço do corpo). Toda a escala de
-  espaço é múltipla dela: 3.1mm / 6.2mm / 9.3mm / 12.4mm / 18.6mm
+- Base vertical: **6.2mm** (= 17.5pt, o avanço do corpo). Toda a escala de espaço é múltipla dela: 3.1mm / 6.2mm / 9.3mm / 12.4mm / 18.6mm
 - Padding de card: 9.3mm
 
 ## Formas
@@ -143,8 +143,7 @@ vertical do material aprovado.
 - Raio de card: **8mm** (medido: 8.2mm nas cartilhas)
 - Raio de pill: **4mm** (medido: 3.9mm)
 - Filete: 1.2mm · fio: 0.35mm
-- Faixa em arco do rodapé de capa: 13mm na borda,
-  26mm no ápice — assinatura gráfica da marca
+- Faixa em arco do rodapé de capa: 13mm na borda, 26mm no ápice — assinatura gráfica da marca
 - Sombra de card: `0 1.5mm 4mm rgba(31,45,61,0.10)`
 
 ## Catálogo de blocos
@@ -170,5 +169,5 @@ Todo material se monta com estes tipos. Nenhum outro é inventado em runtime.
 
 A **ficha de atividade** é o bloco mais importante e ocupa uma página inteira:
 número + nome, par lado a lado objetivo/princípio, parágrafo de materiais, passo
-a passo numerado, par mais fácil/mais desafiador, e o rodapé "o que observar".
+a passo numerado, par mais fácil/mais desafiador, e o rodapé “o que observar”.
 Uma ficha nunca quebra entre páginas.
