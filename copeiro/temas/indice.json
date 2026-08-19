@@ -1,0 +1,6 @@
+{
+  "temas": [
+    { "id": "gremio", "nome": "Tricolor" },
+    { "id": "neutro", "nome": "Neutro" }
+  ]
+}

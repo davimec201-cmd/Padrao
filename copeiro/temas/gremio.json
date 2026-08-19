@@ -1,0 +1,186 @@
+{
+  "id": "gremio",
+  "nome": "Tricolor",
+  "cores": {
+    "primaria": "#0D80BF",
+    "escura": "#111111",
+    "clara": "#FFFFFF",
+    "papel": "#F3F6F9",
+    "tinta": "#0A2A43",
+    "suave": "#5C6E80",
+    "acento": "#1E7FC2",
+    "pausa_papel": "#F2F2F2",
+    "pausa_acento": "#0A2A43"
+  },
+  "faixas": [
+    "#0D80BF",
+    "#111111",
+    "#FFFFFF"
+  ],
+  "frases": {
+    "manha": [
+      "Bom dia, Davi. Dia de copar.",
+      "Levanta que a bola vai rolar, Davi.",
+      "Manhã limpa, Davi: começa o jogo.",
+      "Café tomado? Então bora copar.",
+      "Primeiro tempo começando, Davi.",
+      "Davi, o dia é teu. Entra pegando.",
+      "Manhã de sangue azul, Davi.",
+      "Aquece que hoje tem, Davi.",
+      "Bom dia, copeiro. Escala o time.",
+      "Davi, qual assunto entra primeiro?"
+    ],
+    "tarde": [
+      "Boa tarde, Davi. Segundo tempo.",
+      "Tarde de copar, Davi.",
+      "É no meio da tarde que o jogo se decide.",
+      "Bora, Davi: tarde rende.",
+      "Tricolor não amarela na tarde, Davi.",
+      "Tem tempo, Davi. Bota um bloco na conta.",
+      "Boa tarde, copeiro. Entra em campo.",
+      "Sol alto e assunto na mesa, Davi.",
+      "Tarde é hora de virar o jogo, Davi.",
+      "Davi, escolhe o assunto que eu boto o relógio."
+    ],
+    "noite": [
+      "Boa noite, Davi. Ainda dá pra copar.",
+      "Jogo noturno, Davi. Arena cheia.",
+      "Noite é de tricolor, Davi.",
+      "Um bloco à noite já muda o placar, Davi.",
+      "Davi, luz acesa e cabeça no jogo.",
+      "Boa noite, copeiro. Bora fechar bem.",
+      "Fim de dia, Davi: acréscimo também vale gol.",
+      "Noite calma, assunto escolhido, Davi.",
+      "Um tempo só e tu fecha o dia copado, Davi.",
+      "Quem copa à noite dorme tranquilo, Davi."
+    ],
+    "madrugada": [
+      "Madrugada, Davi. Se entrar, entra inteiro.",
+      "Vira a noite com raça, Davi.",
+      "Davi, madrugada é jogo de mata-mata.",
+      "Silêncio total: hora boa de copar.",
+      "Tricolor na madruga também é tricolor, Davi.",
+      "Tarde da noite e tu firme. Respeito, Davi.",
+      "Um bloco curto agora e cama, Davi.",
+      "Davi, madrugada rende quando ninguém atrapalha."
+    ],
+    "jaEstudouHoje": [
+      "Davi, já tem {min} no placar hoje.",
+      "Placar aberto, Davi. Amplia.",
+      "Tu já copou hoje, Davi. Mais um?",
+      "Tá ganhando o dia, Davi. Segura o resultado.",
+      "O dia já é teu, Davi. Cava mais um gol.",
+      "Mais um bloco e vira goleada, Davi.",
+      "Dia copeiro esse, Davi.",
+      "Tá com a bola, Davi. Não devolve.",
+      "Bom ritmo, Davi. Mantém a pressão.",
+      "Já entrou em campo hoje. Bora pro próximo tempo, Davi."
+    ],
+    "retomada": [
+      "Voltou, Davi. Time completo de novo.",
+      "Que bom te ver, Davi. Bola no centro.",
+      "Recomeço vale campanha inteira, Davi.",
+      "Tá de volta, copeiro. Só isso importa.",
+      "Davi, jogo de volta começa agora.",
+      "Sem olhar retrospecto, Davi: hoje é hoje.",
+      "Voltar é o mais difícil, e tu já fez, Davi.",
+      "A arquibancada tava te esperando, Davi.",
+      "De volta ao gramado, Davi. Devagar e firme.",
+      "Jogo novo, Davi. Placar zerado pra todo mundo."
+    ],
+    "lembreteFoco": [
+      "Tranca o que te tira do jogo antes de entrar em campo.",
+      "Adversário de hoje é a notificação, Davi.",
+      "Cabeça no jogo: bloqueia o resto.",
+      "Sem torcida adversária no ouvido, Davi.",
+      "Fecha a arena antes do apito.",
+      "Celular quieto, bloco copado.",
+      "Tira o que atrapalha e entra inteiro.",
+      "Um toque agora poupa meia hora depois."
+    ],
+    "iniciaBloco": [
+      "Bloco rolando, Davi. Foco em {assunto}.",
+      "Apitou. {assunto} é o adversário de agora.",
+      "Tamo em campo, Davi.",
+      "Vai, Davi: {min} de raça.",
+      "Cabeça no jogo, {assunto} na mesa.",
+      "Entrou o tricolor. Sem moleza, Davi.",
+      "Marca em cima do {assunto}, Davi.",
+      "Bola rolando. Boa, copeiro.",
+      "Silêncio na arena, Davi. Concentra.",
+      "Agora é jogo, Davi."
+    ],
+    "concluiBloco": [
+      "Bloco copado, Davi.",
+      "{min} no bolso, Davi.",
+      "Isso é copar, Davi.",
+      "Golaço. {assunto} anotado.",
+      "Trabalho feito, copeiro.",
+      "Mais um pra campanha, Davi.",
+      "Sangue azul, Davi. Fechou bonito.",
+      "Placar mexido, Davi.",
+      "Esse bloco vale ponto na tabela, Davi.",
+      "Copou. Agora respira."
+    ],
+    "pausaLonga": [
+      "Intervalo grande, Davi. Aproveita.",
+      "Pausa longa: levanta, anda, bebe água.",
+      "Descanso de verdade agora, Davi.",
+      "Tempo técnico, copeiro.",
+      "Vestiário, Davi. Volta inteiro.",
+      "Pausa comprida — essa tu ganhou.",
+      "Respira fundo, Davi. O jogo continua.",
+      "Intervalo do jogo, sem culpa nenhuma.",
+      "Descansa que a segunda etapa é tua.",
+      "Pé pra cima, Davi. Volta melhor."
+    ],
+    "fimPausa": [
+      "Pausa encerrada, Davi. Volta pro jogo.",
+      "Intervalo acabou. Bora, copeiro.",
+      "Segundo tempo, Davi.",
+      "Água tomada? Então volta.",
+      "Time em campo de novo, Davi.",
+      "O juiz chamou, Davi.",
+      "Fim do intervalo. Cabeça fria, sangue azul.",
+      "Pronto pra mais um, Davi?",
+      "Descanso pago. Vamo copar.",
+      "Volta com tudo, Davi."
+    ],
+    "recorde": [
+      "Recorde novo, Davi. Puro tricolor.",
+      "Tu passou de ti mesmo, Davi.",
+      "Marca batida. Isso é ser copeiro.",
+      "Recorde novo na conta, Davi.",
+      "Nunca tinha copado tanto assim, Davi.",
+      "História nova escrita, Davi.",
+      "Tabela atualizada: o recorde é teu, Davi.",
+      "Melhor que qualquer dia anterior, Davi.",
+      "Recorde caiu. Sangue azul.",
+      "Anota aí, Davi: recorde novo."
+    ],
+    "encerraCiclo": [
+      "Taça levantada, Davi. {nome} encerrado.",
+      "Campanha fechada. Vai pra estante, Davi.",
+      "Mais um título na sala, Davi.",
+      "Fim de campanha. Foi copeira.",
+      "{nome} fica na estante pra sempre, Davi.",
+      "Acabou o mata-mata, Davi. Tu passou.",
+      "Ciclo encerrado com raça, Davi.",
+      "Troféu guardado. Bora pro próximo, Davi.",
+      "Essa campanha ninguém tira de ti, Davi.",
+      "Taça na mão. Descansa, copeiro."
+    ],
+    "marco": [
+      "{h}h de estudo, Davi. Marco batido.",
+      "Davi, {h}h na vitrine.",
+      "{h}h copadas. Isso não é sorte.",
+      "Marco de {h}h, Davi. Respeito.",
+      "Tu chegou nas {h}h, Davi.",
+      "{h}h de sangue azul.",
+      "{h}h acumuladas. Campanha grande, Davi.",
+      "Bateu {h}h, copeiro.",
+      "{h}h. A estante agradece, Davi.",
+      "Marco novo: {h}h, Davi."
+    ]
+  }
+}

@@ -152,6 +152,30 @@ instalado, funciona 100% offline.
 Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
 murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
 
+#### Tema como dado
+
+As cores e as frases não estão no código: moram em `copeiro/temas/<id>.json`.
+O CSS não tem nenhuma cor de identidade escrita — tudo é `var(--…)`, e o
+carregador de tema escreve as variáveis no `:root`. Trocar de tema não recarrega
+a página e vale na hora, inclusive nos gráficos, no mapa de calor e nas faixas
+diagonais.
+
+O tema declara nove cores base e três faixas; o resto (bordas, sombra, escala do
+mapa de calor, fundos suaves) é calculado a partir delas. As frases do app vêm
+do mesmo arquivo, com um conjunto de reserva embutido para o caso de o JSON não
+carregar.
+
+| Arquivo | O que é |
+|---|---|
+| `temas/indice.json` | lista dos temas disponíveis, lida pelo seletor |
+| `temas/gremio.json` | cores tricolores e as 136 frases de arquibancada |
+| `temas/neutro.json` | cores sóbrias e frases de futebol sem clube |
+
+Regras de conteúdo dos temas: **sem escudo, brasão ou logotipo** — a identidade
+vem das cores e das faixas — e **sem letra de canto de torcida**. Apelido do
+clube, gíria de arquibancada e bordão curto original, mínimo de cinco frases por
+categoria.
+
 #### O campeonato
 
 A tabela é a única parte do app que fala com a rede. Usa o **Realtime Database
