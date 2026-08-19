@@ -490,7 +490,13 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
             <button class="ficha" data-modo="inteiro">Bloco inteiro</button>
             <button class="ficha" id="btTestarAlarme">Testar (20s)</button>
           </div>
-          <p class="sub" id="subAlarmeFundo" style="margin-top:8px"></p>
+          <p class="sub" id="subAlarmeFundo" style="margin-top:10px"></p>
+          <hr class="divisor">
+          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--escuro)">Bloquear o que distrai</p>
+          <div class="fichas" style="margin-top:8px">
+            <button class="ficha" id="fichaLembreteFoco">Lembrar do Modo Foco</button>
+          </div>
+          <p class="sub" id="subLembreteFoco" style="margin-top:10px"></p>
         </div>
 
         <div class="cartao">
@@ -946,6 +952,7 @@ function estadoNovo() {
     prefs: {
       duracao: 30,          // minutos do bloco de foco
       modoAviso: 'fim',     // 'nada' | 'fim' | 'inteiro' — quando a trilha entra
+      lembreteFoco: true,   // pergunta pelo Modo Foco do Android antes do bloco
       pausaCurta: 5,        // pausa entre blocos
       pausaLonga: 15,       // pausa maior, no fim do ciclo de focos
       focosAteLonga: 3,     // quantos focos até a pausa maior
@@ -1118,6 +1125,16 @@ const VOZ = {
     'A arquibancada tava te esperando, Davi.',
     'De volta ao gramado, Davi. Devagar e firme.',
     'Jogo novo, Davi. Placar zerado pra todo mundo.'
+  ],
+  lembreteFoco: [
+    'Tranca o que te tira do jogo antes de entrar em campo.',
+    'Adversário de hoje é a notificação, Davi.',
+    'Cabeça no jogo: bloqueia o resto.',
+    'Sem torcida adversária no ouvido, Davi.',
+    'Fecha a arena antes do apito.',
+    'Celular quieto, bloco copado.',
+    'Tira o que atrapalha e entra inteiro.',
+    'Um toque agora poupa meia hora depois.'
   ],
   iniciaBloco: [
     'Bloco rolando, Davi. Foco em {assunto}.',
@@ -1712,6 +1729,35 @@ function timerRodando() {
   return !!(estado.timer && !estado.timer.pausadoEm);
 }
 
+/**
+ * Lembrete do Modo Foco do Android.
+ *
+ * Bloquear app de verdade é coisa que só o sistema faz — nenhuma página da
+ * web enxerga ou impede outro app, e é proposital. O que dá pra fazer é não
+ * deixar o Davi esquecer de ligar o bloqueio que o tablet já tem.
+ */
+function pedeModoFoco(seguir) {
+  if (!estado.prefs.lembreteFoco) { seguir(); return; }
+  abreModal({
+    titulo: 'Modo Foco ligado?',
+    frase: fala('lembreteFoco'),
+    detalhe: 'No tablet: <b>Configurações → Bem-estar digital → Modo Foco</b>. ' +
+             'Vale deixar o atalho nas Configurações Rápidas, aí é um toque. ' +
+             'Se for Samsung, dá pra criar uma rotina que liga sozinho quando o Copeiro abre.',
+    botoes: [
+      { texto: 'Tá ligado, bora', tipo: 'bt-azul', acao: () => { fechaModal(); seguir(); } },
+      { texto: 'Deixa eu ligar', tipo: '', acao: fechaModal },
+      { texto: 'Não pergunta mais', tipo: 'bt-fantasma', acao: () => {
+          estado.prefs.lembreteFoco = false;
+          salvaEstado();
+          fechaModal();
+          desenhaFoco();
+          seguir();
+        } }
+    ]
+  });
+}
+
 /** Começa um bloco de foco ou uma pausa (curta ou longa). */
 function comecaBloco(modo, minutos, assunto, longa) {
   const ciclo = cicloAtivo();
@@ -2292,6 +2338,15 @@ function desenhaFoco() {
   }
   $('#subAlarmeFundo').textContent = recado;
 
+  // Lembrete do Modo Foco do Android
+  const lembrete = !!estado.prefs.lembreteFoco;
+  const fichaLembrete = $('#fichaLembreteFoco');
+  fichaLembrete.classList.toggle('ativa', lembrete);
+  fichaLembrete.textContent = 'Lembrar do Modo Foco: ' + (lembrete ? 'sim' : 'não');
+  $('#subLembreteFoco').textContent = lembrete
+    ? 'Antes de cada bloco o app pergunta se o Modo Foco do Android está ligado. Bloquear app é coisa que só o sistema faz — o Copeiro só não deixa tu esquecer.'
+    : 'O app não pergunta mais nada antes de começar.';
+
   desenhaAssuntos();
 }
 
@@ -2715,8 +2770,10 @@ $('#btPrincipal').addEventListener('click', () => {
   const t = estado.timer;
   if (!t) {
     const assunto = $('#campoAssunto').value.trim() || 'Estudo livre';
-    comecaBloco('foco', estado.prefs.duracao, assunto);
-    desenhaAssuntos();
+    pedeModoFoco(() => {
+      comecaBloco('foco', estado.prefs.duracao, assunto);
+      desenhaAssuntos();
+    });
   } else if (t.pausadoEm) {
     retomaTimer();
   } else {
@@ -2775,6 +2832,12 @@ $('#modosAviso').addEventListener('click', async (ev) => {
 });
 
 $('#btTestarAlarme').addEventListener('click', () => { testaAlarmeEmSegundoPlano(); });
+
+$('#fichaLembreteFoco').addEventListener('click', () => {
+  estado.prefs.lembreteFoco = !estado.prefs.lembreteFoco;
+  salvaEstado();
+  desenhaFoco();
+});
 
 /* ---- Assunto ---- */
 $('#campoAssunto').addEventListener('input', () => { if (!estado.timer) desenhaTimer(); });
