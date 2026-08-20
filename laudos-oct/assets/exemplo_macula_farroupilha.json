@@ -1,6 +1,5 @@
 {
   "hospital": "farroupilha",
-  "medico": "maeta",
   "exame": "macula",
   "paciente": {
     "nome": "Beltrana de Tal Exemplo",
@@ -24,5 +23,5 @@
     "AMBOS OS OLHOS com máculas aparentemente dentro da normalidade."
   ],
   "sugestao": "Sugiro correlação clínica.",
-  "_nota": "Exemplo sintético. Farroupilha usa 'aparentemente dentro da normalidade' — ver templates-hospitais.md §8."
+  "_nota": "Exemplo sintético."
 }

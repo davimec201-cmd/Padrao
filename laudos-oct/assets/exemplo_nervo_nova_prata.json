@@ -1,7 +1,6 @@
 {
   "hospital": "nova_prata",
   "exame": "nervo",
-  "medico": "maeta",
   "paciente": {
     "nome": "Sicrano de Tal Exemplo",
     "nascimento": "30/09/1949"
@@ -29,8 +28,8 @@
     }
   },
   "conclusoes": [
-    "AMBOS OS OLHOS com área da escavação fora da curva de normalidade e espessura média da camada de fibras nervosas dentro da curva de normalidade."
+    "AMBOS OS OLHOS com relação escavação/papila (área) fora da curva de normalidade e espessura média da camada de fibras nervosas dentro da curva de normalidade."
   ],
   "sugestao": "Sugiro correlação clínica e acompanhamento com exames periódicos para comparação dos parâmetros.",
-  "_nota": "Exemplo sintético. Nome e data inventados."
+  "_nota": "Exemplo sintético. Data por extenso completo, como manda a seção 4.5."
 }

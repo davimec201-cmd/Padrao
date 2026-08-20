@@ -21,7 +21,7 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase.pdfmetrics import stringWidth
-from reportlab.platypus import (BaseDocTemplate, Flowable, Frame,
+from reportlab.platypus import (BaseDocTemplate, Flowable, Frame, Image,
                                 KeepTogether, PageTemplate, Paragraph, Spacer)
 
 PW, PH = A4
@@ -37,17 +37,54 @@ PRETO = colors.HexColor("#000000")
 NAVY = colors.HexColor("#10263D")
 PILL_FORA = colors.HexColor("#B10202")
 PILL_DENTRO = colors.HexColor("#11734B")
-PILL_LIMIAR = colors.HexColor("#8B5E00")
 PILL_NEUTRO = colors.HexColor("#5B6670")
 ALERTA = colors.HexColor("#B10202")
 
-MEDICOS = {
-    "maeta": {
+# Signatário por HOSPITAL, extraído dos laudos reais. Nunca vem do laudo.json:
+# um laudo de Farroupilha com os dados do Dr. Maeta (ou o contrário) é documento
+# assinado por quem não atendeu, e por isso é recusa, não aviso.
+#
+# A grafia abaixo é a dos laudos reais e NÃO deve ser uniformizada:
+#   - Farroupilha escreve "Dr." com ponto; Nova Prata escreve "Dr" sem ponto.
+#   - Farroupilha usa ponto de milhar ("30.544", "25.730"); Nova Prata não.
+#   - Nova Prata imprime as DUAS inscrições, SC antes de RS, uma por linha.
+ASSINANTES = {
+    "farroupilha": {
+        "chave": "cassiano",
+        "nome": "Dr. Cassiano Ricardo Goulart",
+        "registros": ["CRM-RS 30.544 RQE 25.730"],
+        "arquivo_assinatura": "assinatura_cassiano",
+    },
+    "nova_prata": {
+        "chave": "maeta",
         "nome": "Dr Vinícius L Maeta",
         "registros": ["CRM-SC 23632 RQE 14403", "CRM-RS 40608 RQE 30002"],
+        "arquivo_assinatura": "assinatura_maeta",
     },
 }
-MEDICO_PADRAO = "maeta"
+
+# Onde as imagens de assinatura vivem: FORA do pacote e fora do versionamento.
+DIR_ASSINATURAS = Path.home() / ".laudos_oct" / "assinaturas"
+
+
+def pend_marcadores(d):
+    """True se houver [VERIFICAR]/[RECAPTURAR] em qualquer profundidade."""
+    bruto = json.dumps(d, ensure_ascii=False)
+    return any(m in bruto for m in MARCAS)
+
+
+def assinante_de(hospital):
+    """O signatário daquele hospital, ou uma parada. Sem default, sem herança."""
+    a = ASSINANTES.get(hospital)
+    if not a:
+        sys.exit(f"ERRO: hospital indefinido ou desconhecido: {hospital!r}. "
+                 f"Sem hospital não há signatário, e sem signatário não há laudo. "
+                 f"Aceitos: {sorted(ASSINANTES)}")
+    faltando = [c for c in ("nome", "registros") if not a.get(c)]
+    if faltando:
+        sys.exit(f"ERRO: signatário de {hospital} incompleto — falta: "
+                 f"{', '.join(faltando)}.")
+    return a
 
 # Fator de compressão vertical. 1.0 = geometria calibrada pixel a pixel contra os
 # laudos modelo. Só cai abaixo de 1.0 quando o conteúdo não cabe em uma página —
@@ -75,11 +112,12 @@ CAMADAS = [
     ("camadas_internas", "camadas retinianas internas"),
     ("epr_cfr", "epitélio pigmentado da retina (EPR) e camada de fotorreceptores (CFR)"),
 ]
+# Decisão do Dr. Maeta (formulário 20/08/2026, item 3.4): verde e branco são
+# DENTRO; amarelo e vermelho são FORA, com a MESMA redação. Não existe categoria
+# "limítrofe" neste sistema — quem lê a tela classifica em dois estados, não três.
 CLASSIF = {
     "dentro": ("dentro da curva de normalidade", PILL_DENTRO),
     "fora": ("fora da curva de normalidade", PILL_FORA),
-    "limitrofe": ("limítrofe", PILL_LIMIAR),
-    "limítrofe": ("limítrofe", PILL_LIMIAR),
 }
 
 
@@ -221,14 +259,14 @@ CHAVES = {
     "paciente": {"nome", "nascimento", "prontuario"},
     "nervo": {"area_papila", "rel_esc_papila", "rel_classificacao", "escavacao",
               "escavacao_v", "escavacao_h", "cfn_media", "cfn_classificacao",
-              "qualidade", "observacoes"},
+              "observacoes"},
     "macula": {"interface_vitreo_retiniana", "camadas_internas", "epr_cfr",
-               "qualidade", "observacoes"},
+               "observacoes"},
 }
 # Campos aceitos mas DELIBERADAMENTE não impressos no corpo: o laudo da casa é a
 # lista de 4 parâmetros (nervo) ou as 3 camadas (mácula). Ficam no rastro de
 # auditoria; se forem parte de uma limitação, entram em 'observacoes' como prosa.
-NAO_IMPRESSOS = {"qualidade", "extracao"}
+NAO_IMPRESSOS = {"extracao"}
 
 # Fonte única de normalização da lateralidade. A tabela de extracao-tela.md §1
 # manda o modelo mapear OS->OE; nada em código conferia, e "olhos" entrava cru no
@@ -307,27 +345,60 @@ def valida(d):
             erros.append(f"'olhos' declara {olhos} mas há dados de {preenchidos}. "
                          "O nome do arquivo sairia com um olho e o corpo com "
                          "outro. Corrija a extração ou marque [RECAPTURAR]")
-    if _vazio(d.get("conclusoes")):
+    if _vazio(d.get("conclusoes")) and not nervo_todo_dentro(d, exame):
         erros.append("'conclusoes' vazio — a seção CONCLUSÕES sairia só com o título")
+    # A exceção é UMA só: nervo com os dois parâmetros dentro da curva nos dois
+    # olhos. O Dr. Maeta reprovou a conclusão proposta para esse caso e não
+    # escreveu substituta (Bloco 2, 20/08/2026), então não existe frase aprovada
+    # — o campo sai em branco e a conclusão é dele. Mácula sem conclusão continua
+    # sendo erro.
     return avisos, erros
 
 
+BASE_DIR = AQUI.parent / "references" / "base"
+REGISTRO_REVISAO = BASE_DIR / "REVISAO.json"
+
+
+def hash_da_base():
+    """Impressão digital do conteúdo clínico da base, em ordem estável.
+
+    É o que faz a liberação valer PARA A VERSÃO REVISADA: se a base mudar depois,
+    o hash muda, o registro deixa de casar e a trava volta sozinha — sem ninguém
+    precisar lembrar de reativá-la."""
+    import hashlib
+    h = hashlib.sha256()
+    for f in sorted(BASE_DIR.glob("*.md")):
+        if f.name == "00-indice.md":
+            continue                      # gerado; carrega o carimbo, não o conteúdo
+        h.update(f.name.encode("utf-8"))
+        h.update(f.read_bytes())
+    return h.hexdigest()
+
+
 def estado_da_base():
-    """(revisada?, versao, revisor) lido de references/base/00-indice.md."""
-    idx = AQUI.parent / "references" / "base" / "00-indice.md"
-    if not idx.exists():
+    """(revisada?, versao, revisor).
+
+    A liberação é um REGISTRO, não uma linha apagada: quem revisou, quando, e
+    sobre qual conteúdo. A checagem continua aqui — apenas satisfeita."""
+    if not BASE_DIR.exists() or not any(BASE_DIR.glob("*.md")):
         return None, "ausente", "ausente"
-    t = idx.read_text(encoding="utf-8")
-    linha = next((l for l in t.splitlines() if "VERSÃO:" in l), "")
-    ver = linha if "VERSÃO:" in linha else "VERSÃO: ?"
-    rev = next((l for l in t.splitlines() if "REVISADO POR:" in l), "REVISADO POR: ?")
-    limpa = lambda x: x.strip().strip("`").replace("`", "").strip()
-    if limpa(ver) == limpa(rev):                      # mesma linha traz os dois
-        partes = [x.strip() for x in limpa(ver).split("·")]
-        ver, rev = (partes + ["REVISADO POR: ?"])[:2]
-    pend = ("PENDENTE" in rev.upper() or "RASCUNHO" in ver.upper()
-            or "?" in rev)
-    return (not pend), limpa(ver), limpa(rev)
+    if not REGISTRO_REVISAO.exists():
+        return False, "sem registro de revisão", "REVISADO POR: PENDENTE"
+    try:
+        reg = json.loads(REGISTRO_REVISAO.read_text(encoding="utf-8"))
+    except Exception as e:
+        return False, f"registro de revisão ilegível ({e})", "REVISADO POR: ?"
+
+    revisor, data = reg.get("revisor") or "", reg.get("data") or ""
+    versao = reg.get("versao_revisada") or "?"
+    if not revisor or not data:
+        return False, f"VERSÃO: {versao}", "REVISADO POR: registro incompleto"
+    if reg.get("hash_base") != hash_da_base():
+        return (False,
+                f"VERSÃO: {versao} — a base MUDOU depois da revisão",
+                f"REVISADO POR: {revisor} em {data} (o registro não vale para o "
+                "conteúdo atual)")
+    return True, f"VERSÃO: {versao}", f"REVISADO POR: {revisor} em {data}"
 
 
 def txt(v):
@@ -412,38 +483,131 @@ def bloco_olho(sigla, dados, exame, S):
     return out
 
 
-def bloco_conclusoes(d, S):
+# Decisão 1.1 (formulário 20/08/2026): entra em TODO laudo de nervo óptico, dos
+# dois hospitais, e em NENHUM de mácula.
+RESERVA_DIAGNOSTICA = ("Os achados estruturais isoladamente não estabelecem "
+                       "diagnóstico; sugere-se correlação com quadro clínico, "
+                       "pressão intraocular e campo visual.")
+
+
+def nervo_todo_dentro(d, exame):
+    """Nervo com os dois parâmetros classificados dentro da curva, nos dois olhos.
+
+    Bloco 2 do formulário: a conclusão proposta para esse caso foi REPROVADA e o
+    Dr. Maeta não escreveu substituta. Não existe frase aprovada — então o campo
+    sai em branco e a conclusão é dele. Não é erro nem bloqueio."""
+    if exame != "nervo":
+        return False
+    corpo = d.get("nervo") or {}
+    olhos = [corpo[k] for k in ("OD", "OE") if corpo.get(k)]
+    if not olhos:
+        return False
+    for olho in olhos:
+        for campo in ("rel_classificacao", "cfn_classificacao"):
+            v = str(olho.get(campo) or "").strip().lower()
+            if not v.startswith("dentro"):
+                return False
+    return True
+
+
+def bloco_conclusoes(d, S, exame):
     out = [Paragraph("CONCLUSÕES", S["secao"]), Spacer(1, E(1))]
     concl = d.get("conclusoes")
     if isinstance(concl, str):
         concl = [concl]
-    for c in (concl or []):
-        out.append(LinhaPill(txt(c)))
+    concl = [c for c in (concl or []) if txt(c)]
+
+    if concl:
+        for c in concl:
+            out.append(LinhaPill(txt(c)))
+    elif nervo_todo_dentro(d, exame):
+        # Em branco de propósito, e dito em voz alta para quem revisa.
+        out.append(Paragraph(
+            "<i>— a conclusão deste caso é do médico responsável: não há frase "
+            "aprovada para nervo inteiramente dentro da curva.</i>", S["corpo"]))
     out.append(Spacer(1, E(22)))
+
     if d.get("sugestao"):
         out.append(Paragraph(par(d["sugestao"]), S["corpo"]))
+    if exame == "nervo":
+        out.append(Spacer(1, E(10)))
+        out.append(Paragraph(RESERVA_DIAGNOSTICA, S["corpo"]))
     return out
 
 
-def bloco_assinatura(tpl, med, S):
-    """Espaço em branco + nome e registros impressos abaixo, para assinatura à mão.
+# Farroupilha imprime a linha de assinatura no laudo de nervo e não imprime no de
+# mácula. Padronizado COM a linha nos dois; vire False para voltar ao original.
+LINHA_ASSINATURA_FARROUPILHA = True
 
-    NÃO existe caminho para embutir imagem de assinatura. A clínica decidiu não
-    usar assinatura digitalizada (SEGURANCA.md §9) e a capacidade foi removida do
-    código, não apenas desligada: um PDF que já sai assinado é documento
-    executado, e quem carrega a consequência é o CRM impresso aqui."""
+
+def caminho_assinatura(assinante):
+    """PNG/SVG do signatário, de ~/.laudos_oct/assinaturas. None se não houver.
+
+    Fora do pacote e fora do versionamento de propósito: imagem de assinatura é
+    o ativo mais sensível do projeto."""
+    base = assinante.get("arquivo_assinatura")
+    if not base:
+        return None
+    for ext in (".svg", ".png"):          # SVG é o padrão; PNG é a reserva
+        p = DIR_ASSINATURAS / (base + ext)
+        if p.exists():
+            return p
+    return None
+
+
+def bloco_assinatura(tpl, assinante, S, assinar=False):
+    """Nome e registros do signatário do hospital.
+
+    A imagem de assinatura só entra quando `assinar` é verdadeiro — o que exige
+    a ação deliberada `--assinar`. Minuta sai sempre SEM assinatura: documento
+    que já sai assinado é documento executado, e quem carrega a consequência é o
+    CRM impresso aqui."""
+    img = []
+    if assinar:
+        cam = caminho_assinatura(assinante)
+        if cam and cam.suffix.lower() == ".png":
+            img = [Image(str(cam), height=E(51), width=None, kind="proportional")]
+        # SVG exige svglib; enquanto não houver, o final recusa antes de chegar
+        # aqui (ver exige_assinatura()).
+
     if tpl == "bonavita":
-        blk = [Spacer(1, E(22)), Spacer(1, E(34)),
-               Linha(larg=232), Spacer(1, E(18)),
-               Paragraph(med["nome"], S["assin_c"])]
-        blk += [Paragraph(r, S["assin_c"]) for r in med["registros"]]
+        blk = [Spacer(1, E(22))]
+        blk += (img + [Spacer(1, E(2))]) if img else [Spacer(1, E(34))]
+        if LINHA_ASSINATURA_FARROUPILHA:
+            blk += [Linha(larg=232), Spacer(1, E(18))]
+        blk += [Paragraph(assinante["nome"], S["assin_c"])]
+        blk += [Paragraph(r, S["assin_c"]) for r in assinante["registros"]]
     else:
-        blk = [Spacer(1, E(26)), Spacer(1, E(44))]
+        # Nova Prata: sem linha, alinhado à direita.
+        blk = [Spacer(1, E(26))]
+        if img:
+            im = img[0]; im.hAlign = "RIGHT"
+            blk += [im, Spacer(1, E(1))]
+        else:
+            blk += [Spacer(1, E(44))]
         est = ParagraphStyle("ad", parent=S["assin_e"], alignment=TA_CENTER,
                              leftIndent=235)
-        blk += [Paragraph(med["nome"], est)]
-        blk += [Paragraph(r, est) for r in med["registros"]]
+        blk += [Paragraph(assinante["nome"], est)]
+        blk += [Paragraph(r, est) for r in assinante["registros"]]
     return [KeepTogether(blk)]
+
+
+def exige_assinatura(assinante, hospital):
+    """Recusa o documento final dizendo exatamente qual elemento falta."""
+    cam = caminho_assinatura(assinante)
+    if cam is None:
+        sys.exit(
+            f"ERRO: falta a IMAGEM DE ASSINATURA de {assinante['nome']} "
+            f"({hospital}).\n"
+            f"  Esperada em: {DIR_ASSINATURAS / (assinante['arquivo_assinatura'] + '.png')}\n"
+            "  (ou .svg). Sem ela o documento final não é emitido — a minuta,\n"
+            "  sem --assinar, continua saindo normalmente.")
+    if cam.suffix.lower() == ".svg":
+        sys.exit(
+            f"ERRO: assinatura em SVG ({cam.name}) ainda não é renderizável — "
+            "falta a dependência svglib.\n"
+            "  Instale svglib ou forneça a versão .png ao lado do .svg.")
+    return cam
 
 
 # ------------------------------------------------------------ página e monta
@@ -519,10 +683,10 @@ def desenha_cro(canv, doc):
     canv.restoreState()
 
 
-def build(d, out_pdf, base_nao_revisada=False):
+def build(d, out_pdf, base_nao_revisada=False, assinar=False):
     clin = CLINICAS[d["hospital"]]
     tpl = clin["template"]
-    med = MEDICOS[d.get("medico", MEDICO_PADRAO)]
+    assinante = assinante_de(d.get("hospital"))
     exame = d.get("exame") or ("nervo" if d.get("nervo") else "macula")
     S = estilos(tpl)
     bruto = json.dumps(d, ensure_ascii=False)
@@ -541,13 +705,16 @@ def build(d, out_pdf, base_nao_revisada=False):
     # dizer que é dele nos metadados é afirmar uma revisão que não aconteceu.
     doc = BaseDocTemplate(str(out_pdf), pagesize=A4,
                           leftMargin=ml, rightMargin=mr, topMargin=mt, bottomMargin=mb,
-                          title=f"Minuta de laudo — {TITULOS[exame]}",
-                          author="Minuta gerada com apoio automatizado — não assinada",
+                          title=(TITULOS[exame] if assinar
+                                 else f"Minuta de laudo — {TITULOS[exame]}"),
+                          author=(assinante["nome"] if assinar else
+                                  "Minuta gerada com apoio automatizado — não assinada"),
                           subject=TITULOS[exame])
 
     def com_marca(canv, doc_):
         onpage(canv, doc_)
-        marca_minuta(canv, base_nao_revisada)
+        if not assinar:
+            marca_minuta(canv, base_nao_revisada)
 
     doc.addPageTemplates([PageTemplate(id="p", onPage=com_marca, frames=[
         Frame(ml, mb, PW - ml - mr, PH - mt - mb, id="c",
@@ -563,13 +730,13 @@ def build(d, out_pdf, base_nao_revisada=False):
                   Paragraph(f"DATA DO EXAME: {par(d.get('data_exame'))}", S["rotulo_tm"]),
                   Spacer(1, E(13.9))]
     else:
-        ident = f"Paciente: {par(p.get('nome'))}"
-        if p.get("nascimento"):
-            # Acréscimo ao modelo original do CRO: sem nascimento, dois homônimos
-            # ficam indistinguíveis no documento assinado (regra 4 da skill).
-            ident += f"  —  Nascimento: {par(p.get('nascimento'))}"
-        story += [Paragraph(ident, S["ident"]),
-                  Paragraph(f"Data: {par(d.get('data_exame'))}", S["ident"]),
+        # Decisão 1.3: nascimento em linha própria, impressa SÓ quando existe —
+        # sem rótulo vazio e sem placeholder.
+        story += [Paragraph(f"Paciente: {par(p.get('nome'))}", S["ident"])]
+        if txt(p.get("nascimento")):
+            story += [Paragraph(
+                f"Data de nascimento: {par(p.get('nascimento'))}", S["ident"])]
+        story += [Paragraph(f"Data: {par(d.get('data_exame'))}", S["ident"]),
                   Spacer(1, E(26)),
                   Paragraph(TITULOS[exame], S["titulo_e"]), Spacer(1, E(14))]
 
@@ -591,8 +758,8 @@ def build(d, out_pdf, base_nao_revisada=False):
         if corpo.get(sig):
             story += bloco_olho(sig, corpo[sig], exame, S)
 
-    story += bloco_conclusoes(d, S)
-    story += bloco_assinatura(tpl, med, S)
+    story += bloco_conclusoes(d, S, exame)
+    story += bloco_assinatura(tpl, assinante, S, assinar)
     doc.build(story)
     return pend, doc.page
 
@@ -606,6 +773,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", required=True)
     ap.add_argument("--out")
+    ap.add_argument("--assinar", action="store_true",
+                    help="emite o DOCUMENTO FINAL assinado (exige a imagem de "
+                         "assinatura do signatário do hospital). Sem esta flag "
+                         "sai a minuta, sempre sem assinatura.")
     ap.add_argument("--sobrescrever", action="store_true",
                     help="refaz um laudo já emitido, apagando o anterior")
     ap.add_argument("--base-nao-revisada", action="store_true",
@@ -637,8 +808,9 @@ def main():
             f"  {versao}\n  {revisor}\n"
             "  A base orienta a redação clínica deste laudo. Emitir agora produz\n"
             "  documento médico apoiado em guia que se declara não revisado.\n"
-            "  Peça a revisão e troque as duas linhas em references/_fonte/base-cientifica.md,\n"
-            "  depois rode scripts/dividir_guia.py.\n"
+            "  A liberação é um registro: references/base/REVISAO.json com revisor,\n"
+            "  data e o hash da base revisada. Se a base mudou depois da revisão, o\n"
+            "  registro deixa de valer e a trava volta — por desenho.\n"
             "  Só para TESTE, e nunca com paciente real: --base-nao-revisada")
     if revisada is None and not a.base_nao_revisada:
         # Base ausente não é estado mais seguro que base não revisada: é o estado
@@ -650,8 +822,15 @@ def main():
             "  Rode: python3 ~/.claude/skills/laudos-oct/scripts/dividir_guia.py")
     if d.get("hospital") not in CLINICAS:
         sys.exit(f"ERRO: 'hospital' deve ser um de {list(CLINICAS)}")
-    if d.get("medico", MEDICO_PADRAO) not in MEDICOS:
-        sys.exit(f"ERRO: 'medico' deve ser um de {list(MEDICOS)}")
+    # 'medico' é redundante: o signatário vem do hospital. Se vier no JSON e
+    # contradisser, é exatamente o caso da troca cruzada — recusa.
+    assinante = assinante_de(d.get("hospital"))
+    if d.get("medico") and d["medico"] != assinante["chave"]:
+        sys.exit(
+            f"ERRO: 'medico' diz {d['medico']!r} mas o signatário de "
+            f"{d['hospital']} é {assinante['chave']!r} ({assinante['nome']}).\n"
+            "  Emitir assim poria a assinatura de um médico num laudo do outro.\n"
+            "  Remova o campo 'medico': ele é derivado do hospital.")
 
     exame = d.get("exame") or ("nervo" if d.get("nervo") else "macula")
     clin = CLINICAS[d["hospital"]]
@@ -683,11 +862,17 @@ def main():
     # Escrita atômica: build() escrevia direto no destino final, e uma
     # interrupção (Ctrl+C está no procedimento de emergência de SEGURANCA.md §8)
     # deixava PDF truncado no lugar do laudo.
+    if a.assinar:
+        if pend_marcadores(d):
+            sys.exit("ERRO: este laudo tem [VERIFICAR] ou [RECAPTURAR] — não pode "
+                     "ser assinado.\n  Resolva a pendência e gere de novo.")
+        exige_assinatura(assinante, d["hospital"])
+
     parcial = out.with_name(out.name + ".part")
     try:
         for esc in (1.0, 0.90, 0.82):
             ESCALA = esc
-            pend, paginas = build(d, parcial, a.base_nao_revisada)
+            pend, paginas = build(d, parcial, a.base_nao_revisada, a.assinar)
             if paginas == 1:
                 break
         os.replace(parcial, out)
@@ -701,7 +886,8 @@ def main():
               "Os laudos da clínica têm uma página — confira se a redação pode ser "
               "enxugada antes de liberar.", file=sys.stderr)
     res = {"pdf": str(out), "template": clin["template"], "base": versao,
-           "medico": MEDICOS[d.get("medico", MEDICO_PADRAO)]["nome"],
+           "signatario": assinante["nome"],
+           "documento": "final assinado" if a.assinar else "minuta",
            "pendente": pend,
            "paginas": paginas, "escala": ESCALA}
     if pend:

@@ -1,96 +1,81 @@
-# Pendências — o que espera o formulário do médico
+# Pendências — o que ainda falta
 
-A revisão de código de 20/08/2026 fechou 27 achados. **Quatro ficaram em haver**,
-porque a resposta não é minha nem do código: está no formulário
-`Maeta_decisoes_e_equipamentos.docx`, que o Dr. Vinícius L. Maeta vai preencher.
-
-Este arquivo existe para que ninguém confunda "não corrigido" com "esquecido".
+Atualizado em **20/08/2026**, depois da devolutiva do formulário "Decisões clínicas
+e dados dos equipamentos", respondido e assinado pelo **Dr. Vinicius Lotto Maeta**.
 
 ---
 
-## 1. Convenção de cor por aparelho — **trava o laudo hoje**
+## Aberta — uma só
 
-**Onde:** `references/base/05-aparelhos.md` §"Campos a preencher", tabela com
-`[PREENCHER]` para Zeiss, Heidelberg, Topcon e Nidek.
-**Formulário:** Bloco 3.4 (e 3.1, que diz qual aparelho cada hospital usa).
+### P1 — Imagens de assinatura
 
-O que **já foi corrigido**: `SKILL.md` afirmava, na regra inviolável 3, que
-"branco/verde = dentro, amarelo = limítrofe, vermelho = fora". Essa frase saiu.
-A regra agora manda copiar o **rótulo em texto** do aparelho e, havendo só cor,
-traduzir apenas pela tabela do fabricante — enquanto a linha estiver
-`[PREENCHER]`, o campo vira `[VERIFICAR]` e o item para.
+**Bloqueia:** a emissão do **documento final assinado** (`laudo_pdf.py --assinar`).
+Não bloqueia a minuta, que sai normalmente e é o fluxo do dia a dia.
 
-O que **falta**: o conteúdo da tabela, do manual de cada equipamento. Enquanto
-não vier, exame cuja tela só traga cor não é laudado — é a conduta correta, e é
-o comportamento que o pacote tem hoje.
+Faltam dois arquivos, um por signatário:
 
-> `branco` era o caso mais frágil: aparecia uma única vez em todo o pacote,
-> colado a `verde` como "dentro", e nenhum arquivo definia o que a faixa branca
-> significa em qualquer aparelho. Não preenchi por dedução, de propósito.
-
-## 2. Limiar de intensidade de sinal
-
-**Onde:** `references/base/04-artefatos.md` §"Sinal fraco", `[PREENCHER]`; e
-`references/base/07-lacunas.md`.
-**Formulário:** Bloco 3.3.
-
-Comportamento atual, mantido: **não existe limiar numérico**. O exame só é
-reprovado quando o próprio aparelho sinaliza qualidade insuficiente ou quando há
-artefato na área de interesse. Índice baixo, sozinho, não reprova.
-
-Se o médico marcar "prefiro não definir limiar numérico", esta pendência fecha
-sem mudança de código — vira decisão registrada.
-
-## 3. Nomes de parâmetro e de relatório por aparelho
-
-**Onde:** `references/base/05-aparelhos.md`, colunas "Nome do relatório" e
-"Parâmetros e unidades".
-**Formulário:** Bloco 3.2 — anexar um relatório impresso de cada tipo de exame,
-de cada aparelho, com os dados do paciente cobertos.
-
-`references/extracao-tela.md` §2 já traz os rótulos **comuns** (`Disc Area`,
-`C/D Area Ratio`, `RNFL Thickness Average`…). Isso cobre o caso geral e não
-substitui os nomes exatos da tela de cada equipamento.
-
-## 4. Quatro decisões de redação
-
-**Onde:** `references/templates-hospitais.md` §8 (as três primeiras) e §7 (a quarta).
-**Formulário:** Bloco 1, itens 1.1 a 1.4. E o Bloco 2 aprova as frases marcadas
-`[proposta]` na biblioteca de §7.
-
-| Questão | Padrão atual mantido |
+| Arquivo | Signatário |
 |---|---|
-| Reserva diagnóstica quando há parâmetro sinalizado | não incluir |
-| "aparentemente dentro" vs "dentro" da normalidade | por hospital, como nos modelos |
-| Nascimento no laudo do CRO | imprimir quando houver |
-| "área da escavação" na conclusão vs "relação escavação/papila (área)" no corpo | manter como está, copiado do laudo real |
+| `~/.laudos_oct/assinaturas/assinatura_cassiano.png` | Dr. Cassiano Ricardo Goulart (Farroupilha) |
+| `~/.laudos_oct/assinaturas/assinatura_maeta.png` | Dr Vinícius L Maeta (Nova Prata) |
 
-Nenhuma dessas quatro é defeito de código. Todas estão registradas em prosa, com
-o "padrão atual" implementado, e o agente avisa no relatório final quando uma
-delas afeta um laudo.
+**Como produzir cada um:**
 
----
+1. Assinar com caneta preta de ponta grossa (0,7–1,0 mm) em papel branco liso, **sem pauta**.
+2. Digitalizar a **600 dpi** em tons de cinza. Escâner de verdade; foto de celular só
+   se for bem iluminada e sem sombra.
+3. Recortar rente ao traço, aumentar contraste e **remover o fundo** — fundo branco
+   vira um retângulo por cima da linha do documento.
+4. Salvar **PNG-24 com canal alfa**, largura mínima de **1200 px**. Abaixo disso o
+   traço serrilha no tamanho impresso (~50 mm).
 
-## A trava que continua de pé
+**Onde os arquivos ficam, e por quê:** em `~/.laudos_oct/assinaturas/`, **fora do
+pacote da skill e fora do controle de versão**. Imagem de assinatura é o ativo mais
+sensível deste projeto — quem a tem, assina. Não commite, não coloque em pasta
+sincronizada, não mande por e-mail.
 
-`references/base/00-indice.md` diz `VERSÃO: 1.0-rascunho` e
-`REVISADO POR: PENDENTE`. Enquanto disser, `laudo_pdf.py` **recusa emitir
-qualquer laudo** — e agora recusa também quando a base está *ausente*, que antes
-passava com um aviso.
-
-Isso não é bug: é o desenho. A trava sai quando o médico revisar a base e as duas
-linhas forem trocadas em `references/_fonte/base-cientifica.md`, seguidas de
-`python3 scripts/dividir_guia.py`.
-
-Para testar o pipeline antes disso existe `--base-nao-revisada`, que **carimba o
-PDF** com "BASE CIENTÍFICA NÃO REVISADA" em todas as páginas. Nunca com paciente
-real.
+**SVG:** vetorizar (Inkscape → Traçar bitmap, ou `potrace`) melhora a nitidez em
+qualquer tamanho e pesa poucos KB. O código **prefere `.svg`** quando existe e usa o
+`.png` como reserva — mas a renderização de SVG ainda depende da biblioteca `svglib`,
+que não está instalada. Enquanto não estiver, forneça o `.png`: se só houver `.svg`,
+a emissão do final recusa dizendo isso.
 
 ---
 
-## Uma observação sobre o próprio formulário
+## Encerradas em 20/08/2026 — não reabrir
 
-O texto de abertura diz *"O Bloco 4 é a revisão da base em si"*, mas o documento
-termina no Bloco 3 e no "Próximo passo" — **não existe Bloco 4**. Ou a frase de
-abertura sai, ou o bloco entra. Como está, o médico pode preencher tudo e ficar
-esperando uma quarta parte que nunca aparece.
+O documento de devolutiva é explícito: estas estão fechadas. Não peça confirmação,
+não proponha alternativa, não abra chamado de "conferir com o médico".
+
+| Assunto | Como ficou |
+|---|---|
+| **Revisão da base científica** | Feita. Registrada em `references/base/REVISAO.json` com revisor, data e hash. A trava continua no código, satisfeita. |
+| **Significado das cores** | Verde/branco = dentro. **Amarelo e vermelho = fora**, mesma redação. Não existe "limítrofe". |
+| **Modelo dos aparelhos** | Irrelevante — a imagem que ele lauda é sempre a mesma. Não existe campo de equipamento. |
+| **Índice de qualidade** | Sem limiar numérico e sem campo. Exame ruim é laudado; frase própria quando for impossível avaliar. |
+| **Reserva diagnóstica** | Em todo laudo de nervo, dos dois hospitais. Em nenhum de mácula. |
+| **Frase de normalidade da mácula** | "aparentemente dentro da normalidade" nos dois hospitais. |
+| **Nascimento em Nova Prata** | Impresso quando houver, em linha própria; a linha some quando não houver. |
+| **"área da escavação"** | Corrigido para "relação escavação/papila (área)" em toda a biblioteca. |
+| **Conclusão de nervo normal** | **Sem frase aprovada, por decisão.** Sai com CONCLUSÕES em branco e um aviso de que a conclusão é do médico. Não compor substituta. |
+| **Frase de exame limitado** | Ficou sem marcação no formulário → **não entra** na biblioteca. |
+| **Dados dos signatários** | Extraídos dos laudos reais. Um por hospital. |
+
+---
+
+## Preparado, não implementado
+
+**Assinatura digital ICP-Brasil.** Fac-símile em imagem só vale quando o documento é
+impresso e conferido. Para laudo que circula em PDF, o padrão é certificado
+ICP-Brasil (ou via CFM), que carimba autoria verificável e detecta adulteração.
+O PDF é gerado de forma a permitir plugar essa etapa depois. **Não implementar
+agora** — decisão do documento de devolutiva, seção 2, Caminho B.
+
+---
+
+## Entregável combinado
+
+O Dr. Maeta registrou que espera receber o conjunto completo — base científica,
+modelos de laudo, regras de redação e limites do sistema — em **um único documento**.
+Continua valendo como entregável, agora como material de referência e arquivo do
+projeto, **não como pré-condição** para operar.

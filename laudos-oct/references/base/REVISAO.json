@@ -1,0 +1,8 @@
+{
+  "revisor": "Dr. Vinicius Lotto Maeta",
+  "data": "20/08/2026",
+  "versao_revisada": "1.0",
+  "hash_base": "44682cd4af2e3a055a2f15626a350d7f752ac39f84312ceefb8f7299f9898b03",
+  "_como_funciona": "A trava vale PARA ESTE hash. Se qualquer arquivo de references/base/*.md mudar, o hash muda, este registro deixa de casar e a emissão volta a ser recusada até nova revisão médica. Não edite o hash à mão: regravar este arquivo sem revisão desfaz a única garantia de que o laudo se apoia em base conferida.",
+  "_origem": "Formulário 'Decisões clínicas e dados dos equipamentos', Bloco 4, respondido e assinado em 20/08/2026."
+}

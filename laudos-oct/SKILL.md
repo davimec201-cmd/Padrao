@@ -148,15 +148,13 @@ depois, é isso que diz sob qual base ele foi escrito.
    duas vezes com enquadramento diferente e leia as duas. Bateram → escreve.
    Divergiram → `[VERIFICAR]`. Isso não é opcional; stream de AnyDesk comprime
    dígito e transforma `0.62` em `0.82`.
-3. **Normalidade é transcrita, nunca calculada.** Copie o **rótulo em texto** que o
-   aparelho imprime (`Within Normal Limits` / `Borderline` / `Outside Normal Limits`
-   ou o equivalente em português). Se a tela trouxer **só cor**, traduza apenas
-   pela tabela do fabricante em `base/05-aparelhos.md`; enquanto aquela linha
-   estiver `[PREENCHER]`, escreva `[VERIFICAR]` e pare. **Não deduza a
-   classificação a partir da cor sem essa tabela** — o significado de cada faixa
-   muda por fabricante, e a base chama esse dado de "ponto de maior risco de
-   afirmação plausível e errada em todo o guia". Nunca aplique curva normativa
-   de cabeça.
+3. **Normalidade é transcrita, nunca calculada.** Copie o rótulo em texto do
+   aparelho; se a tela trouxer só cor, use a tabela fechada pelo Dr. Maeta em
+   20/08/2026: **verde ou branco = `dentro`; amarelo ou vermelho = `fora`**, com
+   a mesma redação para os dois. **Não existe `limitrofe`** neste sistema — não
+   crie faixa intermediária, não escreva "borderline", não sinalize divergência
+   com convenção de fabricante. Vale para os dois hospitais e qualquer aparelho.
+   Nunca aplique curva normativa de cabeça. Detalhes em `extracao-tela.md` §1.
 4. **Confira identidade antes de salvar.** Nome do paciente, data do exame e olho
    no PDF têm de bater com o que está na tela naquele instante. Laudo no paciente
    errado é o pior erro possível deste fluxo.
@@ -164,13 +162,26 @@ depois, é isso que diz sob qual base ele foi escrito.
    linguagem de normalidade do template. Achado duvidoso → escalone (seção 5).
 6. **Um paciente por vez.** Nunca tenha dois pacientes no mesmo contexto.
 
-16. **Base não revisada não emite laudo.** Se `base/00-indice.md` disser
-    `REVISADO POR: PENDENTE` ou `VERSÃO: ...rascunho`, o `laudo_pdf.py` **recusa** a
-    emissão. Base **ausente** recusa igual. Isso é trava de código, não
-    recomendação. `--base-nao-revisada` existe só para teste e **carimba o PDF**
-    com "BASE CIENTÍFICA NÃO REVISADA" em todas as páginas — nunca use com
-    paciente real. Enquanto o Dr. Maeta não devolver a revisão, a resposta certa
-    para "por que não saiu o laudo?" é: a base ainda não foi liberada.
+16. **Base revisada em 20/08/2026 — a trava está satisfeita, não removida.**
+    A liberação é um registro em `references/base/REVISAO.json`: revisor
+    (Dr. Vinicius Lotto Maeta), data, e o **hash** da base revisada. Se qualquer
+    arquivo de `references/base/*.md` mudar, o hash deixa de casar e o
+    `laudo_pdf.py` **volta a recusar** a emissão até nova revisão médica — sozinho,
+    sem ninguém precisar lembrar. Base ausente recusa igual.
+    Não edite o hash à mão: regravar o registro sem revisão desfaz a única
+    garantia de que o laudo se apoia em base conferida.
+
+17. **O signatário vem do hospital, nunca do laudo.** Farroupilha assina
+    **Dr. Cassiano Ricardo Goulart**; Nova Prata assina **Dr Vinícius L Maeta**.
+    Você não escolhe, não escreve, não herda do laudo anterior — o script deriva
+    do campo `hospital` e **recusa** se houver contradição. Errar de hospital põe
+    o CRM errado num documento assinado.
+
+18. **Minuta nunca sai assinada.** O fluxo normal produz minuta, carimbada
+    "MINUTA — CONFERIR E ASSINAR", sem imagem de assinatura. O documento final é
+    um passo **deliberado e separado** (`laudo_pdf.py --assinar`), que o médico
+    pede depois de conferir. Você não roda `--assinar` por conta própria, nem em
+    lote, nem "para adiantar".
 
 ### Operacionais
 
@@ -256,7 +267,8 @@ mesmo paciente e do mesmo olho cairia no mesmo caminho e apagaria o anterior. Se
 caminho já existir, o script **recusa** — `--sobrescrever` só para refazer o mesmo
 laudo de propósito.
 **Mácula e nervo são laudos separados** — paciente com os dois exames gera dois PDFs.
-O signatário padrão é **Dr Vinícius L Maeta** nos dois hospitais.
+O signatário é derivado do hospital: **Dr. Cassiano Ricardo Goulart** em
+Farroupilha, **Dr Vinícius L Maeta** em Nova Prata. Não existe campo a preencher.
 Qualquer `[VERIFICAR]` no conteúdo → o script **copia** o caso para `_PENDENTES/`
 (o original fica na pasta do paciente) e marca o PDF com faixa vermelha. Não
 contorne isso.
@@ -315,7 +327,7 @@ No fim da fila, entregue ao usuário: quantos laudos saíram, quais foram para
 | `references/extracao-tela.md` | ao ler valores da tela (campos, armadilhas, dupla leitura) |
 | `INSTALACAO.md` | se o `doctor` reclamar de dependência ou permissão |
 | `SEGURANCA.md` | antes de rodar em produção; se alguma trava recusar uma ação |
-| `PENDENCIAS.md` | se o laudo for recusado por base não revisada, ou se um campo da base estiver `[PREENCHER]` |
+| `PENDENCIAS.md` | se a emissão for recusada, ou antes de tentar assinar um documento final |
 
 ---
 

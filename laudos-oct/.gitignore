@@ -1,0 +1,11 @@
+# Imagem de assinatura é o ativo mais sensível do projeto: quem a tem, assina.
+# Ela mora em ~/.laudos_oct/assinaturas/, FORA do pacote — estas linhas existem
+# para o caso de alguém copiar uma para cá por engano.
+assinatura_*.png
+assinatura_*.svg
+assinaturas/
+
+# Sobras de ferramenta
+__pycache__/
+.ruff_cache/
+*.pyc

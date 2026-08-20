@@ -11,21 +11,30 @@ comparou este paciente com a base normativa dele. Você copia o resultado.
 
 Ordem de preferência para obter a classificação:
 
-1. **Rótulo em texto** impresso pelo aparelho (`Within Normal Limits`, `Borderline`,
+1. **Rótulo em texto** impresso pelo aparelho (`Within Normal Limits`,
    `Outside Normal Limits`, ou equivalente em português). É a fonte mais confiável —
    cor em stream comprimido de AnyDesk engana.
-2. **Cor**, traduzida pela tabela do fabricante em `base/05-aparelhos.md`.
-3. Se `base/05-aparelhos.md` estiver `[PREENCHER]` para aquele fabricante e a tela só
-   trouxer cor: **`[VERIFICAR]` no campo, e pare.** Não pergunte a convenção ao
-   operador de viva-voz — memória de técnico não é fonte, e a própria base chama esse
-   dado de "ponto de maior risco de afirmação plausível e errada em todo o guia".
-   O desbloqueio é preencher `base/05-aparelhos.md` **a partir do manual do
-   equipamento**, uma vez, e isso é tarefa de humano fora da sessão.
+2. **Cor**, pela tabela abaixo.
 
-Esta ordem é a mesma da regra inviolável 3 do `SKILL.md`, e nenhuma das duas
-autoriza deduzir a classificação a partir da cor sem a tabela do fabricante.
-Hoje a tabela de `base/05-aparelhos.md` está `[PREENCHER]` para **todos** os
-fabricantes: na prática, tela que só traz cor vira `[VERIFICAR]`.
+### A tabela de cores — decisão do Dr. Maeta, 20/08/2026
+
+| Cor na tela | `rel_classificacao` / `cfn_classificacao` |
+|---|---|
+| verde **ou branco** | `dentro` |
+| **amarelo** | `fora` |
+| vermelho | `fora` |
+
+Vale para **os dois hospitais e qualquer aparelho** — o Dr. Maeta encerrou o assunto
+dizendo que a imagem que ele lauda é sempre a mesma, independentemente do
+equipamento. **Amarelo é fora.** Não existe `limitrofe` neste sistema: amarelo e
+vermelho produzem exatamente a mesma redação, "fora da curva de normalidade". Não
+crie faixa intermediária e não sinalize divergência com convenção de fabricante.
+
+> `base/05-aparelhos.md` continua dizendo que as duas obras científicas **não**
+> definem convenção de cor por fabricante. Isso permanece verdade e não foi
+> alterado — o que resolve o caso aqui é a **decisão clínica do médico
+> responsável**, que é autoridade sobre a redação do laudo dele. A base descreve
+> a literatura; a tabela acima descreve a prática da clínica.
 
 **Nunca escreva percentil no laudo.** O laudo diz "dentro" / "fora" / "limítrofe" —
 nunca "p < 1%".
@@ -38,9 +47,9 @@ diz o que foi examinado, não o que foi conclusivo.
 
 | O que o aparelho diz | `rel_classificacao` / `cfn_classificacao` |
 |---|---|
-| dentro dos limites normais | `dentro` |
-| limítrofe / borderline | `limitrofe` |
-| fora dos limites normais | `fora` |
+| dentro dos limites normais / *within normal limits* | `dentro` |
+| limítrofe / *borderline* | `fora` — **não existe categoria intermediária** |
+| fora dos limites normais / *outside normal limits* | `fora` |
 
 ## 2. Campos a extrair — nervo óptico
 
@@ -85,14 +94,16 @@ Fonte pequena demais: aumente o zoom **dentro do sistema remoto** e recapture. N
    número, `204` não é. Não acrescente nem remova casas decimais.
 3. **Dígito comprimido.** `0.62` ↔ `0.82`, `78` ↔ `76`, `8` ↔ `6`, `1` ↔ `7`. É a
    razão da dupla leitura existir.
-4. **Qualidade do sinal.** Vai no campo `qualidade` do olho, que é registrado no
-   `extracao.json` e **não é impresso no corpo do laudo** — o corpo é a lista de 4
-   parâmetros (nervo) ou as 3 camadas (mácula). Se o exame estiver limitado, aí sim
-   a limitação entra em `observacoes`, como prosa.
-   **Não existe limiar mínimo de sinal definido nesta skill** (`base/07-lacunas.md`).
-   Índice baixo, por si só, não reprova o exame. O que reprova é o **aparelho
-   sinalizar** qualidade insuficiente, ou haver **artefato na área de interesse** —
-   aí a estrutura afetada é "não avaliável", nunca "normal".
+4. **Qualidade do sinal — não existe campo, nem limiar.** Decisão 3.3 do
+   Dr. Maeta: *"mesmo com qualidade ruim eu tento ao máximo observar as
+   alterações"*. Exame ruim **é laudado assim mesmo**, descrevendo o que dá para
+   ver. Não anote índice de qualidade em lugar nenhum — o campo não existe mais.
+   Quando a avaliação for de fato impossível, use em `observacoes` a frase dele,
+   literal:
+   > impossível avaliar detalhes por possível artefato ou opacidade de meios
+
+   O alerta do aparelho e o artefato na área de interesse **sinalizam ao médico**;
+   nunca reprovam o exame.
 
 8. **Estrutura fora da captura.** Camada que a captura não cobriu não é "normal" nem
    "não avaliável": é `[RECAPTURAR]`. Volte e capture o corte completo. Em produção
