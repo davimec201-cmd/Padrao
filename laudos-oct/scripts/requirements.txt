@@ -1,0 +1,7 @@
+# Mãos e olhos
+pyautogui>=0.9.54          # cliques e teclado (alternativa: brew install cliclick)
+pillow>=10.0.0             # dependência de imagem do pyautogui
+pyobjc-core>=10.0          # bindings macOS
+pyobjc-framework-Quartz>=10.0
+# Geração do PDF
+reportlab>=4.0.0

@@ -1,0 +1,28 @@
+{
+  "hospital": "farroupilha",
+  "medico": "maeta",
+  "exame": "macula",
+  "paciente": {
+    "nome": "Beltrana de Tal Exemplo",
+    "nascimento": "07/05/1966"
+  },
+  "data_exame": "22-07-2026",
+  "olhos": "AO",
+  "macula": {
+    "OD": {
+      "interface_vitreo_retiniana": "aparentemente dentro da normalidade.",
+      "camadas_internas": "aparentemente dentro da normalidade.",
+      "epr_cfr": "aparentemente dentro da normalidade."
+    },
+    "OE": {
+      "interface_vitreo_retiniana": "aparentemente dentro da normalidade.",
+      "camadas_internas": "aparentemente dentro da normalidade.",
+      "epr_cfr": "aparentemente dentro da normalidade."
+    }
+  },
+  "conclusoes": [
+    "AMBOS OS OLHOS com máculas aparentemente dentro da normalidade."
+  ],
+  "sugestao": "Sugiro correlação clínica.",
+  "_nota": "Exemplo sintético. Farroupilha usa 'aparentemente dentro da normalidade' — ver templates-hospitais.md §8."
+}

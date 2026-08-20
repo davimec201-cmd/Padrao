@@ -1,0 +1,28 @@
+{
+  "hospital": "nova_prata",
+  "medico": "maeta",
+  "exame": "macula",
+  "paciente": {
+    "nome": "Cicrana de Tal Exemplo"
+  },
+  "data_exame": "8 de julho de 2026",
+  "olhos": "AO",
+  "macula": {
+    "OD": {
+      "interface_vitreo_retiniana": "dentro da normalidade.",
+      "camadas_internas": "com área de líquido intrarretiniano em quadrante temporal (edema) laminar.",
+      "epr_cfr": "dentro da normalidade."
+    },
+    "OE": {
+      "interface_vitreo_retiniana": "dentro da normalidade.",
+      "camadas_internas": "aparentemente dentro da normalidade.",
+      "epr_cfr": "com pontos de irregularidade e elevação de EPR em mácula central (dep drusenoide)"
+    }
+  },
+  "conclusoes": [
+    "OLHO DIREITO com achados sugestivos de líquido intrarretiniano em mácula temporal.",
+    "OLHO ESQUERDO com achados sugestivos de descolamento drusenoide em mácula central."
+  ],
+  "sugestao": "Sugiro correlação clínica para indicação de tratamento.",
+  "_nota": "Exemplo sintético — nome e data inventados. A FORMA reproduz o modelo do CRO, que mistura 'dentro da normalidade' e 'aparentemente dentro da normalidade'; a mistura é do original, ver templates-hospitais.md §8. Sem nascimento, para exercitar o caso do §8."
+}

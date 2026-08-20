@@ -5,6 +5,20 @@ decidindo por mim como as coisas devem funcionar.
 
 ## Projetos
 
+### `laudos-oct/`
+
+Claude Skill que emite laudos de OCT de mácula e nervo óptico operando o AnyDesk
+sozinha no macOS: captura a tela, lê os valores do exame com dupla leitura,
+redige no template do hospital e salva o PDF. Não assina, não publica e é
+somente-leitura no sistema do hospital.
+
+Instalação e uso em `laudos-oct/INSTALACAO.md`; travas e endurecimento em
+`SEGURANCA.md`. `REVISAO-2026-08-20.md` é a auditoria de código que originou a
+versão atual, e `PENDENCIAS.md` diz o que ainda espera o médico responsável.
+
+**A base científica ainda não passou por revisão médica, e o gerador recusa
+emitir laudo enquanto não passar.** É trava de programa, não recomendação.
+
 ### `um-de-cada-vez/`
 
 Ferramenta de estudo para medicina. Um arquivo HTML só — abre no navegador,

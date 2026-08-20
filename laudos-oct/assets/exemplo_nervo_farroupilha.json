@@ -1,0 +1,36 @@
+{
+  "hospital": "farroupilha",
+  "exame": "nervo",
+  "medico": "maeta",
+  "paciente": {
+    "nome": "Fulana de Tal Exemplo",
+    "nascimento": "14/02/1958"
+  },
+  "data_exame": "22-07-2026",
+  "olhos": "AO",
+  "nervo": {
+    "OD": {
+      "area_papila": "2,69 mm2",
+      "rel_esc_papila": "0,52",
+      "rel_classificacao": "fora",
+      "escavacao_v": "0,73",
+      "escavacao_h": "0,80",
+      "cfn_media": "98",
+      "cfn_classificacao": "dentro"
+    },
+    "OE": {
+      "area_papila": "2,54 mm2",
+      "rel_esc_papila": "0,55",
+      "rel_classificacao": "fora",
+      "escavacao_v": "0,67",
+      "escavacao_h": "0,85",
+      "cfn_media": "99",
+      "cfn_classificacao": "dentro"
+    }
+  },
+  "conclusoes": [
+    "AMBOS OS OLHOS com área da escavação fora da curva de normalidade e espessura média da camada de fibras nervosas dentro da curva de normalidade."
+  ],
+  "sugestao": "Sugiro correlação clínica e acompanhamento com exames periódicos para comparação dos parâmetros.",
+  "_nota": "Exemplo sintético. Nome inventado, data inventada. Os valores reproduzem a FORMA do laudo modelo da clínica, não um paciente."
+}

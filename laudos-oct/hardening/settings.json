@@ -1,0 +1,111 @@
+{
+  "$comment": "Perfil endurecido para a estação de laudos de OCT. Copie para ~/.claude/settings.json (ou .claude/settings.json da pasta de trabalho). Ajuste USUARIO no caminho dos hooks.",
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(python3 ~/.claude/skills/laudos-oct/scripts/hands.py *)",
+      "Bash(python3 $HOME/.claude/skills/laudos-oct/scripts/hands.py *)",
+      "Bash(python3 /Users/*/.claude/skills/laudos-oct/scripts/hands.py *)",
+      "Bash(python3 ~/.claude/skills/laudos-oct/scripts/laudo_pdf.py *)",
+      "Bash(python3 $HOME/.claude/skills/laudos-oct/scripts/laudo_pdf.py *)",
+      "Bash(python3 /Users/*/.claude/skills/laudos-oct/scripts/laudo_pdf.py *)",
+      "Bash(python3 ~/.claude/skills/laudos-oct/scripts/dividir_guia.py *)",
+      "Bash(python3 $HOME/.claude/skills/laudos-oct/scripts/dividir_guia.py *)",
+      "Bash(python3 /Users/*/.claude/skills/laudos-oct/scripts/dividir_guia.py *)",
+      "Bash(mkdir -p ~/Laudos_OCT/*)",
+      "Bash(ls *)",
+      "Bash(cat ~/Laudos_OCT/*)",
+      "Bash(cat ~/.claude/skills/laudos-oct/references/*)",
+      "Bash(sed -n * ~/.claude/skills/laudos-oct/references/*)",
+      "Bash(sleep *)"
+    ],
+    "ask": [
+      "Bash(python3 ~/.claude/skills/laudos-oct/scripts/hands.py type *)",
+      "Bash(python3 $HOME/.claude/skills/laudos-oct/scripts/hands.py type *)",
+      "Bash(python3 /Users/*/.claude/skills/laudos-oct/scripts/hands.py type *)"
+    ],
+    "deny": [
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+      "Bash(mv *)",
+      "Bash(sudo *)",
+      "Bash(chmod *)",
+      "Bash(chown *)",
+      "Bash(killall *)",
+      "Bash(osascript *)",
+      "Bash(cliclick *)",
+      "Bash(screencapture *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(nc *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(git push *)",
+      "Bash(defaults write *)",
+      "Bash(launchctl *)",
+      "Bash(open *)",
+      "Bash(security *)",
+      "Bash(pbcopy *)",
+      "Bash(pbpaste *)",
+      "WebFetch",
+      "WebSearch",
+      "Read(~/Library/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/Documents/**)",
+      "Read(~/Desktop/**)",
+      "Read(~/Downloads/**)",
+      "Read(~/Pictures/**)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Write(~/Library/**)",
+      "Write(~/.claude/settings.json)",
+      "Write(~/.claude/skills/**)",
+      "Write(~/.zshrc)",
+      "Write(~/.bashrc)",
+      "Write(~/.zprofile)"
+    ],
+    "$comment": "allow lista as três formas de caminho de cada script porque o casamento é textual. ask cobre AS MESMAS TRÊS formas da digitação — com duas, a terceira caía no allow e digitava sem confirmação. deny vence allow."
+  },
+  "sandbox": {
+    "$comment": "Seatbelt do macOS, imposto pelo kernel — o modelo não negocia com isso. excludedCommands tira do sandbox SÓ o script de mãos, que precisa falar com o WindowServer para clicar. TESTE NO DIA 1: se o clique parar de funcionar com sandbox ligado, é o Seatbelt barrando o evento de mouse — o excludedCommands é a saída. Se funcionar dentro do sandbox, remova o excludedCommands e fica melhor. As variantes ~/ e $HOME/ existem porque a regra casa o texto do comando: se o agente escrever o caminho de outra forma, a regra não pega e ele para para pedir permissão.",
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": [
+      "python3 ~/.claude/skills/laudos-oct/scripts/hands.py",
+      "python3 $HOME/.claude/skills/laudos-oct/scripts/hands.py"
+    ],
+    "filesystem": {
+      "allowWrite": [
+        "~/Laudos_OCT",
+        "~/.laudos_oct"
+      ],
+      "denyRead": [
+        "~/"
+      ],
+      "allowRead": [
+        "~/Laudos_OCT",
+        "~/Laudos_OCT/guia",
+        "~/.laudos_oct",
+        "~/.claude/skills/laudos-oct"
+      ]
+    },
+    "network": {
+      "allowedDomains": []
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/guardiao-laudos.py",
+            "statusMessage": "Guardião: conferindo o comando..."
+          }
+        ]
+      }
+    ]
+  }
+}
