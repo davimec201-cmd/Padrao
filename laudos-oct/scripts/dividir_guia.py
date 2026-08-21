@@ -130,6 +130,18 @@ def main():
         "\"não disponível na base científica\" e nunca complete por inferência.\n",
         encoding="utf-8")
 
+    # O que NÃO é gerado por este script viaja junto para a base nova. A troca é
+    # de diretório inteiro: sem isto, o REVISAO.json — o registro de quem revisou
+    # a base, quando, e sobre qual hash — era APAGADO justamente pelo comando que
+    # a documentação manda rodar depois de editar o guia. Perder o registro não é
+    # só perder história: é perder a única prova de que houve revisão médica.
+    preservados = []
+    if DESTINO.exists():
+        for f in DESTINO.iterdir():
+            if f.is_file() and f.suffix != ".md":
+                shutil.copy2(f, tmp / f.name)
+                preservados.append(f.name)
+
     # Só agora a base antiga sai de cena, e a troca é atômica por arquivo.
     antiga = DESTINO.with_name(DESTINO.name + ".anterior")
     shutil.rmtree(antiga, ignore_errors=True)
@@ -145,6 +157,12 @@ def main():
           f"que ler o guia inteiro)")
     for arq in sorted(escritos):
         print(f"  base/{arq:22s} {len((DESTINO/arq).read_text().splitlines()):>4} linhas")
+    if preservados:
+        print(f"preservados (não gerados aqui): {', '.join(sorted(preservados))}")
+    print("\nATENÇÃO: a base mudou, então o hash mudou e o registro de revisão\n"
+          "deixou de casar — a emissão está TRAVADA, por desenho. Quem destrava é\n"
+          "a revisão médica do conteúdo novo, regravando references/base/REVISAO.json\n"
+          "com o revisor, a data e o hash atual. Não edite o hash à mão.")
 
 
 if __name__ == "__main__":

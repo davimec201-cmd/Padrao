@@ -1,7 +1,9 @@
-# Mãos e olhos
-pyautogui>=0.9.54          # cliques e teclado (alternativa: brew install cliclick)
-pillow>=10.0.0             # dependência de imagem do pyautogui
-pyobjc-core>=10.0          # bindings macOS
-pyobjc-framework-Quartz>=10.0
+# Mãos e olhos (macOS)
+#
+# Teto de versão em toda linha — ver a explicação em requirements-windows.txt.
+pyautogui>=0.9.54,<0.10       # cliques e teclado (alternativa: brew install cliclick)
+pillow>=10.0.0,<13            # dependência de imagem do pyautogui
+pyobjc-core>=10.0,<12         # bindings macOS
+pyobjc-framework-Quartz>=10.0,<12
 # Geração do PDF
-reportlab>=4.0.0
+reportlab>=4.0.0,<6           # exercitada em 4.x e 5.0.1

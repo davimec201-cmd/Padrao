@@ -1,16 +1,24 @@
 # Base científica para laudos de OCT — mácula e nervo óptico
 
 ```
-VERSÃO: 1.0-rascunho
+VERSÃO: 1.0
 DATA: 20/08/2026
-REVISADO POR: PENDENTE — não colocar em produção antes da revisão
+REVISADO POR: Dr. Vinicius Lotto Maeta — revisão de 20/08/2026
 ```
 
 > **Estado deste arquivo.** Todo conteúdo clínico abaixo foi extraído de duas obras
 > (ver `## Referências`). As frases de laudo são composição minha, em registro
-> neutro, e **não** foram calibradas contra laudos reais da clínica. Os campos
-> marcados `[PREENCHER]` são lacunas reais das fontes — não devem ser completados
-> por inferência. Trocar o campo `REVISADO POR` só depois da revisão assinada.
+> neutro, e foram **conferidas** pelo médico responsável na revisão de 20/08/2026
+> (formulário "Decisões clínicas e dados dos equipamentos", Bloco 4). Os campos
+> marcados `[PREENCHER]` são lacunas reais das fontes — continuam sendo lacuna e
+> **não** devem ser completados por inferência.
+>
+> O carimbo acima é a proveniência que `SKILL.md` manda arquivar em cada laudo:
+> ficou em `1.0-rascunho / PENDENTE` depois da revisão, e um laudo emitido em
+> produção arquivava, como sua própria fonte, uma base que se declarava imprópria
+> para produção. Quem muda este cabeçalho é a revisão médica — nunca o gerador,
+> nunca o agente. Depois de mudá-lo, rode `dividir_guia.py` e regrave
+> `references/base/REVISAO.json` com o hash novo, nessa ordem.
 
 ## Índice
 

@@ -30,9 +30,23 @@ def redige(cmd):
     """Tira o dado de paciente do que vai para o log.
 
     'hands.py type "Maria da Silva"' era gravado inteiro: o log de segurança
-    virava um índice de quem foi atendido, sem prazo de expurgo."""
-    return re.sub(r'((?:hands\.py|\btype\b)\s+)(["\']).*?\2',
-                  r'\1"<texto omitido>"', cmd)
+    virava um índice de quem foi atendido, sem prazo de expurgo.
+
+    Só as aspas não bastavam. O caminho de saída é
+    ~/Laudos_OCT/<Hospital>/<Nome do paciente>/laudo.json, e a própria
+    documentação manda escrever esse caminho a cada emissão: um laudo, uma
+    linha com o nome em claro, num arquivo que o `purge` não alcança. O nome
+    é o componente DEPOIS da pasta do hospital — some daqui, mas hospital e
+    arquivo ficam, que é o que serve para diagnosticar."""
+    cmd = re.sub(r'((?:hands\.py|\btype\b)\s+)(["\']).*?\2',
+                 r'\1"<texto omitido>"', cmd)
+    # ...Laudos_OCT/<hospital>/<PACIENTE>/resto  ->  <paciente omitido>
+    cmd = re.sub(r'(Laudos_OCT[/\\][^/\\\s"\']+[/\\])([^/\\\s"\']+)',
+                 r'\1<paciente omitido>', cmd)
+    # ...Laudo_SIGLA_<PACIENTE>_NO_AO_data.pdf  ->  idem no nome do arquivo
+    cmd = re.sub(r'(Laudo_[A-Za-z]+_).+?(_(?:NO|MAC)_)',
+                 r'\1<paciente omitido>\2', cmd)
+    return cmd
 
 
 def registra(veredito, motivo, cmd):
@@ -59,7 +73,11 @@ def decide(acao, motivo, cmd):
 
 
 nega = lambda m, c: decide("deny", m, c)
-escala = lambda m, c: decide("escalate", m, c)
+# PreToolUse aceita "allow", "deny" e "ask" — e mais nada. Com "escalate",
+# JSON fora do schema e saída 0, o hook não reportava decisão nenhuma e o
+# comando caía na lista allow, que é aprovação sem prompt. Fail-OPEN, o
+# oposto do que este arquivo promete.
+escala = lambda m, c: decide("ask", m, c)
 
 # ------------------------------------------------------------------ entrada
 
@@ -191,6 +209,12 @@ ALVO_PROTEGIDO = (r"\.claude[/\\]settings|\.claude[/\\]hooks|guardiao-laudos|"
                   r"profile\.ps1|Microsoft\.PowerShell_profile|"
                   + SKILL + r"|"
                   r"\.laudos_oct[/\\]config\.json|"
+                  # A autorização de --anywhere é do OPERADOR. Se o agente
+                  # pudesse criá-la, os dois portões da flag seriam o mesmo.
+                  r"\.laudos_oct[/\\]PERMITIR_ANYWHERE|"
+                  # Idem para a autorização de assinar: quem declara ter
+                  # revisado o laudo é o médico, não o processo que o gerou.
+                  r"\.laudos_oct[/\\]PERMITIR_ASSINATURA|"
                   # O freio de mão estava menos protegido que o teto de taxa:
                   # ~/Laudos_OCT é gravável pelo sandbox, e os.remove(STOP) não
                   # casava com a regra de 'rm' (que exige a palavra seguida de espaço).
@@ -210,7 +234,17 @@ if re.search(ALVO_PROTEGIDO, cmd, re.I) and not E_LEITURA:
          cmd)
 
 # 8. burlar a guarda de foco/janela exige aval humano
-if re.search(r"--anywhere", cmd):
+# --any\w*: o argparse aceitava prefixo, e '--any' desligava as guardas sem
+# casar esta regra. O hands.py agora recusa a abreviação; aqui ela também
+# passa a ser vista, para os dois não dependerem um do outro.
+# 8b. assinar é ato do médico, não do processo que gerou o laudo
+if re.search(r"--assinar\b", cmd):
+    escala("O comando emite o DOCUMENTO FINAL ASSINADO, com a imagem de "
+           "assinatura do médico embutida e sem o carimbo de minuta. Assinar é "
+           "declarar que este laudo foi revisado. Confirme que o médico revisou "
+           "ESTE documento.", cmd)
+
+if re.search(r"--any\w*", cmd):
     escala("O comando usa --anywhere, que desliga a guarda de foco e de janela. "
            "Isso permite clicar fora do AnyDesk. Confirme que é intencional.", cmd)
 

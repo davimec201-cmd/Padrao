@@ -1,6 +1,6 @@
 # Base científica — índice
 
-`VERSÃO: 1.0-rascunho`  ·  `REVISADO POR: PENDENTE — não colocar em produção antes da revisão`
+`VERSÃO: 1.0`  ·  `REVISADO POR: Dr. Vinicius Lotto Maeta — revisão de 20/08/2026`
 
 **Leia apenas o arquivo da seção que você precisa.** Carregar a base inteira no meio de uma fila de pacientes desperdiça token sem ganho nenhum.
 

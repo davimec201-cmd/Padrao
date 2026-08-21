@@ -1,7 +1,20 @@
 ---
 name: laudos-oct
 description: Emite laudos de OCT (tomografia de coerência óptica) de mácula e nervo óptico operando o AnyDesk sozinha no macOS ou no Windows — captura a tela, navega até o paciente, lê os valores do exame, redige o laudo no template do hospital e salva o PDF. Use quando pedirem laudo de OCT, laudar exame de OCT, laudo oftalmológico, OCT de mácula, OCT de nervo óptico, escavação/papila, CFN, camada de fibras nervosas, Hospital Farroupilha, Bonavita, Nova Prata, Centro Regional de Oftalmologia, ou quando pedirem para rodar a fila de laudos / laudar os exames do AnyDesk.
+disallowed-tools: WebFetch, WebSearch
 ---
+
+<!--
+disallowed-tools, e não allowed-tools: o segundo CONCEDE permissão sem prompt e
+alargaria a superfície; o primeiro TIRA a ferramenta do alcance. Nome e imagem de
+retina não saem desta máquina por busca nem por fetch — os dois perfis de
+hardening/ já negam, mas o hardening é um passo de instalação separado que dá
+para pular, e esta linha viaja junto com a skill.
+
+Limite honesto: a restrição vale enquanto a skill está ativa e cai na próxima
+mensagem do usuário. Numa fila que atravessa muitos turnos ela não substitui o
+`deny` do settings.json — soma-se a ele.
+-->
 
 # Laudos de OCT — operação autônoma via AnyDesk
 
@@ -242,6 +255,21 @@ Navegue até o próximo paciente da fila. Extraia **Nome**, **Data do exame**,
 **Olho(s)** e **tipo de exame** (mácula / nervo óptico / ambos).
 Crie `~/Laudos_OCT/<Hospital>/<Nome_do_Paciente>/`.
 
+**Antes de ler o exame, abra o item na fila:**
+
+```bash
+python3 ~/.claude/skills/laudos-oct/scripts/laudo_pdf.py --fila abrir \
+  --hospital <hospital> --paciente "<Nome>" --data <dd-mm-aaaa> --exame nervo|macula
+```
+
+Isto grava uma linha em `~/Laudos_OCT/_FILA/<data>.jsonl`. É a única coisa que
+sobrevive ao descarte de memória do Passo 6 e à sessão sendo interrompida no
+meio. Sem ela, um exame que estourou o tempo do subagente some sem deixar
+rastro: não há PDF, não há cópia em `_PENDENTES/` (nunca chegou ao gerador) e
+`acoes.jsonl` só tem clique e coordenada. **Abra o item mesmo que você ache que
+vai terminar em dois minutos** — é justamente o item que não termina que
+precisa da linha.
+
 Se houver vários pacientes na fila, delegue **cada paciente a um subagente**
 (seção 5) — as imagens nunca entram no seu contexto principal.
 
@@ -253,8 +281,22 @@ Se houver vários pacientes na fila, delegue **cada paciente a um subagente**
 - Campos, rótulos na tela, armadilhas e o procedimento de dupla leitura:
   `references/extracao-tela.md`.
 
-Grave o que extraiu em `<pasta_paciente>/extracao.json` **antes** de redigir.
-É o rastro de auditoria do laudo.
+Grave o que extraiu em `<pasta_paciente>/extracao.json` **antes** de redigir, e
+repita o mesmo conteúdo no campo `extracao` do `laudo.json`:
+
+```json
+"extracao": {
+  "OD": { "area_papila": "2,69 mm2", "rel_esc_papila": "0,52", "...": "..." },
+  "OE": { "...": "..." }
+}
+```
+
+Mesmos campos, mesmos valores, exatamente como saíram da tela. **O gerador
+compara**: se o laudo imprime um número que a extração não tem, ou tem outro, a
+emissão é recusada com os dois valores na mensagem. Isso pega a deriva entre o
+que você leu e o que você redigiu — o erro que um fluxo que descarta memória
+entre pacientes produz naturalmente. Não pega valor lido errado nas duas pontas:
+para isso existem a dupla leitura e a conferência do médico.
 
 ### Passo 4 — Redação
 Leia `references/templates-hospitais.md` e monte o laudo com a estrutura exata do
@@ -289,8 +331,22 @@ Descarte da memória as imagens e os dados daquele paciente antes do próximo.
 Em subagente isso é automático. No fluxo principal, não recarregue prints antigos.
 
 ### Passo 7 — Relatório
-No fim da fila, entregue ao usuário: quantos laudos saíram, quais foram para
-`_PENDENTES/` e por quê, e onde estão os PDFs.
+No fim da fila, leia o registro do DISCO — não monte da memória, que o Passo 6
+mandou descartar:
+
+```bash
+python3 ~/.claude/skills/laudos-oct/scripts/laudo_pdf.py --fila relatorio
+```
+
+Entregue ao usuário o que ele devolve: quantos laudos saíram, quais foram para
+`_PENDENTES/` e por quê, onde estão os PDFs — e, acima de tudo,
+**`abertos_sem_desfecho`**. Cada item nessa lista é um exame que entrou na fila
+e não teve laudo. Ele não é um detalhe do relatório: é a primeira coisa a dizer,
+com nome e data, para que alguém o refaça.
+
+Se `abertos_sem_desfecho` vier vazio e você tem memória de ter atendido alguém
+que não está no registro, **diga isso ao usuário** — a divergência entre o que
+você lembra e o que está em disco é informação, não ruído.
 
 ---
 

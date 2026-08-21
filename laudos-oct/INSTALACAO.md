@@ -206,10 +206,13 @@ aborta a ação em andamento (failsafe do pyautogui).
 - **Marca das clínicas:** já vem pronta em `assets/marca/` (faixa navy do Bonavita,
   marca de água e logo do CRO), extraída dos laudos modelo — layout calibrado
   contra eles.
-- **Assinatura:** por decisão da clínica, o laudo sai sempre **sem assinatura
-  digitalizada** — espaço em branco para assinar à mão. Não há imagem de
-  assinatura no pacote **e não há caminho no código para embutir uma**: a
-  capacidade foi removida, não apenas desligada.
+- **Assinatura:** a minuta sai **sempre sem assinatura**, com o carimbo de
+  MINUTA em todas as páginas. O documento final assinado existe e é o
+  `--assinar`, que exige três coisas ao mesmo tempo: a imagem em
+  `~/.laudos_oct/assinaturas/` (nunca no pacote, nunca no git), nenhum
+  `[VERIFICAR]`/`[RECAPTURAR]` no laudo, e o arquivo de autorização
+  `~/.laudos_oct/PERMITIR_ASSINATURA`, que **o médico** cria e que é apagado
+  no uso — vale para um documento só. Ver SEGURANCA.md §9.
 - **Outra pasta de saída:** edite `OUT_ROOT` em `scripts/hands.py` e
   `scripts/laudo_pdf.py`.
 - **Outro app remoto (não AnyDesk):** troque `TARGET_APP` em `scripts/hands.py`

@@ -65,6 +65,22 @@ class Plataforma:
     def preparar(self):
         """Roda uma vez antes de qualquer uso. Silencioso quando não há o que fazer."""
 
+    def motivo_negado(self, mods, key):
+        """Motivo da recusa, ou None. Consulta por VALOR canônico, não por grafia.
+
+        TECLAS e MODS aceitam apelidos de propósito — 'ctrl' e 'control',
+        'esc' e 'escape' — e a tabela COMBOS_NEGADOS é escrita com UMA delas.
+        Consultar com o texto cru fazia 'control+s' não casar 'ctrl+s': o
+        Salvar atravessava a lista negra e chegava ao sistema do hospital.
+        Canonizando os dois lados, toda grafia aceita cai na mesma chave."""
+        def canon(ms, k):
+            return frozenset(self.MODS[m] for m in ms), self.TECLAS[k]
+        alvo = canon(mods, key)
+        for (mm, kk), motivo in self.COMBOS_NEGADOS.items():
+            if canon(mm, kk) == alvo:
+                return motivo
+        return None
+
     # olhos
     def capturar(self, destino, regiao=None): raise NotImplementedError
     def redimensionar(self, caminho, lado_maior): raise NotImplementedError
@@ -267,12 +283,17 @@ class Windows(Plataforma):
 
     # pyautogui entende estes nomes direto — não há tabela de virtual key code
     # para manter em sincronia.
-    TECLAS = {k: k for k in (
-        "enter", "return", "tab", "space", "esc", "escape", "delete",
+    # Apelido -> nome canônico do pyautogui. Os apelidos ('return', 'escape')
+    # colapsam no mesmo valor DE PROPÓSITO: é esse valor que motivo_negado()
+    # compara, e sem o colapso 'ctrl+shift+escape' escapava da recusa escrita
+    # como 'ctrl+shift+esc'.
+    TECLAS = dict({k: k for k in (
+        "enter", "tab", "space", "esc", "delete",
         "backspace", "left", "right", "down", "up", "pageup", "pagedown",
         "home", "end", "f4", "f5", "f11",
         "a", "c", "f", "z", "v", "x", "w", "s", "p", "d",
-        "0", "1", "2", "3", "4", "5", "=", "-")}
+        "0", "1", "2", "3", "4", "5", "=", "-")},
+        **{"return": "enter", "escape": "esc"})
     MODS = {"ctrl": "ctrl", "control": "ctrl", "shift": "shift",
             "alt": "alt", "win": "win"}
     COMBOS_NEGADOS = {

@@ -19,6 +19,18 @@
       "epr_cfr": "aparentemente dentro da normalidade."
     }
   },
+  "extracao": {
+    "OD": {
+      "interface_vitreo_retiniana": "aparentemente dentro da normalidade.",
+      "camadas_internas": "aparentemente dentro da normalidade.",
+      "epr_cfr": "aparentemente dentro da normalidade."
+    },
+    "OE": {
+      "interface_vitreo_retiniana": "aparentemente dentro da normalidade.",
+      "camadas_internas": "aparentemente dentro da normalidade.",
+      "epr_cfr": "aparentemente dentro da normalidade."
+    }
+  },
   "conclusoes": [
     "AMBOS OS OLHOS com máculas aparentemente dentro da normalidade."
   ],

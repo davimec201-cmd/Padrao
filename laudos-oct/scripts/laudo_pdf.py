@@ -67,6 +67,132 @@ ASSINANTES = {
 DIR_ASSINATURAS = Path.home() / ".laudos_oct" / "assinaturas"
 
 
+def _restringe(caminho):
+    """Legível só por quem opera a estação. Silencioso quando não dá.
+
+    Mesma função que hands.py aplica ao rastro: no macOS é chmod, no Windows é
+    ACL — lá o chmod só mexe no bit de somente-leitura e não restringe usuário
+    nenhum. O PDF tem nome, nascimento e conteúdo clínico; era o único artefato
+    do fluxo saindo com permissão de leitura para todo mundo na máquina."""
+    try:
+        if str(AQUI) not in sys.path:      # sem empilhar o mesmo caminho a cada chamada
+            sys.path.insert(0, str(AQUI))
+        import plataforma as _plat
+        if _plat.PLAT is not None:
+            _plat.PLAT.restringir(caminho)
+    except Exception:
+        pass
+
+
+# --------------------------------------------------------- registro da fila
+
+FILA_DIR = OUT_ROOT / "_FILA"
+
+
+def fila_arquivo(dia=None):
+    return FILA_DIR / f"{dia or time.strftime('%Y-%m-%d')}.jsonl"
+
+
+def fila_grava(evento, **campos):
+    """Append-only, uma linha por acontecimento. Nunca some, nunca reescreve.
+
+    Existe porque o laço do lote é prosa e a fila vivia só na memória do agente,
+    que o próprio fluxo manda descartar entre pacientes. Um exame interrompido no
+    meio — timeout do subagente, Ctrl+C do procedimento de emergência — não
+    deixava rastro nenhum: sem PDF, sem cópia em _PENDENTES (nunca chegou aqui) e
+    sem linha em acoes.jsonl, que só guarda clique e coordenada. O relatório do
+    fim da fila era montado da memória que já tinha sido descartada, e o exame
+    ficava sem laudo sem ninguém saber.
+
+    Fica em ~/Laudos_OCT, e não em ~/.laudos_oct, de propósito: carrega nome de
+    paciente, então mora na zona que já é de prontuário — restrita, alcançável
+    pelo purge e pela política de retenção da clínica, junto dos PDFs."""
+    linha = {"ts": time.time(), "iso": time.strftime("%Y-%m-%dT%H:%M:%S"),
+             "evento": evento}
+    linha.update(campos)
+    try:
+        FILA_DIR.mkdir(parents=True, exist_ok=True)
+        _restringe(FILA_DIR)
+        novo = not fila_arquivo().exists()
+        with fila_arquivo().open("a", encoding="utf-8") as f:
+            f.write(json.dumps(linha, ensure_ascii=False) + "\n")
+        if novo:
+            _restringe(fila_arquivo())
+    except Exception as e:
+        sys.exit(f"ERRO: não consegui gravar o registro da fila ({e}).\n"
+                 f"  {fila_arquivo()}\n"
+                 "  Sem ele, um exame interrompido some sem deixar rastro. "
+                 "Confira o espaço em disco e a permissão da pasta.")
+
+
+def fila_le(dia=None):
+    p = fila_arquivo(dia)
+    if not p.exists():
+        return []
+    out = []
+    for ln in p.read_text(encoding="utf-8").splitlines():
+        try:
+            out.append(json.loads(ln))
+        except Exception:
+            continue
+    return out
+
+
+def chave(hospital, paciente, data, exame):
+    """<hospital, paciente, data, exame> — o que identifica UM exame na fila.
+
+    Sem os olhos de propósito: na abertura, no Passo 1, o agente ainda não leu o
+    exame e não sabe se é OD, OE ou AO. Incluí-los faria a abertura nunca casar
+    com a emissão, e todo item apareceria como abandonado. A lateralidade é
+    gravada como CAMPO na linha da emissão, onde já é conhecida."""
+    return "|".join([str(hospital or "?"), slug(paciente or "?"),
+                     slug(data or "?")[:24], str(exame or "?")])
+
+
+def chave_do_exame(d):
+    return chave(d.get("hospital"),
+                 (d.get("paciente") or {}).get("nome"),
+                 d.get("data_exame"),
+                 d.get("exame") or ("nervo" if d.get("nervo") else "macula"))
+
+
+def fila_relatorio(dia=None):
+    """O Passo 7 lido do DISCO, não da memória do agente.
+
+    Lê o dia pedido E a véspera. O registro é por dia, e um lote que começa às
+    23h40 abriria os itens num arquivo e fecharia no outro: o relatório do dia
+    seguinte diria "nada em aberto" sobre uma fila que ficou pela metade."""
+    if dia is None:
+        import datetime
+        hoje = datetime.date.today()
+        vespera = (hoje - datetime.timedelta(days=1)).isoformat()
+        eventos = fila_le(vespera) + fila_le(hoje.isoformat())
+    else:
+        eventos = fila_le(dia)
+    itens = {}
+    for e in eventos:
+        k = e.get("chave")
+        if not k:
+            continue
+        it = itens.setdefault(k, {"chave": k, "aberto": None, "desfecho": None})
+        if e["evento"] == "aberto":
+            it["aberto"] = e["iso"]
+        else:
+            it["desfecho"] = e["evento"]
+            it["pdf"] = e.get("pdf")
+            it["motivo"] = e.get("motivo")
+    emitidos = [i for i in itens.values() if i["desfecho"] == "emitido"]
+    pendentes = [i for i in itens.values() if i["desfecho"] == "pendente"]
+    # O que importa: aberto e sem desfecho nenhum. É o exame que ninguém sabia
+    # que tinha ficado para trás.
+    sem_desfecho = [i for i in itens.values() if i["desfecho"] is None]
+    return {"dia": dia or time.strftime("%Y-%m-%d"),
+            "arquivo": str(fila_arquivo(dia)),
+            "abertos_sem_desfecho": sem_desfecho,
+            "emitidos": emitidos, "em_pendentes": pendentes,
+            "total": len(itens)}
+
+
 def pend_marcadores(d):
     """True se houver [VERIFICAR]/[RECAPTURAR] em qualquer profundidade."""
     bruto = json.dumps(d, ensure_ascii=False)
@@ -119,6 +245,13 @@ CLASSIF = {
     "dentro": ("dentro da curva de normalidade", PILL_DENTRO),
     "fora": ("fora da curva de normalidade", PILL_FORA),
 }
+# Lista FECHADA de classificação de normalidade. A decisão é do médico
+# responsável e está registrada (formulário de 20/08/2026, item 3.4): o laudo
+# tem DUAS categorias. Sem esta lista, pill_de() tinha saída de escape e
+# qualquer string virava pílula cinza com o texto escrito — "limítrofe" e
+# "borderline (p<5%)" saíam impressos, sem pendência, num documento que um CRM
+# assina. O percentil, além de categoria inexistente, é proibido em prosa.
+CAMPOS_CLASSIF = ("rel_classificacao", "cfn_classificacao")
 
 
 # ------------------------------------------------------------------- estilos
@@ -266,7 +399,14 @@ CHAVES = {
 # Campos aceitos mas DELIBERADAMENTE não impressos no corpo: o laudo da casa é a
 # lista de 4 parâmetros (nervo) ou as 3 camadas (mácula). Ficam no rastro de
 # auditoria; se forem parte de uma limitação, entram em 'observacoes' como prosa.
-NAO_IMPRESSOS = {"extracao"}
+# 'equipamento' e 'data_laudo' são metadado: aceitos, guardados no rastro, não
+# impressos — e agora AVISADOS, que é o que templates-hospitais.md promete.
+# 'observacoes' na raiz não entra aqui: é conteúdo clínico, e conteúdo clínico
+# descartado não é aviso, é erro (ver valida()).
+# 'extracao' também não: passou a ser OBRIGATÓRIO, e avisar "não é impresso, use
+# observacoes" a cada emissão de um campo que o gerador exige é ruído que ensina
+# a coisa errada. Que ele não sai no corpo está dito no Passo 3 do SKILL.md.
+NAO_IMPRESSOS = {"equipamento", "data_laudo"}
 
 # Fonte única de normalização da lateralidade. A tabela de extracao-tela.md §1
 # manda o modelo mapear OS->OE; nada em código conferia, e "olhos" entrava cru no
@@ -347,6 +487,84 @@ def valida(d):
                          "outro. Corrija a extração ou marque [RECAPTURAR]")
     if _vazio(d.get("conclusoes")) and not nervo_todo_dentro(d, exame):
         erros.append("'conclusoes' vazio — a seção CONCLUSÕES sairia só com o título")
+
+    # 'observacoes' só existe DENTRO do bloco de cada olho. Na raiz, o campo era
+    # aceito pela allowlist, não avisado, e nunca lido pelo build(): a frase de
+    # limitação técnica — a única redação aprovada para exame limitado — sumia
+    # do laudo em silêncio, e o PDF saía completo, limpo e com pendente:false,
+    # descrevendo como avaliado por inteiro um exame que não foi.
+    if not _vazio(d.get("observacoes")):
+        erros.append(
+            "'observacoes' na RAIZ do laudo não é impresso e seria descartado em "
+            "silêncio. Observação é conteúdo clínico e vive dentro do olho: "
+            f"'{exame}.OD.observacoes' e/ou '{exame}.OE.observacoes'. "
+            "Mova a frase para lá — se vale para os dois olhos, repita nos dois")
+
+    # --- procedência: o que está impresso é o que foi lido da tela ---
+    # SKILL.md promete em três lugares que a extração vira rastro de auditoria,
+    # e nada no código a exigia nem a lia. Sem ela, conferir um laudo é ler
+    # plausibilidade; com ela, é comparar. O que isto pega é a deriva entre o
+    # que foi lido e o que foi redigido — o modo de falha real de um fluxo que
+    # manda descartar a memória entre pacientes. Não pega valor inventado nas
+    # duas pontas: para isso existe a dupla leitura e a conferência do médico.
+    ex = d.get("extracao")
+    if _vazio(ex):
+        erros.append(
+            "'extracao' ausente. Grave o que você LEU da tela antes de redigir: "
+            "{\"OD\": {\"<campo>\": \"<valor lido>\"}, \"OE\": {...}}, com os "
+            "mesmos campos e valores do exame. É o rastro que sustenta o laudo "
+            "se alguém questionar, e é o que o gerador compara com o texto")
+    elif isinstance(ex, dict):
+        for olho in preenchidos:
+            lido = ex.get(olho)
+            if _vazio(lido) or not isinstance(lido, dict):
+                erros.append(f"'extracao.{olho}' ausente — há dados de {olho} no "
+                             "laudo sem a leitura de tela correspondente")
+                continue
+            for campo, valor in ((d.get(exame) or {}).get(olho) or {}).items():
+                if campo == "observacoes" or _vazio(valor):
+                    continue          # prosa do redator, não valor lido da tela
+                if campo not in lido:
+                    erros.append(f"'{exame}.{olho}.{campo}' está no laudo e não "
+                                 f"está em 'extracao.{olho}' — valor impresso sem "
+                                 "leitura registrada")
+                elif str(lido[campo]).strip() != str(valor).strip():
+                    erros.append(
+                        f"'{exame}.{olho}.{campo}': o laudo diz {str(valor)!r} e a "
+                        f"extração diz {str(lido[campo])!r}. Um dos dois está "
+                        "errado — volte à tela e confira antes de emitir")
+
+    # Classificação de normalidade: lista fechada, como 'olhos'. Sem ela,
+    # qualquer string virava pílula cinza com o texto escrito.
+    aceitos = sorted(CLASSIF)
+    for olho in ("OD", "OE"):
+        for campo in CAMPOS_CLASSIF:
+            v = ((d.get(exame) or {}).get(olho) or {}).get(campo)
+            if _vazio(v):
+                continue
+            bruto = str(v).strip()
+            # Marca de pendência não é passe livre para o resto do campo:
+            # "[VERIFICAR] limítrofe" pulava a lista fechada inteira e a palavra
+            # saía impressa na linha, num PDF timbrado. Tira-se a marca e o que
+            # sobra volta a ser conferido — vazio é legítimo (só a pendência).
+            limpo = bruto
+            for m in MARCAS:
+                limpo = limpo.replace(m, "")
+            limpo = limpo.strip(" —-–:")
+            if any(m in bruto for m in MARCAS) and not limpo:
+                continue                  # pendência declarada, sem texto extra
+            chave = unicodedata.normalize("NFKD", limpo.lower()) \
+                .encode("ascii", "ignore").decode()
+            longos = {unicodedata.normalize("NFKD", t.lower())
+                      .encode("ascii", "ignore").decode(): k
+                      for k, (t, _) in CLASSIF.items()}
+            if chave not in CLASSIF and chave not in longos:
+                erros.append(
+                    f"'{exame}.{olho}.{campo}' = {bruto!r} não é classificação "
+                    f"deste laudo. Aceitos: {aceitos} (ou {list(MARCAS)} se o "
+                    "valor não foi confirmado na tela). Não existe categoria "
+                    "intermediária, e percentil não vai impresso: a tela mostra "
+                    "cor, e a cor fora do verde é 'fora'")
     # A exceção é UMA só: nervo com os dois parâmetros dentro da curva nos dois
     # olhos. O Dr. Maeta reprovou a conclusão proposta para esse caso e não
     # escreveu substituta (Bloco 2, 20/08/2026), então não existe frase aprovada
@@ -368,8 +586,10 @@ def hash_da_base():
     import hashlib
     h = hashlib.sha256()
     for f in sorted(BASE_DIR.glob("*.md")):
-        if f.name == "00-indice.md":
-            continue                      # gerado; carrega o carimbo, não o conteúdo
+        # O índice ENTRA. Ele é o arquivo que SKILL.md manda ler primeiro e é
+        # quem carrega a regra de precedência e o "nunca complete por
+        # inferência": fora do selo, dava para inverter as duas e a emissão
+        # seguia normal, reportando a versão revisada.
         h.update(f.name.encode("utf-8"))
         h.update(f.read_bytes())
     return h.hexdigest()
@@ -435,7 +655,10 @@ def pill_de(valor):
         kk = unicodedata.normalize("NFKD", k).encode("ascii", "ignore").decode()
         if chave == kk or chave == unicodedata.normalize("NFKD", txt).encode("ascii", "ignore").decode():
             return txt, cor
-    return v, PILL_NEUTRO
+    # SEM saída de escape. valida() já recusou qualquer valor fora da lista, e
+    # este ponto é inalcançável por laudo emitido — mas se um dia for alcançado,
+    # o certo é não desenhar pílula nenhuma, nunca imprimir o texto cru.
+    return None, None
 
 
 def bloco_olho(sigla, dados, exame, S):
@@ -566,7 +789,14 @@ def bloco_assinatura(tpl, assinante, S, assinar=False):
     if assinar:
         cam = caminho_assinatura(assinante)
         if cam and cam.suffix.lower() == ".png":
-            img = [Image(str(cam), height=E(51), width=None, kind="proportional")]
+            # A largura é calculada aqui, não delegada ao reportlab: com
+            # kind="proportional" ele faz min(width/w, height/h), e width=None
+            # levantava TypeError. O caminho --assinar NUNCA produziu documento
+            # final, nos dois templates — a falta das imagens escondia isso.
+            from reportlab.lib.utils import ImageReader
+            iw, ih = ImageReader(str(cam)).getSize()
+            alt = E(51)
+            img = [Image(str(cam), width=alt * (iw / ih), height=alt)]
         # SVG exige svglib; enquanto não houver, o final recusa antes de chegar
         # aqui (ver exige_assinatura()).
 
@@ -590,6 +820,38 @@ def bloco_assinatura(tpl, assinante, S, assinar=False):
         blk += [Paragraph(assinante["nome"], est)]
         blk += [Paragraph(r, est) for r in assinante["registros"]]
     return [KeepTogether(blk)]
+
+
+PERMISSAO_ASSINATURA = "PERMITIR_ASSINATURA"
+
+
+def consome_permissao_assinatura(assinante, hospital):
+    """Assinar exige uma autorização que só o médico cria. Uso ÚNICO.
+
+    Assinar é declarar "eu revisei este laudo". Quem faz essa declaração é a
+    pessoa cujo CRM está impresso na página, e ela não pode ser feita por um
+    processo que ninguém acionou de propósito: a linha do laudo_pdf.py está na
+    lista `allow` do settings com glob aberto, e o guardião classificava este
+    script como comando de LEITURA — `--assinar` passava sem prompt nenhum.
+
+    O portão é um arquivo que o médico cria no terminal dele, e que é apagado
+    aqui. Autorização permanente é assinatura automática com outro nome."""
+    bilhete = Path.home() / ".laudos_oct" / PERMISSAO_ASSINATURA
+    if not bilhete.exists():
+        sys.exit(
+            f"ERRO: --assinar recusado: falta a autorização de {assinante['nome']}.\n"
+            f"  Esperada em: {bilhete}\n"
+            "  Assinar é declarar que ESTE laudo foi revisado. Quem declara é o\n"
+            "  médico, no terminal dele, e a autorização vale para UM documento:\n"
+            f"      touch {bilhete}       (macOS / Git Bash)\n"
+            f"      ni {bilhete}          (PowerShell)\n"
+            "  A minuta, sem --assinar, continua saindo normalmente — e é ela que\n"
+            "  o médico lê antes de autorizar.")
+    try:
+        bilhete.unlink()
+    except Exception as e:
+        sys.exit(f"ERRO: não consegui consumir a autorização {bilhete} ({e}).\n"
+                 "  Autorização que não é consumida vira assinatura automática.")
 
 
 def exige_assinatura(assinante, hospital):
@@ -772,7 +1034,38 @@ RESERVADOS = {"CON", "PRN", "AUX", "NUL"}
 RESERVADOS |= {f"COM{i}" for i in range(1, 10)}
 RESERVADOS |= {f"LPT{i}" for i in range(1, 10)}
 
-MAX_COMPONENTE = 96          # folga confortável dentro do MAX_PATH de 260
+MAX_COMPONENTE = 96          # teto de UM componente
+# Teto do caminho INTEIRO. O de componente não bastava: o nome do paciente entra
+# duas vezes — na pasta e no nome do arquivo — e
+#   C:\Users\<usuário>\Laudos_OCT\Nova_Prata\<96>\Laudo_NOVA_PRATA_<96>_NO_AO_<data>.pdf
+# dá 298 caracteres com um nome longo e um usuário de nome longo. Passa do
+# MAX_PATH de 260 do Windows e a gravação falha DEPOIS do laudo redigido, que é o
+# pior momento possível. 250 deixa margem para o sufixo '.part' da escrita
+# atômica; no macOS o limite real é folgado e este teto nunca morde.
+MAX_CAMINHO = 250
+MIN_NOME = 12                # abaixo disto o nome deixa de identificar quem é
+
+
+def encurta_para_caber(pasta_base, nome, molde):
+    """(nome usado, caminho final) cabendo em MAX_CAMINHO.
+
+    `molde` é o nome do arquivo com '{n}' no lugar do nome do paciente. Encurta
+    o nome — que aparece na pasta E no arquivo — até o caminho caber, e acrescenta
+    um sufixo curto derivado do nome COMPLETO: sem ele, dois pacientes cujos
+    nomes começam igual passariam a colidir só por causa do corte."""
+    import hashlib
+    folga = len(".part")
+    for n in range(len(nome), MIN_NOME - 1, -1):
+        curto = nome if n == len(nome) else (
+            nome[:n].rstrip("_") + "_" +
+            hashlib.sha256(nome.encode("utf-8")).hexdigest()[:6])
+        caminho = pasta_base / curto / molde.format(n=curto)
+        if len(str(caminho)) + folga <= MAX_CAMINHO:
+            return curto, caminho
+    # Nem no mínimo coube: o problema não é o nome, é a raiz de saída.
+    curto = nome[:MIN_NOME].rstrip("_") + "_" + \
+        hashlib.sha256(nome.encode("utf-8")).hexdigest()[:6]
+    return curto, pasta_base / curto / molde.format(n=curto)
 
 
 def slug(s):
@@ -788,9 +1081,23 @@ def slug(s):
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--json", required=True)
-    ap.add_argument("--out")
+    ap = argparse.ArgumentParser(allow_abbrev=False)
+    ap.add_argument("--json")
+    # Registro da fila em disco: o único estado que sobrevive ao descarte de
+    # memória entre pacientes e à interrupção no meio do caminho.
+    ap.add_argument("--fila", choices=["abrir", "relatorio"],
+                    help="abrir: registra que este exame ENTROU na fila, antes de "
+                         "ler a tela. relatorio: lê do disco o que saiu, o que "
+                         "está pendente e o que abriu e nunca teve desfecho")
+    ap.add_argument("--hospital"); ap.add_argument("--paciente")
+    ap.add_argument("--data"); ap.add_argument("--exame",
+                                               choices=["nervo", "macula"])
+    ap.add_argument("--dia", help="relatorio de outro dia (AAAA-MM-DD)")
+    # --out foi REMOVIDO. Gravava o PDF com nome, nascimento e conteúdo clínico
+    # em qualquer caminho — inclusive ~/OneDrive, que a lista deny protege para
+    # a ferramenta Write mas não para este script, que está na lista allow. Não
+    # aparecia em documento nenhum do pacote: capacidade sem uso declarado e com
+    # egress de prontuário. O destino é sempre o caminho ancorado abaixo.
     ap.add_argument("--assinar", action="store_true",
                     help="emite o DOCUMENTO FINAL assinado (exige a imagem de "
                          "assinatura do signatário do hospital). Sem esta flag "
@@ -800,6 +1107,25 @@ def main():
     ap.add_argument("--base-nao-revisada", action="store_true",
                     help="SÓ PARA TESTE: emite mesmo com a base marcada como rascunho")
     a = ap.parse_args()
+
+    if a.fila == "relatorio":
+        print(json.dumps(fila_relatorio(a.dia), indent=2, ensure_ascii=False))
+        return
+    if a.fila == "abrir":
+        falta = [n for n, v in (("--hospital", a.hospital), ("--paciente", a.paciente),
+                                ("--data", a.data), ("--exame", a.exame)) if not v]
+        if falta:
+            sys.exit(f"ERRO: --fila abrir precisa de {', '.join(falta)}.\n"
+                     "  É a identidade que você acabou de ler na lista da estação. "
+                     "Sem ela, um exame interrompido não tem como ser encontrado.")
+        k = chave(a.hospital, a.paciente, a.data, a.exame)
+        fila_grava("aberto", chave=k, hospital=a.hospital, paciente=a.paciente,
+                   data_exame=a.data, exame=a.exame)
+        print(json.dumps({"ok": "fila aberta", "chave": k,
+                          "arquivo": str(fila_arquivo())}, ensure_ascii=False))
+        return
+    if not a.json:
+        sys.exit("ERRO: informe --json <laudo.json>, ou --fila abrir/relatorio.")
 
     src = Path(a.json)
     if not src.exists():
@@ -859,14 +1185,20 @@ def main():
     # mesmo olho e mesma modalidade caía no mesmo caminho e o segundo laudo
     # apagava o primeiro sem avisar ninguém.
     data = slug(d.get("data_exame"))[:24]
-    arquivo = f"Laudo_{clin['sigla']}_{nome}_{suf}_{olhos}_{data}.pdf"
-    if a.out:
-        out = Path(a.out).expanduser()
-    else:
-        # Sempre ancorado, nunca herdando o diretório do JSON: hospital no nome do
-        # arquivo e na pasta evita sobrescrever laudo de homônimo de outra unidade.
-        out = OUT_ROOT / clin["pasta"] / nome / arquivo
+    # Sempre ancorado, nunca herdando o diretório do JSON: hospital no nome do
+    # arquivo e na pasta evita sobrescrever laudo de homônimo de outra unidade.
+    molde = f"Laudo_{clin['sigla']}_{{n}}_{suf}_{olhos}_{data}.pdf"
+    nome, out = encurta_para_caber(OUT_ROOT / clin["pasta"], nome, molde)
+    if len(str(out)) > MAX_CAMINHO - len(".part"):
+        sys.exit(f"ERRO: o caminho de saída não cabe no limite do sistema:\n"
+                 f"  {out}\n  ({len(str(out))} caracteres; o teto é {MAX_CAMINHO})\n"
+                 "  A raiz de saída está funda demais. Mova ~/Laudos_OCT para mais "
+                 "perto da raiz do disco.")
     out.parent.mkdir(parents=True, exist_ok=True)
+    # Pasta do paciente legível só por quem opera. O rastro em ~/.laudos_oct já
+    # era 0600/0700 de propósito, e o PDF — que tem nome, nascimento e conteúdo
+    # clínico — saía 0644 em pasta 0755: o artefato menos protegido do fluxo.
+    _restringe(out.parent)
     # No NTFS a comparação de nome é insensível à caixa: "Silva_OD" e "silva_od"
     # são o MESMO arquivo. out.exists() já pega o caso lá, mas varrer a pasta
     # comparando em minúsculas faz a checagem valer nos dois sistemas.
@@ -892,6 +1224,7 @@ def main():
             sys.exit("ERRO: este laudo tem [VERIFICAR] ou [RECAPTURAR] — não pode "
                      "ser assinado.\n  Resolva a pendência e gere de novo.")
         exige_assinatura(assinante, d["hospital"])
+        consome_permissao_assinatura(assinante, d["hospital"])
 
     parcial = out.with_name(out.name + ".part")
     try:
@@ -901,6 +1234,7 @@ def main():
             if paginas == 1:
                 break
         os.replace(parcial, out)
+        _restringe(out)
     finally:
         Path(parcial).unlink(missing_ok=True)
     if ESCALA < 1.0:
@@ -910,7 +1244,9 @@ def main():
         print("AVISO: o laudo passou de uma página mesmo no piso de compressão. "
               "Os laudos da clínica têm uma página — confira se a redação pode ser "
               "enxugada antes de liberar.", file=sys.stderr)
+    k = chave_do_exame(d)
     res = {"pdf": str(out), "template": clin["template"], "base": versao,
+           "fila": k,
            "signatario": assinante["nome"],
            "documento": "final assinado" if a.assinar else "minuta",
            "pendente": pend,
@@ -920,12 +1256,29 @@ def main():
         # propósito (nada se perde na fila de conferência), e a mais recente é
         # identificável pela ordem alfabética do nome.
         PENDENTES.mkdir(parents=True, exist_ok=True)
+        _restringe(PENDENTES)
         selo = time.strftime("%Y-%m-%d_%H%M%S")
         alvo = PENDENTES / f"{out.stem}__{selo}{out.suffix}"
         shutil.copy2(out, alvo)
+        _restringe(alvo)
         res["copia_pendentes"] = str(alvo)
         res["motivos"] = ([f"{FLAG}: valor não confirmado"] if FLAG in bruto_final else []) + \
                          ([f"{RECAP}: estrutura não capturada"] if RECAP in bruto_final else [])
+    # O desfecho vai para o disco ANTES de ser impresso: o que o agente conta ao
+    # usuário no fim da fila passa a ser conferível contra o registro, e um item
+    # aberto sem desfecho aparece no relatório da próxima execução.
+    try:
+        fila_grava("pendente" if pend else "emitido", chave=k, pdf=str(out),
+                   olhos=olhos, documento=res["documento"],
+                   motivo="; ".join(res.get("motivos") or []) or None)
+    except SystemExit as e:
+        # O PDF JÁ EXISTE neste ponto. Sair sem dizer isso faria o agente
+        # concluir que a emissão falhou e tentar de novo, batendo na guarda de
+        # colisão — e o exame ficaria marcado como não feito, tendo sido feito.
+        sys.exit(f"{e}\n\n  ATENÇÃO: o PDF FOI gravado, apesar deste erro:\n"
+                 f"    {out}\n"
+                 "  Não emita de novo. Anote este laudo à mão na conferência do "
+                 "fim da fila — ele não vai aparecer em --fila relatorio.")
     print(json.dumps(res, indent=2, ensure_ascii=False))
 
 

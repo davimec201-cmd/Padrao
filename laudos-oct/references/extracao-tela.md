@@ -36,8 +36,10 @@ crie faixa intermediária e não sinalize divergência com convenção de fabric
 > responsável**, que é autoridade sobre a redação do laudo dele. A base descreve
 > a literatura; a tabela acima descreve a prática da clínica.
 
-**Nunca escreva percentil no laudo.** O laudo diz "dentro" / "fora" / "limítrofe" —
-nunca "p < 1%".
+**Nunca escreva percentil no laudo.** O laudo diz "dentro" ou "fora" — nunca
+"p < 1%", nunca "borderline", nunca "limítrofe". São **duas** categorias: esta
+linha dizia três, dez linhas depois de §1 ter dito que a terceira não existe, e
+era a única menção do pacote inteiro a autorizá-la.
 
 Mapeamento para o campo do JSON:
 

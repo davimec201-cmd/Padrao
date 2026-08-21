@@ -2,7 +2,8 @@
   "revisor": "Dr. Vinicius Lotto Maeta",
   "data": "20/08/2026",
   "versao_revisada": "1.0",
-  "hash_base": "44682cd4af2e3a055a2f15626a350d7f752ac39f84312ceefb8f7299f9898b03",
-  "_como_funciona": "A trava vale PARA ESTE hash. Se qualquer arquivo de references/base/*.md mudar, o hash muda, este registro deixa de casar e a emissão volta a ser recusada até nova revisão médica. Não edite o hash à mão: regravar este arquivo sem revisão desfaz a única garantia de que o laudo se apoia em base conferida.",
-  "_origem": "Formulário 'Decisões clínicas e dados dos equipamentos', Bloco 4, respondido e assinado em 20/08/2026."
+  "hash_base": "e5470cb884930164e05c5fd1341bc334342fccf6b1073ef0a251bddde0dc35f2",
+  "_como_funciona": "A trava vale PARA ESTE hash, que cobre TODOS os arquivos de references/base/*.md — o 00-indice.md incluído, porque é ele que carrega a regra de precedência e o 'nunca complete por inferência'. Se qualquer um mudar, o hash muda, este registro deixa de casar e a emissão volta a ser recusada até nova revisão médica. Não edite o hash à mão: regravar este arquivo sem revisão desfaz a única garantia de que o laudo se apoia em base conferida.",
+  "_origem": "Formulário 'Decisões clínicas e dados dos equipamentos', Bloco 4, respondido e assinado em 20/08/2026.",
+  "_rehash_21_08_2026": "O hash foi regravado em 21/08/2026 SEM nova revisão clínica, e o revisor e a data acima continuam sendo os de 20/08/2026. Mudaram duas coisas que não são conteúdo clínico: (1) o carimbo de cabeçalho, que continuava dizendo '1.0-rascunho / REVISADO POR: PENDENTE' depois da revisão — era a proveniência que cada laudo arquivava; (2) o selo passou a cobrir também o 00-indice.md, que antes ficava de fora. O texto clínico das seções é o mesmo que o Dr. Maeta conferiu. Hash anterior: 44682cd4af2e3a055a2f15626a350d7f752ac39f84312ceefb8f7299f9898b03"
 }

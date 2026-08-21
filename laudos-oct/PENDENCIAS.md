@@ -1,7 +1,28 @@
 # Pendências — o que ainda falta
 
-Atualizado em **20/08/2026**, depois da devolutiva do formulário "Decisões clínicas
-e dados dos equipamentos", respondido e assinado pelo **Dr. Vinicius Lotto Maeta**.
+Atualizado em **21/08/2026**, depois da auditoria de código externa. O conteúdo
+clínico continua sendo o da devolutiva do formulário "Decisões clínicas e dados dos
+equipamentos", respondido e assinado pelo **Dr. Vinicius Lotto Maeta** em 20/08/2026.
+
+---
+
+## Duas autorizações que agora são do humano
+
+Nenhuma das duas é pendência: são **portões**, e o fluxo do dia a dia não passa por
+eles. Ficam aqui porque a pessoa que opera precisa saber que existem.
+
+| Arquivo que o humano cria | Libera | Vale para |
+|---|---|---|
+| `~/.laudos_oct/PERMITIR_ANYWHERE` | `hands.py --anywhere`, que desliga a guarda de foco e a de retângulo | **um comando** — o arquivo é apagado no uso |
+| `~/.laudos_oct/PERMITIR_ASSINATURA` | `laudo_pdf.py --assinar`, o documento final assinado | **um documento** — idem |
+
+```bash
+touch ~/.laudos_oct/PERMITIR_ASSINATURA        # macOS / Git Bash
+ni $HOME\.laudos_oct\PERMITIR_ASSINATURA      # PowerShell
+```
+
+O agente **não** cria esses arquivos: o guardião nega qualquer comando que os toque.
+Se ele pedir que você crie um, é porque parou e está pedindo — que é o desenho.
 
 ---
 
@@ -58,7 +79,7 @@ não proponha alternativa, não abra chamado de "conferir com o médico".
 | **Nascimento em Nova Prata** | Impresso quando houver, em linha própria; a linha some quando não houver. |
 | **"área da escavação"** | Corrigido para "relação escavação/papila (área)" em toda a biblioteca. |
 | **Conclusão de nervo normal** | **Sem frase aprovada, por decisão.** Sai com CONCLUSÕES em branco e um aviso de que a conclusão é do médico. Não compor substituta. |
-| **Frase de exame limitado** | Ficou sem marcação no formulário → **não entra** na biblioteca. |
+| **Frase de exame limitado** | Ficou sem marcação no formulário → **não entra** na biblioteca. Quando for preciso registrar uma limitação, ela vai em `observacoes` **dentro do olho** — na raiz do JSON o campo é recusado, porque de lá ele não era impresso e sumia em silêncio. |
 | **Dados dos signatários** | Extraídos dos laudos reais. Um por hospital. |
 
 ---

@@ -99,7 +99,6 @@ conteúdo para preencher.
 ```json
 {
   "hospital": "farroupilha",
-  "medico": "maeta",
   "exame": "nervo",
   "paciente": { "nome": "Nome Completo", "nascimento": "dd/mm/aaaa" },
   "data_exame": "22-07-2026",
@@ -137,11 +136,14 @@ Para mácula, troque o bloco `nervo` por:
 |---|---|
 | `"dentro"` | verde — "dentro da curva de normalidade" (tela verde ou branca) |
 | `"fora"` | vermelha — "fora da curva de normalidade" (tela **amarela ou vermelha**) |
-| texto livre | pílula cinza com o texto que você escreveu |
 | ausente / `[VERIFICAR]` | sem pílula; o campo é marcado como pendente |
+| qualquer outro texto | **o laudo NÃO é emitido** — erro com a lista de aceitos |
 
-Só existem esses dois valores de classificação. `"limitrofe"` **não é aceito** —
-amarelo é `"fora"`.
+Só existem esses dois valores de classificação. `"limitrofe"`, `"borderline"` e
+qualquer forma com percentil **não são aceitos** — amarelo é `"fora"`. A linha
+"texto livre → pílula cinza com o texto que você escreveu" saiu desta tabela
+porque descrevia como recurso o que era uma saída de escape: `"limítrofe"` saía
+impresso, sem pendência, num documento que um CRM assina.
 
 **Campo não confirmado:** ponha `[VERIFICAR]` no **valor** e use o campo de
 classificação para o **motivo** — sem repetir a marca:

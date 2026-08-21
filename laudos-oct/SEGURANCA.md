@@ -129,8 +129,14 @@ fechado: entrada que ele não entende é negada.
 | 5 | **nega** ação de tela enquanto `~/Laudos_OCT/STOP` existir |
 | 6 | **nega** `pyautogui`, `cliclick`, `osascript`, `screencapture`, `xdotool` fora do `hands.py` — e "fora do hands.py" quer dizer que o comando **começa** com `python3 .../hands.py` e não encadeia (`;`, `&&`, `\|`, `$(...)`). Antes bastava a string `hands.py` aparecer em qualquer ponto da linha, inclusive num comentário |
 | 7 | **nega** autoescalada: `settings.json`, hooks, `.zshrc`, arquivos da skill, o `config.json` com os tetos de taxa **e o `~/Laudos_OCT/STOP`** — o freio de mão estava menos protegido que o teto de taxa |
-| 8 | **escala para você** qualquer comando com `--anywhere`, que desliga a guarda de foco |
-| — | grava em `~/.laudos_oct/guardiao.log`, com `chmod 600` e **omitindo o texto digitado** — o log guardava o nome do paciente em claro, sem prazo de expurgo |
+| 8 | **pergunta a você** antes de qualquer comando com `--anywhere` — e casa também a abreviação (`--any`, `--anywh`), que o argparse aceitava e que desligava as guardas sem casar esta regra |
+| 8b | **pergunta a você** antes de `--assinar`, que emite o documento final assinado. Assinar é declarar que o laudo foi revisado |
+| — | grava em `~/.laudos_oct/guardiao.log`, com `chmod 600`, **omitindo o texto digitado e o nome do paciente no caminho** — só as aspas eram redigidas, e todo `laudo_pdf.py --json ~/Laudos_OCT/<Hospital>/<Nome>/laudo.json` gravava o nome em claro, um por laudo, num arquivo que nenhum `purge` alcança |
+
+O veredito que pede confirmação é **`ask`**. Era `escalate`, que o Claude Code não
+aceita: um hook que sai com código 0 e JSON fora do schema **não reporta decisão
+nenhuma**, e o comando caía na lista `allow`, que é aprovação sem prompt. A regra 8
+nunca tinha funcionado — falhava aberta, o oposto do que este arquivo promete.
 
 **No Windows o guardião ganha cinco famílias a mais**, porque o Claude Code roda
 Git Bash e daqui se alcança o resto do sistema: abrir outro interpretador
@@ -168,6 +174,13 @@ porta legítima sem aval humano é porta aberta.
   sincronizada = dado de paciente na nuvem de terceiro sem você decidir isso.
 - **Prints são dado clínico.** `hands.py purge` apaga todos, `purge --dias 7` os
   antigos. Rode ao fim de cada turno.
+- **O registro da fila também tem nome de paciente.** `~/Laudos_OCT/_FILA/<data>.jsonl`
+  guarda, por exame, quem entrou na fila e o que aconteceu com ele. Fica em
+  `~/Laudos_OCT` de propósito — na mesma zona dos PDFs, restrita ao usuário,
+  alcançável pelo `purge` e pela política de retenção da clínica — e **não** em
+  `~/.laudos_oct`, que é a zona de configuração e rastro técnico. É o único
+  artefato que sobrevive ao descarte de memória entre pacientes, e é dele que sai
+  o relatório do fim da fila.
 - **Windows: escala do monitor.** O `hands.py` declara consciência de DPI e trabalha
   em pixels físicos. Trocar de monitor ou mudar a escala **no meio de uma fila**
   desloca todo clique dentro da janela — e a guarda de retângulo não pega, porque o
@@ -255,11 +268,38 @@ aumentar o teto.
 
 ## 9. Assinatura digitalizada
 
-**A clínica decidiu não usar assinatura digitalizada.** O PDF sai sempre com o espaço
-em branco e nome/registros impressos abaixo, para assinatura à mão. Nenhuma imagem de
-assinatura acompanha o pacote — **e não existe caminho no código para embutir uma**.
-O parâmetro `--assinatura` do `laudo_pdf.py` foi removido: decisão em prosa com o
-mecanismo intacto no código é decisão que uma linha de comando desfaz.
+**A clínica decidiu usar assinatura digitalizada** (formulário de 20/08/2026, Bloco 2,
+Caminho A). O que o texto abaixo dizia — "não existe caminho no código para embutir
+uma" — deixou de valer naquele dia e ficou aqui por descuido: o parâmetro não foi
+removido, foi renomeado de `--assinatura` para `--assinar`, com o mecanismo inteiro.
+Documento de segurança que afirma o contrário do código é pior que documento nenhum,
+porque quem lê para de conferir.
+
+**O que vale hoje:**
+
+- Sem `--assinar`, sai **minuta**: espaço em branco, carimbo "MINUTA — CONFERIR E
+  ASSINAR" em todas as páginas, `/Author` dizendo que não é assinada.
+- Com `--assinar`, sai o **documento final**, com a imagem de assinatura embutida e
+  sem carimbo. Para isso, três coisas precisam ser verdade ao mesmo tempo:
+  1. a imagem existe em `~/.laudos_oct/assinaturas/` (fora do pacote, fora do git);
+  2. o laudo não tem nenhum `[VERIFICAR]` nem `[RECAPTURAR]`;
+  3. **existe `~/.laudos_oct/PERMITIR_ASSINATURA`, criado pelo médico**, e o
+     arquivo é **apagado no uso** — vale para um documento só.
+
+O item 3 é o portão que faltava. A linha do `laudo_pdf.py` está na lista `allow` do
+`settings.json` com glob aberto, e o guardião classificava o script como comando de
+leitura: `--assinar` passava sem prompt nenhum. Hoje são dois portões independentes —
+o arquivo de autorização (que funciona mesmo sem o hook instalado) e a regra 8b do
+guardião, que pede confirmação humana.
+
+Quem cria a autorização é o médico, no terminal dele:
+
+```bash
+touch ~/.laudos_oct/PERMITIR_ASSINATURA      # macOS / Git Bash
+ni $HOME\.laudos_oct\PERMITIR_ASSINATURA    # PowerShell
+```
+
+O agente **não** cria esse arquivo: o guardião bloqueia qualquer comando que o toque.
 
 Vale entender o que a opção muda. Um PDF sem assinatura é uma minuta: quem assina
 declara ter revisado. Um PDF que já sai assinado é um documento executado — e se ele

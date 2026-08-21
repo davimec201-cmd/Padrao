@@ -18,6 +18,18 @@
       "epr_cfr": "com pontos de irregularidade e elevação de EPR em mácula central (dep drusenoide)"
     }
   },
+  "extracao": {
+    "OD": {
+      "interface_vitreo_retiniana": "aparentemente dentro da normalidade.",
+      "camadas_internas": "com área de líquido intrarretiniano em quadrante temporal (edema) laminar.",
+      "epr_cfr": "aparentemente dentro da normalidade."
+    },
+    "OE": {
+      "interface_vitreo_retiniana": "aparentemente dentro da normalidade.",
+      "camadas_internas": "aparentemente dentro da normalidade.",
+      "epr_cfr": "com pontos de irregularidade e elevação de EPR em mácula central (dep drusenoide)"
+    }
+  },
   "conclusoes": [
     "OLHO DIREITO com achados sugestivos de líquido intrarretiniano em mácula temporal.",
     "OLHO ESQUERDO com achados sugestivos de descolamento drusenoide em mácula central."

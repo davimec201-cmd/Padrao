@@ -1,7 +1,16 @@
 # Mãos e olhos (Windows)
-pyautogui>=0.9.54          # cliques e teclado
-pillow>=10.0.0             # captura de tela (ImageGrab) e redimensionamento
+#
+# Teto de versão em toda linha. Sem ele, o `pip install` do setup resolvia o que
+# estivesse publicado NA HORA, numa máquina que tem sessão autenticada de
+# prontuário aberta: uma major nova de qualquer uma destas entra sem ninguém
+# decidir. O piso é a versão em que a skill foi exercitada; o teto é a próxima
+# major, que é onde a compatibilidade pode quebrar.
+#
+# Para subir um teto: suba, rode `python scripts\teste_regras.py` e
+# `python scripts\teste_aceite.py`, e só então comite.
+pyautogui>=0.9.54,<0.10       # cliques e teclado
+pillow>=10.0.0,<13            # captura de tela (ImageGrab) e redimensionamento
 # Geração do PDF
-reportlab>=4.0.0
+reportlab>=4.0.0,<6           # exercitada em 4.x e 5.0.1
 # Sem pyobjc: aquilo é macOS. Geometria de janela e app em foco saem de ctypes
 # contra a API do Windows, sem dependência a mais numa máquina de clínica.

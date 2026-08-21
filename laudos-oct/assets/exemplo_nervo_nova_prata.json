@@ -27,6 +27,26 @@
       "cfn_classificacao": "dentro"
     }
   },
+  "extracao": {
+    "OD": {
+      "area_papila": "2,68 mm2",
+      "rel_esc_papila": "0,47",
+      "rel_classificacao": "fora",
+      "escavacao_v": "0,69",
+      "escavacao_h": "0,73",
+      "cfn_media": "127",
+      "cfn_classificacao": "dentro"
+    },
+    "OE": {
+      "area_papila": "2,78 mm2",
+      "rel_esc_papila": "0,52",
+      "rel_classificacao": "fora",
+      "escavacao_v": "0,69",
+      "escavacao_h": "0,75",
+      "cfn_media": "129",
+      "cfn_classificacao": "dentro"
+    }
+  },
   "conclusoes": [
     "AMBOS OS OLHOS com relação escavação/papila (área) fora da curva de normalidade e espessura média da camada de fibras nervosas dentro da curva de normalidade."
   ],

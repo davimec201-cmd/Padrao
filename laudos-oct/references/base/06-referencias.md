@@ -1,5 +1,5 @@
 <!-- Gerado por dividir_guia.py a partir de base-cientifica.md. Não edite aqui: edite o guia e rode o script de novo. -->
-<!-- VERSÃO: 1.0-rascunho | REVISADO POR: PENDENTE — não colocar em produção antes da revisão -->
+<!-- VERSÃO: 1.0 | REVISADO POR: Dr. Vinicius Lotto Maeta — revisão de 20/08/2026 -->
 
 ## Referências
 

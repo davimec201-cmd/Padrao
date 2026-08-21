@@ -136,6 +136,81 @@ def roda_para(base):
         checa("Delete sozinho é recusado (apaga item da lista)", "recusa", tecla("delete"))
         checa("backspace continua permitida (corrigir texto)", "passa", tecla("backspace"))
 
+    print("  · lista negra: TODAS as grafias aceitas, não só a canônica")
+    # MODS e TECLAS aceitam apelido ('ctrl'/'control', 'esc'/'escape'), e a
+    # tabela é escrita com um só. Sem canonizar, 'control+s' não casava 'ctrl+s'
+    # e o Salvar chegava ao sistema do hospital — com a suíte verde, porque ela
+    # só testava a grafia canônica. Aqui cada combo negado é exercitado em TODAS
+    # as escritas que a plataforma aceita.
+    apelidos_mod = {}
+    for escrito, valor in base.MODS.items():
+        apelidos_mod.setdefault(valor, []).append(escrito)
+    apelidos_key = {}
+    for escrito, valor in base.TECLAS.items():
+        apelidos_key.setdefault(valor, []).append(escrito)
+
+    import itertools
+    variantes = 0
+    for (mods, key) in base.COMBOS_NEGADOS:
+        listas = [apelidos_mod[base.MODS[m]] for m in sorted(mods)]
+        for combo_mods in itertools.product(*listas) if listas else [()]:
+            for k in apelidos_key[base.TECLAS[key]]:
+                escrita = "+".join(list(combo_mods) + [k])
+                variantes += 1
+                checa(f"{escrita} é recusado", "recusa", tecla(escrita))
+    afirma(f"{variantes} grafias cobertas ({len(base.COMBOS_NEGADOS)} combos)",
+           variantes >= len(base.COMBOS_NEGADOS))
+
+    print("  · abreviação de flag não desliga a guarda")
+    # argparse aceita prefixo não ambíguo por padrão: '--any' virava '--anywhere'
+    # e desligava foco e retângulo sem casar a regra do guardião.
+    import contextlib, io
+
+    def pela_cli(*argv):
+        """Roda o CLI de verdade e diz se algo chegou à plataforma.
+
+        `preparar` não conta: main() sempre chama, e é declaração de DPI, não
+        ação de tela."""
+        fake.foco = "Finder"
+        antes = [f for f in fake.feitos if f[0] != "preparar"]
+        antes = len(antes)
+        try:
+            with contextlib.redirect_stderr(io.StringIO()), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                h.main(list(argv))
+            saiu = "passou"
+        except SystemExit as e:
+            saiu = "recusa" if e.code else "passou"
+        agora = len([f for f in fake.feitos if f[0] != "preparar"])
+        return saiu, agora - antes
+
+    for escrita in ("--any", "--anywh"):
+        saiu, novas = pela_cli("click", escrita, "5000", "5000")
+        afirma(f"click {escrita} 5000 5000 é recusado pelo parser",
+               saiu == "recusa" and novas == 0, f"saiu={saiu}, ações={novas}")
+
+    print("  · --anywhere exige autorização do operador")
+    # A flag desliga foco e retângulo. O hook 'ask' era o único portão, e o hook
+    # é passo de instalação separado — INSTALACAO.md admite que dá para pular.
+    bilhete = h.CONFIG_DIR / h.PERMISSAO_ANYWHERE
+    bilhete.unlink(missing_ok=True)
+    h._anywhere_consumido = False
+    saiu, novas = pela_cli("click", "--anywhere", "5000", "5000")
+    afirma("sem autorização, --anywhere não clica",
+           saiu == "recusa" and novas == 0, f"saiu={saiu}, ações={novas}")
+
+    bilhete.write_text("liberado pelo operador")
+    h._anywhere_consumido = False
+    saiu, novas = pela_cli("click", "--anywhere", "5000", "5000")
+    afirma("com autorização, --anywhere clica", saiu == "passou" and novas == 1,
+           f"saiu={saiu}, ações={novas}")
+    afirma("e a autorização é CONSUMIDA (vale um comando só)", not bilhete.exists())
+
+    h._anywhere_consumido = False
+    saiu, novas = pela_cli("click", "--anywhere", "5000", "5000")
+    afirma("o segundo --anywhere já é recusado",
+           saiu == "recusa" and novas == 0, f"saiu={saiu}, ações={novas}")
+
     print("  · guarda de foco")
     checa("foco em outro app recusa a tecla", "recusa", tecla("enter", "Mail"))
     checa("foco ILEGÍVEL recusa a tecla", "recusa", tecla("enter", ""))
@@ -170,6 +245,30 @@ def roda_para(base):
     checa("STOP bloqueia o clique", "recusa", clique(800, 500))
     h.STOP_FILE.unlink()
 
+    print("  · sidecar de outro paciente")
+    shots = h.OUT_ROOT / "shots"
+    (shots / "pacienteA").mkdir(parents=True, exist_ok=True)
+    lado = {"origin_pt": {"x": 2000, "y": 1500}, "px_per_pt": 1.0}
+    (shots / "nav01.json").write_text(json.dumps(lado))
+    fake.foco = "AnyDesk"
+    antes = len(fake.feitos)
+    checa("--from de paciente inexistente NÃO cai no sidecar de outro", "recusa",
+          lambda: h.cmd_mouse(Args(x=10, y=10, frm="shots/pacienteB/nav01.json",
+                                   anywhere=False, dry_run=False), "click"))
+    afirma("e nenhum clique saiu", len(fake.feitos) == antes)
+
+    print("  · rastro de auditoria ingravável")
+    # Com o rastro inutilizável, limites() perdia o teto de taxa e o detector de
+    # loop junto — e nada recusava nada. A PRIMEIRA ação já tem de parar.
+    rastro = h.CONFIG_DIR / "acoes.jsonl"
+    rastro.unlink(missing_ok=True)
+    rastro.mkdir()                    # diretório no lugar do arquivo: ingravável
+    fake.foco = "AnyDesk"
+    antes = len(fake.feitos)
+    checa("rastro ingravável recusa a PRIMEIRA ação", "recusa", clique(800, 500))
+    afirma("e nada chegou à plataforma", len(fake.feitos) == antes)
+    rastro.rmdir()
+
     print("  · contenção do purge")
     fora = casa / "Documentos"; fora.mkdir(); (fora / "particular.png").write_bytes(b"x")
     checa("purge fora de Laudos_OCT é recusado", "recusa",
@@ -179,9 +278,60 @@ def roda_para(base):
           lambda: h.cmd_purge(Args(dir=None, dias=0)))
 
 
+def doctor_com_perfil(base):
+    """O perfil OFICIAL da plataforma tem de dar PRONTO, e NAO_PRONTO tem de dizer
+    o que falta.
+
+    Duas coisas travavam o Windows para sempre com o endurecimento correto: a
+    exigência da string `"sandbox"`, que o perfil do Windows não tem por decisão
+    declarada, e a checagem de `motor_de_clique`, que é diagnóstico só do macOS e
+    devolvia None aqui — esta última sem NENHUMA linha do relatório dizendo por
+    quê. SKILL.md manda parar e mostrar o que falta; não havia o que mostrar."""
+    import contextlib, io, shutil
+    perfil = "settings-macos.json" if base.nome == "macOS" else "settings-windows.json"
+    casa = Path(tempfile.mkdtemp())
+    (casa / ".claude" / "hooks").mkdir(parents=True)
+    raiz = AQUI.parent / "hardening"
+    shutil.copy(raiz / "hooks" / "guardiao-laudos.py",
+                casa / ".claude" / "hooks" / "guardiao-laudos.py")
+    shutil.copy(raiz / perfil, casa / ".claude" / "settings.json")
+    fake = PlataformaFalsa(base)
+    h = carrega_hands(fake, casa)
+    h.save_config({"allowed_apps": ["AnyDesk"],
+                   "guard_rect_pt": {"x": 0, "y": 0, "w": 1600, "h": 1000}})
+
+    def diagnostico():
+        saida = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(saida), contextlib.redirect_stderr(io.StringIO()):
+                h.main(["doctor"])
+        except SystemExit:
+            pass
+        return json.loads(saida.getvalue())
+
+    print(f"\n── doctor com {perfil} ──")
+    rep = diagnostico()
+    afirma(f"{perfil} instalado dá PRONTO", rep["VEREDITO"] == "PRONTO",
+           f"{rep['VEREDITO']} · falta={rep.get('FALTA')}")
+    afirma("settings_endurecido diz ok", rep["settings_endurecido"] == "ok",
+           str(rep["settings_endurecido"]))
+    if base.nome != "macOS":
+        afirma("e o relatório explica que não há sandbox de kernel aqui",
+               "sandbox_de_kernel" in rep)
+
+    h.STOP_FILE.parent.mkdir(parents=True, exist_ok=True)
+    h.STOP_FILE.write_text("parar")
+    rep = diagnostico()
+    afirma("com STOP, o veredito cai", rep["VEREDITO"] == "NAO_PRONTO")
+    afirma("e NAO_PRONTO SEMPRE diz o que falta", bool(rep.get("FALTA")),
+           "veredito negativo sem lista de faltas é o que SKILL.md proíbe")
+    h.STOP_FILE.unlink()
+
+
 def main():
     for base in (_plat.MacOS(), _plat.Windows()):
         roda_para(base)
+        doctor_com_perfil(base)
     print(f"\n{OK} passaram, {FALHA} falharam")
     return 1 if FALHA else 0
 
