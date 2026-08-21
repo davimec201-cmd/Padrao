@@ -7,11 +7,20 @@ assinaturas/
 # Rede mais larga: o padrão acima só pega o nome final. Um escaneado que chegou
 # como "maeta.jpg" ou "scan.png" passaria, e o commit é irreversível — apagar
 # depois não tira do histórico nem de quem já clonou.
-*assinatura*
-*rubrica*
-*.jpg
-*.jpeg
+#
+# A rede pega IMAGEM, não código: o primeiro rascunho destas linhas era
+# "*assinatura*" e engoliu o próprio scripts/preparar_assinatura.py — o arquivo
+# ficou em disco, fora do commit, e só apareceu quando montei o pacote. Regra de
+# ignore ampla demais não avisa que está agindo.
+*assinatura*.png
+*assinatura*.jpg
+*assinatura*.jpeg
+*assinatura*.svg
+*rubrica*.png
+*rubrica*.jpg
 scan*.png
+scan*.jpg
+*.jpeg
 
 # Sobras de ferramenta
 __pycache__/
