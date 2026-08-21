@@ -20,10 +20,31 @@ script que move o mouse e digita na sua máquina.
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-**Windows** — instale antes o [Git para Windows](https://git-scm.com/download/win)
-(o Claude Code usa o Git Bash como terminal) e o
-[Python](https://www.python.org/downloads/), marcando **"Add python.exe to PATH"**.
-Depois, no Git Bash, o mesmo comando acima.
+**Windows** — o instalador é outro, e roda no **PowerShell**:
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+
+Antes disso, instale duas coisas:
+
+1. **[Git para Windows](https://git-scm.com/download/win)** — não é conveniência.
+   Sem ele o Claude Code executa comando pela ferramenta **PowerShell** em vez da
+   **Bash**, e é a ferramenta Bash que o endurecimento deste pacote foi escrito
+   para cobrir. O perfil hoje cobre as duas (ver SEGURANCA.md §6), mas a
+   configuração testada é com o Git Bash presente. O `hands.py doctor` diz qual
+   das duas está em uso, no campo `ferramenta_de_shell`.
+2. **[Python](https://www.python.org/downloads/)**, marcando
+   **"Add python.exe to PATH"** na primeira tela do instalador. É o erro número
+   um de instalação: sem isso, nada abaixo funciona.
+
+Confira antes de seguir:
+
+```powershell
+claude --version      # ex.: 2.1.211 (Claude Code)
+python --version      # ex.: Python 3.12.x
+git --version         # ex.: git version 2.47.x
+```
 
 Depois:
 

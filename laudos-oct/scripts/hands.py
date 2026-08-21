@@ -53,8 +53,19 @@ def die(msg, code=2):
     sys.exit(code)
 
 
+def e_mac():
+    """A plataforma em uso é macOS?
+
+    Por SUBSTRING, não igualdade: a suíte injeta uma plataforma chamada
+    'Falsa/macOS', e com '==' ela era tratada como Windows em toda decisão que
+    depende do sistema — inclusive nas checagens do doctor que a suíte existe
+    para exercitar. O teste passava por acidente onde as duas plataformas
+    concordavam, e falhava na primeira em que não concordassem."""
+    return PLAT is not None and "macOS" in PLAT.nome
+
+
 def _foco_ilegivel():
-    if PLAT is not None and PLAT.nome == "macOS":
+    if e_mac():
         return "ILEGÍVEL — falta permissão de Automação"
     return "ILEGÍVEL — não consegui ler o app em primeiro plano"
 
@@ -738,6 +749,16 @@ def cmd_guard(a):
                       "allowed_apps": cfg.get("allowed_apps")}, indent=2))
 
 
+def _tem_git_bash():
+    """Git Bash presente? É ele que faz o Claude Code usar a ferramenta Bash."""
+    import shutil
+    if shutil.which("bash"):
+        return True
+    return any(Path(c).exists() for c in (
+        r"C:\Program Files\Git\bin\bash.exe",
+        r"C:\Program Files (x86)\Git\bin\bash.exe"))
+
+
 def cmd_doctor(a):
     # 'falhas' em vez de um booleano solto: o VEREDITO tem de DIZER o que falta.
     # SKILL.md manda parar e mostrar exatamente o que está faltando quando o
@@ -766,7 +787,7 @@ def cmd_doctor(a):
         rep["screenshot_px"] = png_size(tmp)
     except SystemExit:
         rep["captura_de_tela"] = ("FALHOU — conceda Gravação de Tela"
-                                  if PLAT.nome == "macOS" else
+                                  if e_mac() else
                                   "FALHOU — verifique pillow e a sessão gráfica")
         falhas.append("captura_de_tela")
     finally:
@@ -777,7 +798,7 @@ def cmd_doctor(a):
         rep["escala_retina"] = detect_scale()
     except SystemExit:
         rep["tela_pt"] = ("FALHOU — conceda Automação/Acessibilidade"
-                          if PLAT.nome == "macOS" else "FALHOU — não li a tela")
+                          if e_mac() else "FALHOU — não li a tela")
         falhas.append("tela_pt")
 
     front = frontmost_app()
@@ -805,18 +826,29 @@ def cmd_doctor(a):
     # NAO_PRONTO permanente na plataforma-alvo, com o endurecimento corretamente
     # instalado — e ensinava operador e agente a passar por cima do único sinal
     # que detecta endurecimento AUSENTE de verdade.
-    mac = PLAT is not None and PLAT.nome == "macOS"
+    mac = e_mac()
     tem_sandbox = '"sandbox"' in cfg_txt
+    # No Windows nativo SEM Git for Windows, o Claude Code executa comando pela
+    # ferramenta PowerShell, não pela Bash. Um matcher só em "Bash" deixa o
+    # guardião sem ser chamado e as regras Bash(...) sem valer — na
+    # plataforma-alvo. A própria documentação avisa que casar só Bash não basta.
+    tem_powershell = "PowerShell" in cfg_txt
     falta = ([] if tem_hook else ["hook"]) + ([] if tem_deny else ["deny"]) + \
-            ([] if (tem_sandbox or not mac) else ["sandbox"])
+            ([] if (tem_sandbox or not mac) else ["sandbox"]) + \
+            ([] if (tem_powershell or mac) else ["regras de PowerShell"])
     rep["settings_endurecido"] = ("ok" if not falta else
                                   f"INCOMPLETO — falta {falta} em {settings}")
     if not mac:
         rep["sandbox_de_kernel"] = ("não existe no Windows — a contenção aqui é "
                                     "conta sem privilégio + deny + este guardião "
                                     "(SEGURANCA.md §4)")
+        rep["ferramenta_de_shell"] = (
+            "Bash (Git for Windows instalado)" if _tem_git_bash() else
+            "PowerShell — o Git for Windows NÃO está instalado. Funciona, porque "
+            "o perfil cobre as duas ferramentas, mas instalar o Git for Windows "
+            "devolve a ferramenta Bash e é o caminho testado (INSTALACAO.md)")
     if not (hook.exists() and not falta):
-        perfil = "settings-macos.json" if PLAT.nome == "macOS" else "settings-windows.json"
+        perfil = "settings-macos.json" if e_mac() else "settings-windows.json"
         rep["COMO_RESOLVER"] = (
             "cp hardening/hooks/guardiao-laudos.py ~/.claude/hooks/ ; "
             f"cp hardening/{perfil} ~/.claude/settings.json  "

@@ -138,6 +138,26 @@ aceita: um hook que sai com código 0 e JSON fora do schema **não reporta decis
 nenhuma**, e o comando caía na lista `allow`, que é aprovação sem prompt. A regra 8
 nunca tinha funcionado — falhava aberta, o oposto do que este arquivo promete.
 
+### O Git for Windows não é conveniência — é parte da contenção
+
+No Windows nativo **sem** o Git for Windows, o Claude Code executa comando pela
+ferramenta **PowerShell**, não pela **Bash**. O perfil deste pacote nasceu com o
+hook casando só `"Bash"` e com as 66 regras escritas como `Bash(...)`: nessa
+configuração o guardião **nunca era chamado** e nenhuma regra valia — exatamente
+na plataforma-alvo. A documentação do Claude Code avisa que casar só `Bash` não
+basta.
+
+Corrigido nas duas pontas: o matcher agora é `"Bash|PowerShell"`, e cada regra
+de `allow`, `ask` e `deny` existe nas duas formas (151 regras de `deny`, contra
+85). Vale registrar que as regras de PowerShell são, se algo, **melhores** que as
+de Bash: o Claude Code canoniza apelido antes de casar — `PowerShell(Remove-Item *)`
+pega `rm`, `del`, `rd` e `erase` — e analisa a árvore sintática, exigindo que
+todo subcomando de um comando composto case a regra.
+
+Ainda assim, **instale o Git for Windows**: é a configuração testada, devolve a
+ferramenta Bash, e o `doctor` passou a dizer qual das duas está em uso no campo
+`ferramenta_de_shell`.
+
 **No Windows o guardião ganha cinco famílias a mais**, porque o Claude Code roda
 Git Bash e daqui se alcança o resto do sistema: abrir outro interpretador
 (`powershell`, `pwsh`, `cmd /c`, `wsl`, `mshta`, `rundll32`), destruir ou escrever
