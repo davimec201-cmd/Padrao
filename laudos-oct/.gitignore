@@ -4,6 +4,14 @@
 assinatura_*.png
 assinatura_*.svg
 assinaturas/
+# Rede mais larga: o padrão acima só pega o nome final. Um escaneado que chegou
+# como "maeta.jpg" ou "scan.png" passaria, e o commit é irreversível — apagar
+# depois não tira do histórico nem de quem já clonou.
+*assinatura*
+*rubrica*
+*.jpg
+*.jpeg
+scan*.png
 
 # Sobras de ferramenta
 __pycache__/

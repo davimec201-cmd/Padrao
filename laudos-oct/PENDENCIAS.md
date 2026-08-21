@@ -45,10 +45,26 @@ Faltam dois arquivos, um por signatário:
 1. Assinar com caneta preta de ponta grossa (0,7–1,0 mm) em papel branco liso, **sem pauta**.
 2. Digitalizar a **600 dpi** em tons de cinza. Escâner de verdade; foto de celular só
    se for bem iluminada e sem sombra.
-3. Recortar rente ao traço, aumentar contraste e **remover o fundo** — fundo branco
-   vira um retângulo por cima da linha do documento.
-4. Salvar **PNG-24 com canal alfa**, largura mínima de **1200 px**. Abaixo disso o
-   traço serrilha no tamanho impresso (~50 mm).
+3. Rodar o script, **na máquina do médico, com o arquivo original ali**:
+
+   ```bash
+   python3 ~/.claude/skills/laudos-oct/scripts/preparar_assinatura.py maeta ~/Desktop/scan.jpg --ver
+   ```
+
+   Ele recorta rente ao traço, remove o fundo branco (que sairia como um retângulo
+   por cima da linha do documento), grava PNG-24 com canal alfa no nome e no lugar
+   certos, e avisa se a largura ficou abaixo de 1200 px. O `--ver` grava um
+   `_conferir.png` com xadrez atrás, para você enxergar o que ficou transparente.
+   Se sobrar fundo, suba o `--limiar`; se o traço sumir, desça.
+
+   As chaves são `maeta` e `cassiano` — o nome do arquivo é derivado delas, e nome
+   errado faz o gerador não achar a imagem.
+
+**O caminho que a imagem NÃO pode fazer:** repositório, pasta sincronizada,
+WhatsApp, e-mail, ou a janela de conversa de um assistente. Do escâner ao
+`~/.laudos_oct/assinaturas/` sem escala em lugar nenhum. Commit é irreversível —
+apagar depois não tira do histórico nem de quem já clonou. O `.gitignore` do
+pacote tenta impedir o acidente, mas ele só protege quem já está dentro do repo.
 
 **Onde os arquivos ficam, e por quê:** em `~/.laudos_oct/assinaturas/`, **fora do
 pacote da skill e fora do controle de versão**. Imagem de assinatura é o ativo mais
