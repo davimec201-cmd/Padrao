@@ -21,7 +21,9 @@ from pathlib import Path
 HOME = Path.home()
 LOG = HOME / ".laudos_oct" / "guardiao.log"
 STOP = HOME / "Laudos_OCT" / "STOP"
-SKILL = ".claude/skills/laudos-oct"
+# Barra ou contrabarra: no Windows o Claude Code roda Git Bash, mas um comando
+# pode citar o caminho nativo.
+SKILL = r"\.claude[/\\]skills[/\\]laudos-oct"
 
 
 def redige(cmd):
@@ -76,11 +78,14 @@ if not cmd.strip():
 # Cada regra: (regex, motivo). Fronteira de palavra evita falso positivo
 # do tipo "platform " casando com "rm ".
 
-TELA = r"pyautogui|pynput|cliclick|xdotool|osascript|screencapture|CGEvent|Quartz"
+# Controle de tela nas duas plataformas.
+TELA = (r"pyautogui|pynput|cliclick|xdotool|osascript|screencapture|CGEvent|Quartz|"
+        r"SendKeys|SetCursorPos|mouse_event|keybd_event|nircmd|AutoHotkey|"
+        r"System\.Windows\.Forms|Add-Type|Get-Clipboard|Set-Clipboard")
 # Ancorado no INÍCIO do comando: antes bastava a string "hands.py" aparecer em
 # qualquer ponto — num comentário, num nome de arquivo — para a porta de
 # controle de tela (regra 6) abrir para o resto da linha.
-E_HANDS = re.match(r"\s*python3?\s+\S*hands\.py\b", cmd) is not None
+E_HANDS = re.match(r"\s*(py|python3?)\s+\S*hands\.py\b", cmd) is not None
 # E um comando encadeado nunca é "só o hands.py".
 TEM_ENCADEAMENTO = re.search(r"[;&|]|\$\(|`|\n", cmd) is not None
 
@@ -113,14 +118,58 @@ REGRAS = [
      "Envio de dado para fora bloqueado (LGPD)."),
 
     # 4. leitura de área pessoal / credencial
-    (r"Keychains|\.ssh/|\.aws/|security\s+(find|dump)|/Mail/|/Messages/|chat\.db|"
-     r"Photos\.sqlite|Safari/History|Cookies\.binarycookies",
+    (r"Keychains|\.ssh[/\\]|\.aws[/\\]|security\s+(find|dump)|/Mail/|/Messages/|"
+     r"chat\.db|Photos\.sqlite|Safari/History|Cookies\.binarycookies|"
+     r"Get-Credential|cmdkey|vaultcmd|Microsoft[/\\]Credentials|Login\s+Data|NTUSER\.DAT",
      "Leitura de área pessoal ou de credencial do usuário bloqueada. "
      "Esta sessão só enxerga ~/Laudos_OCT e a pasta da skill."),
+
+    # ---- Windows: o Claude Code roda Git Bash, mas daqui se alcança o resto ----
+
+    # 5w. abrir outro interpretador é abrir uma porta que estas regras não vigiam
+    (r"(^|[;&|]\s*|\s)(powershell(\.exe)?|pwsh|cmd(\.exe)?\s*/c|wsl(\.exe)?|"
+     r"wscript|cscript|mshta|rundll32|regsvr32)\b",
+     "Abrir outro interpretador é bloqueado: o que roda lá dentro não passa por "
+     "estas regras. Se você precisa de algo que só existe em PowerShell, peça ao "
+     "operador humano."),
+
+    # 6w. destrutivo ou escrita em PowerShell/cmd
+    (r"(^|[;&|]\s*|\s)(Remove-Item|rd\s|rmdir\s|del\s|erase\s|format\s|"
+     r"diskpart|Clear-Content|Set-Content|Add-Content|Out-File|Move-Item|"
+     r"Rename-Item|Compress-Archive)\b",
+     "Comando destrutivo ou de escrita bloqueado. Nesta estação nada é apagado, "
+     "movido ou sobrescrito — arquivo de paciente é registro clínico. Para "
+     "descartar prints use 'hands.py purge', que registra em log."),
+
+    # 7w. encerrar processo ou a máquina
+    (r"(^|[;&|]\s*|\s)(Stop-Process|taskkill|tskill|Stop-Computer|"
+     r"Restart-Computer|shutdown)\b",
+     "Encerrar processo ou desligar é bloqueado. Matar o AnyDesk derruba a sessão "
+     "remota e pode perder o exame aberto."),
+
+    # 8w. saída de rede
+    (r"(^|[;&|]\s*|\s)(Invoke-WebRequest|iwr|Invoke-RestMethod|irm|"
+     r"Start-BitsTransfer|bitsadmin|certutil|net\s+use|robocopy|xcopy|"
+     r"Send-MailMessage|New-Object\s+Net\.WebClient)\b",
+     "Saída de rede bloqueada. Nome e imagem de paciente não saem desta máquina "
+     "por comando de shell."),
+
+    # 9w. privilégio, serviço, agendamento e registro
+    (r"(^|[;&|]\s*|\s)(reg\s+(add|delete|import)|Set-ItemProperty|"
+     r"New-ItemProperty|schtasks|sc\s+(create|config|delete)|New-Service|"
+     r"Set-ExecutionPolicy|runas)\b",
+     "Alteração de privilégio, serviço, tarefa agendada ou registro bloqueada "
+     "nesta estação."),
 ]
 
 for rx, motivo in REGRAS:
-    if re.search(rx, cmd):
+    try:
+        casou = re.search(rx, cmd, re.I) is not None
+    except re.error as e:
+        nega(f"regra de segurança ilegível ({e}). Nada é liberado enquanto o "
+             "guardião não puder avaliar o comando — avise quem mantém a skill.",
+             cmd)
+    if casou:
         nega(motivo, cmd)
 
 # 5. freio de mão: com STOP ativo, nenhuma ação de tela
@@ -131,26 +180,30 @@ if STOP.exists():
              "'rm ~/Laudos_OCT/STOP'.", cmd)
 
 # 6. controle de tela só pela via auditada
-if re.search(TELA, cmd) and not (E_HANDS and not TEM_ENCADEAMENTO):
+if re.search(TELA, cmd, re.I) and not (E_HANDS and not TEM_ENCADEAMENTO):
     nega("Controle de tela só é permitido via scripts/hands.py, que registra em "
          "log, limita a taxa e respeita as guardas de foco e de janela. "
          "Use: python3 ~/.claude/skills/laudos-oct/scripts/hands.py <comando>", cmd)
 
 # 7. autoescalada: reescrever as próprias regras ou os próprios limites
-ALVO_PROTEGIDO = (r"\.claude/settings|\.claude/hooks|guardiao-laudos|"
+ALVO_PROTEGIDO = (r"\.claude[/\\]settings|\.claude[/\\]hooks|guardiao-laudos|"
                   r"\.zshrc|\.bashrc|\.zprofile|\.profile|"
-                  + SKILL.replace(".", r"\.") + r"|"
-                  r"\.laudos_oct/config\.json|"
+                  r"profile\.ps1|Microsoft\.PowerShell_profile|"
+                  + SKILL + r"|"
+                  r"\.laudos_oct[/\\]config\.json|"
                   # O freio de mão estava menos protegido que o teto de taxa:
                   # ~/Laudos_OCT é gravável pelo sandbox, e os.remove(STOP) não
                   # casava com a regra de 'rm' (que exige a palavra seguida de espaço).
-                  r"Laudos_OCT/STOP")
+                  r"Laudos_OCT[/\\]STOP")
 # leitura é permitida; escrita não. 'sed -n' e 'awk' leem; 'sed -i' escreve.
-EDITOR_IN_PLACE = re.search(r"sed\s+(-\w*\s+)*-i|perl\s+-\w*i|(^|\s)tee\s|>>?\s", cmd)
-E_LEITURA = (re.match(r"\s*(cat|less|more|head|tail|ls|grep|egrep|rg|wc|file|stat|nl|"
-                      r"diff|md5|shasum|awk|sed\s+-n|python3\s+\S*(hands|laudo_pdf)\.py)\b",
+EDITOR_IN_PLACE = re.search(
+    r"sed\s+(-\w*\s+)*-i|perl\s+-\w*i|(^|\s)tee\s|>>?\s|"
+    r"Set-Content|Add-Content|Out-File|Copy-Item", cmd, re.I)
+E_LEITURA = (re.match(r"\s*(cat|less|more|head|tail|ls|dir|grep|egrep|rg|wc|file|stat|nl|"
+                      r"diff|md5|shasum|awk|sed\s+-n|"
+                      r"(py|python3?)\s+\S*(hands|laudo_pdf|dividir_guia)\.py)\b",
                       cmd) and not EDITOR_IN_PLACE)
-if re.search(ALVO_PROTEGIDO, cmd) and not E_LEITURA:
+if re.search(ALVO_PROTEGIDO, cmd, re.I) and not E_LEITURA:
     nega("Modificar as próprias regras de segurança ou os próprios limites "
          "(settings, hooks, shell rc, arquivos da skill, config.json com os tetos "
          "de taxa) é bloqueado. Quem muda isso é o operador humano, fora da sessão.",

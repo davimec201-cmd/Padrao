@@ -8,7 +8,7 @@ decidindo por mim como as coisas devem funcionar.
 ### `laudos-oct/`
 
 Claude Skill que emite laudos de OCT de mácula e nervo óptico operando o AnyDesk
-sozinha no macOS: captura a tela, lê os valores do exame com dupla leitura,
+sozinha no macOS ou no Windows: captura a tela, lê os valores com dupla leitura,
 redige no template do hospital e salva o PDF. Não assina, não publica e é
 somente-leitura no sistema do hospital.
 

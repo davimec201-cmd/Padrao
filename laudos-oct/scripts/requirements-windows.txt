@@ -1,0 +1,7 @@
+# Mãos e olhos (Windows)
+pyautogui>=0.9.54          # cliques e teclado
+pillow>=10.0.0             # captura de tela (ImageGrab) e redimensionamento
+# Geração do PDF
+reportlab>=4.0.0
+# Sem pyobjc: aquilo é macOS. Geometria de janela e app em foco saem de ctypes
+# contra a API do Windows, sem dependência a mais numa máquina de clínica.

@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
-hands.py — mãos e olhos do agente de laudos de OCT no macOS.
+hands.py — mãos e olhos do agente de laudos de OCT.
 
-Olho:  screencapture (nativo)  ->  PNG + sidecar .json com a transformação
-Mão:   pyautogui ou cliclick   ->  clique / digitação / scroll
+Roda em macOS e em Windows. O que muda entre os dois vive em `plataforma.py`;
+aqui ficam as regras, que são as mesmas nos dois: freio de mão, teto de taxa,
+detector de loop, guarda de foco e de retângulo, tabela fechada de teclas com
+lista negra de gravação, rastro de auditoria e contenção do purge.
+
+Olho:  captura nativa da plataforma  ->  PNG + sidecar .json com a transformação
+Mão:   plataforma.py                 ->  clique / digitação / scroll
 Freio: arquivo STOP + guarda de app em foco + guarda de retângulo
 
 Coordenadas: você lê pixels da IMAGEM e passa --from <sidecar.json>.
@@ -17,8 +22,15 @@ O script converte para pontos de tela. Nunca faça essa conta na mão.
     python3 hands.py key cmd+s
 """
 
-import argparse, hashlib, json, os, shutil, subprocess, sys, time
+import argparse, hashlib, json, os, sys, time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import plataforma as _plat
+
+# Trocável em teste: a suíte injeta uma plataforma falsa para exercitar as
+# regras de segurança num Linux sem tela.
+PLAT = _plat.PLAT
 
 HOME = Path.home()
 CONFIG_DIR = HOME / ".laudos_oct"
@@ -41,24 +53,26 @@ def die(msg, code=2):
     sys.exit(code)
 
 
-def sh(args, check=True):
-    try:
-        p = subprocess.run(args, capture_output=True, text=True)
-    except FileNotFoundError:
-        die(f"comando '{args[0]}' não existe nesta máquina. "
-            "Esta skill requer macOS (screencapture, sips, osascript).")
-    if check and p.returncode != 0:
-        die(f"comando falhou: {' '.join(map(str, args))}\n{p.stderr.strip()}")
-    return p.stdout.strip()
+def _foco_ilegivel():
+    if PLAT is not None and PLAT.nome == "macOS":
+        return "ILEGÍVEL — falta permissão de Automação"
+    return "ILEGÍVEL — não consegui ler o app em primeiro plano"
 
 
-def osa(script):
-    """AppleScript. Nunca aborta: devolve "" quando indisponível ou sem permissão."""
+def plat():
+    """A plataforma, ou uma parada com mensagem que o operador entende."""
+    if PLAT is None:
+        die(f"sistema não suportado: {sys.platform}. "
+            "Esta skill roda em macOS ou Windows.")
+    return PLAT
+
+
+def _p(fn, *a, **kw):
+    """Chama a plataforma convertendo a falha dela em parada limpa."""
     try:
-        r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
-    except FileNotFoundError:
-        return ""
-    return r.stdout.strip()
+        return fn(*a, **kw)
+    except _plat.ErroDePlataforma as e:
+        die(str(e))
 
 
 def load_config():
@@ -91,10 +105,13 @@ def audit_path():
 
 
 def _restringe(caminho):
-    """0600 em arquivo, 0700 em diretório. O rastro contém nome de paciente:
-    não herda 0644 de umask."""
+    """Legível só pelo usuário corrente. O rastro contém nome de paciente.
+
+    No macOS é chmod; no Windows é ACL — lá o chmod só mexe no bit de
+    somente-leitura e não restringe outro usuário nenhum."""
     try:
-        os.chmod(caminho, 0o700 if Path(caminho).is_dir() else 0o600)
+        if PLAT is not None:
+            PLAT.restringir(caminho)
     except Exception:
         pass
 
@@ -167,28 +184,12 @@ def limites(assinatura):
 
 def screen_points():
     """Tamanho da tela principal em PONTOS lógicos."""
-    out = osa('tell application "Finder" to get bounds of window of desktop')
-    try:
-        _, _, w, h = [int(x.strip()) for x in out.split(",")]
-        return w, h
-    except Exception:
-        die("não consegui ler o tamanho da tela via AppleScript. "
-            "Conceda Automação/Acessibilidade ao app que roda este script.")
+    return _p(plat().tela_pontos)
 
 
 def png_size(path):
-    """Dimensões em PIXELS via sips (embutido no macOS, sem dependência)."""
-    out = sh(["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(path)])
-    w = h = None
-    for line in out.splitlines():
-        line = line.strip()
-        if line.startswith("pixelWidth:"):
-            w = int(line.split(":")[1])
-        elif line.startswith("pixelHeight:"):
-            h = int(line.split(":")[1])
-    if not w or not h:
-        die(f"não consegui medir {path}")
-    return w, h
+    """Dimensões em PIXELS."""
+    return _p(plat().tamanho_png, path)
 
 
 def _tmp_png(nome):
@@ -210,6 +211,10 @@ def detect_scale():
     ou mudar a escala do display invalidava silenciosamente toda conversão de
     coordenada, e o clique ia para o elemento vizinho dentro da janela — que a
     guarda de retângulo não pega."""
+    fixa = plat().escala()
+    if fixa is not None:
+        return float(fixa)               # Windows: consciência de DPI declarada
+
     cfg = load_config()
     pt_w, pt_h = screen_points()
     marca = f"{pt_w}x{pt_h}"
@@ -218,7 +223,7 @@ def detect_scale():
 
     tmp = _tmp_png("scale")
     try:
-        sh(["screencapture", "-x", "-o", str(tmp)])
+        _p(plat().capturar, tmp)
         px_w, _ = png_size(tmp)
     finally:
         tmp.unlink(missing_ok=True)      # some no caminho de erro também
@@ -229,21 +234,22 @@ def detect_scale():
 
 
 def app_window(app=TARGET_APP):
-    """{x,y,w,h} da janela 1 do app, em pontos. None se não achar."""
-    out = osa(f'tell application "System Events" to tell process "{app}" '
-              'to get {position, size} of window 1')
+    """{x,y,w,h} da janela do app, em pontos. None se não achar."""
     try:
-        nums = [int(float(n.strip())) for n in out.split(",")]
-        if len(nums) != 4:
-            return None
-        return {"x": nums[0], "y": nums[1], "w": nums[2], "h": nums[3]}
+        return plat().janela_do_app(app)
     except Exception:
         return None
 
 
 def frontmost_app():
-    return osa('tell application "System Events" to get name of first '
-               'application process whose frontmost is true')
+    """Nome do app em foco, ou "" quando não dá para saber.
+
+    O "" é tratado como recusa em toda guarda: sem saber quem está na frente,
+    não há o que proteger."""
+    try:
+        return plat().app_em_foco() or ""
+    except Exception:
+        return ""
 
 
 # ------------------------------------------------------------------- sidecars
@@ -315,18 +321,17 @@ def cmd_shot(a):
             w_pt, h_pt = rw / ppp, rh / ppp
         else:                           # ROI já vem em pontos de tela
             x0, y0, w_pt, h_pt = rx, ry, rw, rh
-        region = f"{int(x0)},{int(y0)},{max(1,int(w_pt))},{max(1,int(h_pt))}"
-        sh(["screencapture", "-x", "-o", "-R", region, str(out)])
+        _p(plat().capturar, out, regiao=(x0, y0, w_pt, h_pt))
         origin, reg, kind, cap = (int(x0), int(y0)), (int(w_pt), int(h_pt)), "roi", ROI_MAX_EDGE
     else:
-        sh(["screencapture", "-x", "-o", str(out)])
+        _p(plat().capturar, out)
         pt_w, pt_h = screen_points()
         origin, reg, kind, cap = (0, 0), (pt_w, pt_h), "full", NAV_MAX_EDGE
 
     if not a.raw:
         px_w, px_h = png_size(out)
         if max(px_w, px_h) > cap:
-            sh(["sips", "-Z", str(cap), str(out)])
+            _p(plat().redimensionar, out, cap)
 
     side, data = write_sidecar(out, kind, origin, reg, scale)
     data["sidecar"] = str(side)
@@ -341,16 +346,6 @@ def cmd_map(a):
 
 # ----------------------------------------------------------------------- mãos
 
-def clicker():
-    if shutil.which("cliclick"):
-        return "cliclick"
-    try:
-        import pyautogui  # noqa: F401
-        return "pyautogui"
-    except Exception:
-        return None
-
-
 def guard_ok(x, y, anywhere=False):
     if anywhere:
         return True
@@ -358,9 +353,9 @@ def guard_ok(x, y, anywhere=False):
     allowed = cfg.get("allowed_apps") or [TARGET_APP]
     front = frontmost_app()
     # Falha FECHADO: frontmost_app() devolve "" quando falta permissão de
-    # Automação, e o cliclick continua clicando. Vazio recusa.
+    # Automação (macOS), e o motor de clique continua clicando. Vazio recusa.
     if front not in allowed:
-        quem = front or "ILEGÍVEL — falta permissão de Automação"
+        quem = front or _foco_ilegivel()
         die(f"foco protegido: app em foco é '{quem}', permitido {allowed}. "
             "Reative o AnyDesk e refaça o shot. Não force.", 4)
     r = cfg.get("guard_rect_pt")
@@ -372,24 +367,7 @@ def guard_ok(x, y, anywhere=False):
 
 
 def do_mouse(kind, x, y):
-    eng = clicker()
-    if eng == "cliclick":
-        verb = {"click": "c", "dblclick": "dc", "rclick": "rc", "move": "m"}[kind]
-        sh(["cliclick", f"{verb}:{int(x)},{int(y)}"])
-    elif eng == "pyautogui":
-        import pyautogui
-        pyautogui.FAILSAFE = True
-        if kind == "move":
-            pyautogui.moveTo(int(x), int(y), duration=0.12)
-        elif kind == "click":
-            pyautogui.click(int(x), int(y))
-        elif kind == "dblclick":
-            pyautogui.doubleClick(int(x), int(y))
-        elif kind == "rclick":
-            pyautogui.rightClick(int(x), int(y))
-    else:
-        die("nenhum motor de clique disponível. Rode scripts/setup.sh "
-            "(instala pyautogui) ou 'brew install cliclick'.")
+    _p(plat().mouse, kind, x, y)
 
 
 def resolve_xy(a):
@@ -429,28 +407,19 @@ def cmd_drag(a):
     limites(assin)
     audit("acao", tipo="drag", assinatura=assin, de=[int(p1[0]), int(p1[1])],
           para=[int(p2[0]), int(p2[1])], janela=frontmost_app())
-    eng = clicker()
-    if eng == "cliclick":
-        sh(["cliclick", f"dd:{int(p1[0])},{int(p1[1])}", f"du:{int(p2[0])},{int(p2[1])}"])
-    elif eng == "pyautogui":
-        import pyautogui
-        pyautogui.FAILSAFE = True
-        pyautogui.moveTo(int(p1[0]), int(p1[1]))
-        pyautogui.dragTo(int(p2[0]), int(p2[1]), duration=0.35, button="left")
-    else:
-        die("nenhum motor de clique disponível.")
+    _p(plat().arrastar, p1, p2)
     print(json.dumps({"ok": "drag", "de": p1, "para": p2}))
 
 
 def cmd_type(a):
-    """osascript é o padrão: lida com acento do português melhor que pyautogui."""
+    """Digitação. Quem escolhe o motor é a plataforma."""
     check_stop()
     guard_ok(0, 0, anywhere=True)  # digitação não tem coordenada; valida só o foco
     cfg = load_config()
     allowed = cfg.get("allowed_apps") or [TARGET_APP]
     front = frontmost_app()
     if not a.anywhere and front not in allowed:      # vazio também recusa
-        quem = front or "ILEGÍVEL — falta permissão de Automação"
+        quem = front or _foco_ilegivel()
         die(f"foco protegido: app em foco é '{quem}', permitido {allowed}.", 4)
     if not cfg.get("permitir_digitacao", True):
         die("digitação desabilitada nesta estação (permitir_digitacao=false no config).", 4)
@@ -464,67 +433,28 @@ def cmd_type(a):
     limites(f"type:{marca}")
     audit("acao", tipo="type", assinatura=f"type:{marca}", chars=len(text),
           texto_hash=marca, janela=frontmost_app())
-    if a.engine == "pyautogui":
-        import pyautogui
-        pyautogui.typewrite(text, interval=0.02)
-    else:
-        esc = text.replace("\\", "\\\\").replace('"', '\\"')
-        osa(f'tell application "System Events" to keystroke "{esc}"')
+    _p(plat().digitar, text)
     print(json.dumps({"ok": "type", "chars": len(text)}))
 
 
-KEYCODES = {"enter": 36, "return": 36, "tab": 48, "space": 49, "esc": 53,
-            "escape": 53, "delete": 51, "backspace": 51, "left": 123,
-            "right": 124, "down": 125, "up": 126, "pageup": 116,
-            "pagedown": 121, "home": 115, "end": 119, "f11": 103,
-            # letras de atalho de navegação/leitura (cmd+c copiar, cmd+f buscar,
-            # cmd+a selecionar, cmd+z desfazer, cmd+= / cmd+- zoom).
-            "a": 0, "c": 8, "f": 3, "z": 6, "v": 9, "x": 7, "w": 13, "q": 12,
-            "s": 1, "p": 35, "d": 2, "=": 24, "-": 27, "0": 29,
-            "1": 18, "2": 19, "3": 20, "4": 21, "5": 23}
-MODS = {"cmd": "command down", "command": "command down", "shift": "shift down",
-        "alt": "option down", "option": "option down", "ctrl": "control down",
-        "control": "control down"}
-
-
-# Combos que gravam, imprimem ou exportam. A lista negra de operacao-anydesk.md §5
-# é de BOTÕES; sem esta tabela o atalho equivalente passava direto. Somente-leitura
-# no sistema do hospital vale para o teclado também.
-GRAVA = ("grava, imprime ou apaga no sistema do hospital. Você é somente-leitura "
-         "lá dentro (SKILL.md §3.7). Se o caminho que você quer só existe passando "
-         "por aqui, pare e pergunte ao usuário.")
-ENCERRA = ("encerra o aplicativo. Fechar o AnyDesk derrubaria a sessão remota e "
-           "poderia perder o exame aberto. Conexão lenta se resolve com "
-           "'hands.py aguardar', não fechando.")
-COMBOS_NEGADOS = {
-    (frozenset({"cmd"}), "s"): GRAVA,
-    (frozenset({"cmd", "shift"}), "s"): GRAVA,
-    (frozenset({"cmd"}), "p"): GRAVA,
-    (frozenset({"cmd"}), "d"): GRAVA,
-    (frozenset({"cmd"}), "delete"): GRAVA,
-    (frozenset({"cmd"}), "backspace"): GRAVA,
-    (frozenset({"cmd"}), "x"): GRAVA,
-    (frozenset({"cmd"}), "q"): ENCERRA,
-    (frozenset({"cmd"}), "w"): ENCERRA,
-    (frozenset({"cmd", "alt"}), "esc"): ENCERRA,
-}
 
 
 def cmd_key(a):
     check_stop()
+    P = plat()
     parts = [p.strip().lower() for p in a.combo.split("+")]
     key, mods = parts[-1], parts[:-1]
 
-    # Tabela FECHADA: nada que não esteja em KEYCODES/MODS chega ao AppleScript.
+    # Tabela FECHADA: nada que não esteja em TECLAS/MODS chega ao sistema.
     # Sem isto, `key 'a" & (do shell script "...") & "'` virava shell arbitrário —
     # cmd_type escapa, cmd_key não escapava.
-    if key not in KEYCODES:
-        die(f"tecla não reconhecida: {key!r}. Aceitas: {sorted(KEYCODES)}. "
+    if key not in P.TECLAS:
+        die(f"tecla não reconhecida: {key!r}. Aceitas: {sorted(P.TECLAS)}. "
             "Para digitar texto use 'type', que escapa e passa por confirmação.", 4)
-    if any(m not in MODS for m in mods):
+    if any(m not in P.MODS for m in mods):
         die(f"modificador não reconhecido em {a.combo!r}. "
-            f"Aceitos: {sorted(set(MODS))}.", 4)
-    motivo = COMBOS_NEGADOS.get((frozenset(mods), key))
+            f"Aceitos: {sorted(set(P.MODS))}.", 4)
+    motivo = P.COMBOS_NEGADOS.get((frozenset(mods), key))
     if motivo:
         die(f"combo recusado: '{a.combo}' {motivo}", 4)
 
@@ -534,15 +464,14 @@ def cmd_key(a):
     allowed = cfg.get("allowed_apps") or [TARGET_APP]
     front = frontmost_app()
     if front not in allowed:
-        quem = front or "ILEGÍVEL — falta permissão de Automação"
+        quem = front or _foco_ilegivel()
         die(f"foco protegido: app em foco é '{quem}', permitido {allowed}. "
             "Reative o AnyDesk antes de mandar tecla.", 4)
 
     limites(f"key:{a.combo}")
     audit("acao", tipo="key", assinatura=f"key:{a.combo}", combo=a.combo,
           janela=front)
-    using = f" using {{{', '.join(MODS[m] for m in mods)}}}" if mods else ""
-    osa(f'tell application "System Events" to key code {KEYCODES[key]}{using}')
+    _p(P.tecla, key, mods)
     print(json.dumps({"ok": "key", "combo": a.combo}))
 
 
@@ -551,19 +480,11 @@ def cmd_scroll(a):
     limites(f"scroll:{a.amount}:{a.x},{a.y}")
     audit("acao", tipo="scroll", assinatura=f"scroll:{a.amount}:{a.x},{a.y}",
           amount=a.amount, janela=frontmost_app())
-    eng = clicker()
     if a.x is not None and a.y is not None:
         x, y = resolve_xy(a)
         guard_ok(x, y, a.anywhere)
         do_mouse("move", x, y)
-    if eng == "cliclick":
-        direction = "d" if a.amount < 0 else "u"
-        sh(["cliclick", f"w:{direction},{abs(int(a.amount))}"], check=False)
-    elif eng == "pyautogui":
-        import pyautogui
-        pyautogui.scroll(int(a.amount))
-    else:
-        die("nenhum motor de clique disponível.")
+    _p(plat().rolar, a.amount)
     print(json.dumps({"ok": "scroll", "amount": a.amount}))
 
 
@@ -622,9 +543,8 @@ def _hash_regiao(x, y, w, h, grossura=160):
     cursor e relógio, mas pega diálogo aparecendo ou tela mudando."""
     tmp = _tmp_png("wait")
     try:
-        sh(["screencapture", "-x", "-o", "-R",
-            f"{int(x)},{int(y)},{int(w)},{int(h)}", str(tmp)])
-        sh(["sips", "-Z", str(grossura), str(tmp)], check=False)
+        _p(plat().capturar, tmp, regiao=(x, y, w, h))
+        _p(plat().redimensionar, tmp, grossura)
         return hashlib.md5(tmp.read_bytes()).hexdigest()
     finally:
         tmp.unlink(missing_ok=True)
@@ -721,20 +641,24 @@ def cmd_guard(a):
 def cmd_doctor(a):
     rep, ok = {}, True
     rep["python"] = sys.version.split()[0]
-    rep["screencapture"] = bool(shutil.which("screencapture"))
-    rep["sips"] = bool(shutil.which("sips"))
-    eng = clicker()
-    rep["motor_de_clique"] = eng or "AUSENTE"
-    if not eng:
+    rep["plataforma"] = PLAT.nome if PLAT else f"NÃO SUPORTADA ({sys.platform})"
+    if PLAT is None:
+        rep["VEREDITO"] = "NAO_PRONTO"
+        print(json.dumps(rep, indent=2, ensure_ascii=False)); sys.exit(1)
+    rep.update(plat().diagnostico())
+    if rep.get("motor_de_clique") in (None, "AUSENTE"):
         ok = False
 
+    plat().preparar()
     tmp = _tmp_png("doctor")
     try:
-        sh(["screencapture", "-x", "-o", str(tmp)])
+        _p(plat().capturar, tmp)
         rep["captura_de_tela"] = "ok"
         rep["screenshot_px"] = png_size(tmp)
     except SystemExit:
-        rep["captura_de_tela"] = "FALHOU — conceda Gravação de Tela"
+        rep["captura_de_tela"] = ("FALHOU — conceda Gravação de Tela"
+                                  if PLAT.nome == "macOS" else
+                                  "FALHOU — verifique pillow e a sessão gráfica")
         ok = False
     finally:
         tmp.unlink(missing_ok=True)
@@ -743,7 +667,8 @@ def cmd_doctor(a):
         rep["tela_pt"] = screen_points()
         rep["escala_retina"] = detect_scale()
     except SystemExit:
-        rep["tela_pt"] = "FALHOU — conceda Automação/Acessibilidade"
+        rep["tela_pt"] = ("FALHOU — conceda Automação/Acessibilidade"
+                          if PLAT.nome == "macOS" else "FALHOU — não li a tela")
         ok = False
 
     front = frontmost_app()
@@ -768,10 +693,11 @@ def cmd_doctor(a):
                                   f"INCOMPLETO — hook={tem_hook} sandbox={tem_sandbox} "
                                   f"em {settings}")
     if not (hook.exists() and tem_hook and tem_sandbox):
-        rep["COMO_RESOLVER"] = ("cp hardening/hooks/guardiao-laudos.py ~/.claude/hooks/ "
-                                "&& chmod +x ~/.claude/hooks/guardiao-laudos.py ; "
-                                "cp hardening/settings.json ~/.claude/settings.json  "
-                                "— ver SEGURANCA.md §6")
+        perfil = "settings-macos.json" if PLAT.nome == "macOS" else "settings-windows.json"
+        rep["COMO_RESOLVER"] = (
+            "cp hardening/hooks/guardiao-laudos.py ~/.claude/hooks/ ; "
+            f"cp hardening/{perfil} ~/.claude/settings.json  "
+            "— ver INSTALACAO.md Passo 3b e SEGURANCA.md §6")
         ok = False
 
     cfg = load_config()
@@ -828,10 +754,13 @@ def main():
     s.set_defaults(f=cmd_drag)
 
     s = sub.add_parser("type"); s.add_argument("text")
-    s.add_argument("--engine", choices=["osascript", "pyautogui"], default="osascript")
     s.add_argument("--anywhere", action="store_true"); s.set_defaults(f=cmd_type)
 
-    s = sub.add_parser("key"); s.add_argument("combo", help="ex: cmd+s, enter, tab, esc")
+    _mm = PLAT.MOD_MENU if PLAT else "cmd"
+    s = sub.add_parser("key")
+    s.add_argument("combo",
+                   help=f"ex: enter, tab, esc, {_mm}+c "
+                        "(gravar/imprimir/fechar é recusado)")
     s.set_defaults(f=cmd_key)
 
     s = sub.add_parser("scroll"); s.add_argument("amount", type=int, help="+ sobe, - desce")
@@ -868,6 +797,8 @@ def main():
     s.set_defaults(f=cmd_guard)
 
     a = ap.parse_args()
+    if PLAT is not None:
+        PLAT.preparar()
     a.f(a)
 
 

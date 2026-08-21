@@ -1,5 +1,11 @@
 # Segurança da estação de laudos — análise e endurecimento
 
+> **macOS e Windows não têm a mesma proteção.** A Camada 3 (sandbox do kernel)
+> existe só no macOS. No Windows ela **não existe**, e a Camada 1 — login
+> somente-leitura no sistema do hospital — deixa de ser a mais valiosa da lista
+> para ser **a que sustenta o resto**. Se você vai rodar em Windows, §3 diz
+> exatamente o que muda.
+
 ## 1. O problema real
 
 Para operar o AnyDesk, o Claude Code precisa de duas coisas perigosas ao mesmo tempo:
@@ -18,7 +24,7 @@ por acidente e sem nenhuma má intenção, ele pode:
 
 O `hands.py` tem freio de mão (`STOP`), guarda de foco (que **falha fechado** quando
 não consegue ler o foco), guarda de retângulo, tabela fechada de teclas com recusa de
-`cmd+s`/`cmd+p`/`cmd+q`, teto de taxa e detector de loop — e `scroll` e `drag` também
+os combos que gravam ou fecham, teto de taxa e detector de loop — e `scroll` e `drag` também
 entram no rastro e no teto. Tudo isso é **conselho, não jaula**: vale enquanto o agente
 usar o `hands.py`. Um modelo tentando resolver um clique que falhou tende a tentar
 outro caminho — `python3 -c "import pyautogui; pyautogui.click(...)"` — e contorna as
@@ -42,20 +48,43 @@ apagar. As outras três camadas reduzem probabilidade; esta elimina a consequên
 Se a TI perguntar por quê: "vamos usar uma ferramenta de leitura automatizada de
 exames e queremos garantia técnica de que ela não altera registro."
 
-### Camada 2 — Usuário do macOS dedicado ★ segunda maior alavanca
+### Camada 2 — Usuário dedicado, sem privilégio de administrador ★ segunda maior alavanca
 
-Crie uma conta **padrão (não-administrador)** no Mac, ex. `laudos`, e rode tudo lá.
+Crie uma conta **padrão (não-administrador)** e rode tudo lá.
 
-Ajustes do Sistema → Usuários e Grupos → Adicionar Usuário → tipo **Padrão**.
+**macOS:** Ajustes do Sistema → Usuários e Grupos → Adicionar Usuário → **Padrão**.
+
+**Windows:** Configurações → Contas → Outros usuários → Adicionar → tipo
+**Usuário padrão** (não Administrador). No Windows esta camada pesa **mais** que no
+macOS: é a única que o modelo não contorna por texto de comando, e é ela que
+substitui, em parte, o sandbox que não existe lá.
 
 O raio de dano encolhe para dentro daquela conta: seus documentos, e-mail, Fotos,
 Chaves e iCloud pessoais ficam inacessíveis por construção do sistema operacional,
 não por regra que alguém pode contornar. Conceda as permissões de Gravação de Tela e
 Acessibilidade **só nessa conta**. E como é conta padrão, `sudo` não existe.
 
-### Camada 3 — `settings.json` com sandbox do macOS
+### Camada 3 — `settings.json` — **e é aqui que as duas plataformas se separam**
 
-Está pronto em `hardening/settings.json`. Duas partes:
+Dois perfis prontos: `hardening/settings-macos.json` e
+`hardening/settings-windows.json`. **Não são o mesmo arquivo com caminhos trocados.**
+
+| | macOS | Windows |
+|---|---|---|
+| Listas `allow` / `ask` / `deny` | sim | sim, `deny` com o dobro de padrões |
+| Sandbox imposto pelo kernel | **sim** (Seatbelt) | **não existe** |
+| Escrita restrita a `~/Laudos_OCT` | pelo kernel | só pela lista `deny` |
+| Rede zerada (`allowedDomains: []`) | pelo kernel | só pela lista `deny` |
+
+No Windows, contenção de escrita e bloqueio de rede passam a depender de **filtro de
+texto do comando** — a lista `deny` e o hook guardião. Filtro de texto é bom e é o
+que dá para fazer; não é barreira de sistema. Um caminho que ninguém previu escrever
+passa.
+
+Foi decisão consciente **não** incluir um bloco `sandbox` no perfil do Windows: um
+bloco inerte pareceria proteção e não seria.
+
+O perfil do macOS tem duas partes:
 
 **Permissões** — `allow` só os dois scripts da skill; `deny` em 39 padrões:
 `rm`, `mv`, `sudo`, `chmod`, `curl`, `wget`, `ssh`, `git push`, `osascript`,
@@ -64,7 +93,7 @@ Está pronto em `hardening/settings.json`. Duas partes:
 escrita nas próprias configurações. `WebFetch` e `WebSearch` negados — dado de
 paciente não vai para busca.
 
-**Sandbox** — no macOS usa o **Seatbelt**, que já vem no sistema: nada a instalar.
+**Sandbox** (só no macOS) — usa o **Seatbelt**, que já vem no sistema: nada a instalar.
 É imposto pelo kernel, não pelo modelo. A configuração restringe escrita a
 `~/Laudos_OCT` e `~/.laudos_oct`, nega leitura de todo o resto do home, e zera a rede
 (`allowedDomains: []`). `allowUnsandboxedCommands: false` fecha a saída de emergência.
@@ -103,8 +132,21 @@ fechado: entrada que ele não entende é negada.
 | 8 | **escala para você** qualquer comando com `--anywhere`, que desliga a guarda de foco |
 | — | grava em `~/.laudos_oct/guardiao.log`, com `chmod 600` e **omitindo o texto digitado** — o log guardava o nome do paciente em claro, sem prazo de expurgo |
 
-Leitura é permitida (`cat`, `grep`, `sed -n`, `awk`); escrita in-place não
-(`sed -i`, `perl -i`, `tee`, `>>`).
+**No Windows o guardião ganha cinco famílias a mais**, porque o Claude Code roda
+Git Bash e daqui se alcança o resto do sistema: abrir outro interpretador
+(`powershell`, `pwsh`, `cmd /c`, `wsl`, `mshta`, `rundll32`), destruir ou escrever
+(`Remove-Item`, `del`, `Set-Content`, `diskpart`), encerrar processo (`Stop-Process`,
+`taskkill`, `shutdown`), sair pela rede (`Invoke-WebRequest`, `certutil`,
+`bitsadmin`, `net use`, `robocopy`) e mexer em privilégio, serviço, tarefa agendada
+ou registro (`reg add`, `schtasks`, `sc create`, `Set-ExecutionPolicy`, `runas`).
+
+Leitura é permitida (`cat`, `grep`, `sed -n`, `awk`, `dir`); escrita in-place não
+(`sed -i`, `perl -i`, `tee`, `>>`, `Set-Content`, `Add-Content`, `Out-File`).
+
+A comparação é **insensível à caixa** nas duas plataformas: o PowerShell aceita
+`ReMoVe-ItEm`, e uma regra sensível à caixa seria contornada digitando diferente. E
+se algum padrão de regra não compilar, o guardião **nega** em vez de deixar passar —
+regex quebrado derrubava o hook, e hook derrubado não decide nada.
 
 O item 7 é o que fecha o círculo: sem ele, um agente poderia reescrever as próprias
 regras — ou só o próprio teto de taxa — e as outras famílias cairiam junto. O item 8
@@ -125,7 +167,16 @@ porta legítima sem aval humano é porta aberta.
   **desligado**, ou que ao menos `~/Laudos_OCT` não caia dentro. Laudo em pasta
   sincronizada = dado de paciente na nuvem de terceiro sem você decidir isso.
 - **Prints são dado clínico.** `hands.py purge` apaga todos, `purge --dias 7` os
-  antigos. Rode ao fim de cada turno. O `--dir` só aceita caminho dentro de
+  antigos. Rode ao fim de cada turno.
+- **Windows: escala do monitor.** O `hands.py` declara consciência de DPI e trabalha
+  em pixels físicos. Trocar de monitor ou mudar a escala **no meio de uma fila**
+  desloca todo clique dentro da janela — e a guarda de retângulo não pega, porque o
+  clique continua dentro do AnyDesk. Refaça `guard set` e rode `doctor` depois de
+  qualquer mudança de tela.
+- **Windows: o OneDrive.** Vem ligado de fábrica e move Documentos e Área de Trabalho
+  para a nuvem sozinho. `Laudos_OCT` fica na raiz do perfil justamente para escapar
+  disso — confira em Configurações do OneDrive → Backup que a pasta não está
+  incluída. O `--dir` só aceita caminho dentro de
   `~/Laudos_OCT`: antes apagava `*.png/*.json/*.jpg` recursivamente em qualquer
   pasta que recebesse.
 - **Temporários de captura ficam em `~/.laudos_oct/tmp`**, com `chmod 600` e
@@ -162,9 +213,10 @@ recorte de ROI em vez de tela cheia reduz o que é enviado.
 
 ```
 [ ] Login somente-leitura no sistema do hospital (pedido à TI)
-[ ] Conta macOS "laudos", tipo Padrão, sem admin
-[ ] cp hardening/settings.json            ~/.claude/settings.json
-[ ] cp hardening/hooks/guardiao-laudos.py ~/.claude/hooks/  && chmod +x
+[ ] Conta dedicada tipo Padrão, sem admin (macOS ou Windows)
+[ ] cp hardening/settings-macos.json      ~/.claude/settings.json   (macOS)
+[ ]   ou hardening/settings-windows.json  ~/.claude/settings.json   (Windows)
+[ ] cp hardening/hooks/guardiao-laudos.py ~/.claude/hooks/  (+ chmod +x no macOS)
 [ ] Pasta de trabalho dedicada (~/laudos-trabalho), fora de Documents
 [ ] Gravação de Tela + Acessibilidade + Automação, só na conta laudos
 [ ] iCloud "Documentos e Mesa" desligado, ou ~/Laudos_OCT fora dele

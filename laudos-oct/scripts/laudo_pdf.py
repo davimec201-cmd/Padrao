@@ -764,9 +764,27 @@ def build(d, out_pdf, base_nao_revisada=False, assinar=False):
     return pend, doc.page
 
 
+# Nomes que o Windows reserva para dispositivos: um arquivo ou pasta chamado CON,
+# PRN, NUL, COM1..9 ou LPT1..9 não pode existir. Um paciente chamado "Con" bastava
+# para a gravação falhar de um jeito que ninguém liga ao nome. No macOS isso nunca
+# apareceu — é o tipo de defeito que a troca de plataforma ativa.
+RESERVADOS = {"CON", "PRN", "AUX", "NUL"}
+RESERVADOS |= {f"COM{i}" for i in range(1, 10)}
+RESERVADOS |= {f"LPT{i}" for i in range(1, 10)}
+
+MAX_COMPONENTE = 96          # folga confortável dentro do MAX_PATH de 260
+
+
 def slug(s):
     s = unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode()
-    return re.sub(r"[^A-Za-z0-9]+", "_", s).strip("_") or "Paciente"
+    s = re.sub(r"[^A-Za-z0-9]+", "_", s).strip("_") or "Paciente"
+    # Só o nome INTEIRO é reservado: uma pasta "CON" é impossível, uma pasta
+    # "Con_Silva" é válida. Checar o prefixo mutilaria nome de gente sem motivo.
+    if s.upper() in RESERVADOS:
+        s = "N_" + s
+    if len(s) > MAX_COMPONENTE:
+        s = s[:MAX_COMPONENTE].rstrip("_")
+    return s or "Paciente"
 
 
 def main():
@@ -849,11 +867,18 @@ def main():
         # arquivo e na pasta evita sobrescrever laudo de homônimo de outra unidade.
         out = OUT_ROOT / clin["pasta"] / nome / arquivo
     out.parent.mkdir(parents=True, exist_ok=True)
-    if out.exists() and not a.sobrescrever:
-        sys.exit(f"ERRO: já existe {out}\n"
+    # No NTFS a comparação de nome é insensível à caixa: "Silva_OD" e "silva_od"
+    # são o MESMO arquivo. out.exists() já pega o caso lá, mas varrer a pasta
+    # comparando em minúsculas faz a checagem valer nos dois sistemas.
+    existente = next((f for f in out.parent.iterdir()
+                      if f.name.lower() == out.name.lower()), None)
+    if existente and not a.sobrescrever:
+        sys.exit(f"ERRO: já existe {existente}\n"
                  "  Emitir apagaria o laudo anterior em silêncio. Se a intenção é\n"
                  "  refazer este mesmo laudo, use --sobrescrever; se é outro exame,\n"
                  "  confira 'data_exame' — é ela que distingue os dois no nome.")
+    if existente:
+        out = existente      # refaz o arquivo que existe, não um vizinho de outra caixa
 
     global ESCALA
     # Piso 0,82: abaixo disso a entrelinha aperta demais para um documento que um

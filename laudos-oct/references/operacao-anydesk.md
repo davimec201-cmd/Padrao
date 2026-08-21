@@ -122,10 +122,20 @@ Lista negra absoluta no sistema do hospital. Você é **somente-leitura** lá de
 `Fechar o programa` · `Forçar encerramento` · `Force Quit` · `End task` ·
 qualquer coisa que altere prontuário, agenda ou o próprio exame.
 
-**E os atalhos equivalentes**, que fazem a mesma coisa sem passar por botão:
-`cmd+s` (salvar) · `cmd+shift+s` (salvar como) · `cmd+p` (imprimir) ·
-`cmd+x` (recortar) · `cmd+delete` (lixeira) · `cmd+q` e `cmd+w` (fechar o
-sistema do hospital). O `hands.py key` recusa todos.
+**E os atalhos equivalentes**, que fazem a mesma coisa sem passar por botão.
+O `hands.py key` recusa todos, na tecla de cada plataforma:
+
+| | macOS | Windows |
+|---|---|---|
+| salvar | `cmd+s`, `cmd+shift+s` | `ctrl+s`, `ctrl+shift+s` |
+| imprimir | `cmd+p` | `ctrl+p` |
+| recortar | `cmd+x` | `ctrl+x` |
+| excluir | `cmd+delete` | `delete`, `shift+delete` |
+| fechar o programa | `cmd+q`, `cmd+w` | `alt+f4`, `ctrl+w` |
+
+No Windows a tecla **`Delete` sozinha** também é recusada: numa lista de pacientes
+ela apaga o registro selecionado. Para corrigir texto digitado use `backspace`,
+que continua permitida.
 
 Se o caminho que você quer só existe passando por um desses botões, **pare e pergunte**.
 
@@ -150,7 +160,8 @@ mentalmente um dígito borrado.
 | `aguardar` retorna `timeout: true` | A tela não se moveu. Aumente o `--timeout`. **Não clique de novo.** |
 | `loop travado` numa conexão lenta | O detector está certo: você clicou 3× no mesmo ponto porque a tela não respondeu. A saída é **esperar mais**, com `aguardar --timeout 120`, não clicar mais rápido. |
 | `STOP ativo` | O usuário acionou o freio. Pare tudo e avise. |
-| `foco protegido` | Reative o AnyDesk. Não force. |
+| `foco protegido` | Reative o AnyDesk. Não force. Se disser `ILEGÍVEL`, o sistema não deixou ler quem está em primeiro plano — no macOS é a permissão de Automação. Pare e avise o usuário. |
+| Clique caindo ao lado do alvo (Windows) | A escala do monitor mudou depois do `guard set`. Pare, avise o usuário e refaça `guard set`. Não tente compensar na coordenada. |
 | `clique fora da área permitida` | A janela do AnyDesk mudou de posição/tamanho → `guard set` de novo. |
 | `janela_anydesk_pt: NÃO ENCONTRADA` | AnyDesk fechado, minimizado ou em outro Space. Peça ao usuário. |
 | Captura falha / imagem preta | Falta permissão de Gravação de Tela → `INSTALACAO.md`. |
