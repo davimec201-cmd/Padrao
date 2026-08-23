@@ -260,21 +260,22 @@ Prompt de limpeza para a skill `laudos-oct` (laudos de OCT de mácula e nervo
 `~/.claude/skills/laudos-oct/` e na pasta `laudos-oct/` deste repositório. Também
 serve colado à mão em qualquer sessão: é markdown puro.
 
-Sete frentes: **bloqueio de assinatura** (a proibição vencida em 20/08/2026, que
-ainda está escrita em dois arquivos e proíbe um fluxo que o médico autorizou),
-seção irrelevante, duplicação, instrução obsoleta, contradição entre o texto e o
-código, código morto e higiene básica.
+O pedido central é o **bloqueio de assinatura**: sai tudo o que impede o laudo de
+sair assinado — a proibição vencida em 20/08/2026, a regra que proibia o agente de
+rodar `--assinar`, o portão de autorização por documento e a regra do guardião que
+escalava o comando. Fica **uma** recusa, a de assinatura **errada**: signatário que
+não é o do hospital, ou imagem que falta. E ela não termina em "avise o humano" —
+termina em diagnosticar, corrigir e refazer, com duas tentativas e a conferência do
+que saiu (nome, CRM, sem carimbo de minuta).
 
-A skill opera a máquina de uma clínica e produz documento que um médico assina,
-então o prompt inverte a ordem de prioridade de uma limpeza comum: **segurança
-clínica primeiro, verdade depois, economia de token por último**. Nenhuma trava
-sai — a lista do que não se toca está escrita nele, portão por portão, e o que o
-pedido derruba é a frase vencida, não o portão.
+As outras seis frentes: seção irrelevante, duplicação, instrução obsoleta,
+contradição entre o texto e o código, código morto e higiene básica.
 
 Prova antes de qualquer corte: as duas suítes offline da skill (`teste_regras.py`,
 140 asserções; `teste_aceite.py`, 76) rodam antes e depois, e o texto dos quatro
-laudos de exemplo é comparado linha a linha. Na dúvida não apaga: entra no
-relatório, que fecha com o que ficou pendente de decisão do médico ou do dono.
+laudos de exemplo é comparado linha a linha. O prompt avisa que a contagem do
+aceite muda — duas asserções existem só para provar o portão removido, e elas são
+**reescritas, nunca apagadas**.
 
-O apêndice traz as pistas já conferidas nesta rodada, com arquivo e linha. É
-descartável — sai quando a rodada fechar.
+O apêndice traz as pistas já conferidas, com arquivo e linha. É descartável — sai
+quando a rodada fechar.
