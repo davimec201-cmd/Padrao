@@ -14,6 +14,70 @@
   },
   "faixas": ["#2E6E4E", "#1B2A22", "#FFFFFF"],
   "frases": {
+    "pacoteGanho": [
+      "Pacote conquistado.",
+      "Caiu pacote novo. Abre quando quiser.",
+      "Sua campanha ganhou mais uma página.",
+      "Pacote garantido, sem pressa.",
+      "O álbum mexeu.",
+      "Trabalho feito, pacote na conta."
+    ],
+    "pacoteAberto": [
+      "Pacote aberto.",
+      "Olha o que veio.",
+      "Duas novas para a campanha.",
+      "Página nova no álbum.",
+      "Direto para o papel.",
+      "Mais duas na coleção."
+    ],
+    "figurinhaColada": [
+      "{fig} colada em {pagina}.",
+      "{fig} entrou para {pagina}.",
+      "{pagina} ganhou a {fig}.",
+      "{fig} no lugar dela.",
+      "Colada: {fig}.",
+      "{fig} fechou o espaço dela."
+    ],
+    "especialGanha": [
+      "{fig} conquistada.",
+      "Especial na conta: {fig}.",
+      "{fig} — dessas não caem toda hora.",
+      "Bateu {fig}.",
+      "{fig} garantida no papel.",
+      "Especial no álbum: {fig}."
+    ],
+    "copaFechada": [
+      "Capítulo fechado: {nome}.",
+      "{nome} virou página do álbum.",
+      "Fim de Copa. {nome} fica guardada.",
+      "A taça de {nome} já está colada.",
+      "{nome} entrou para o álbum.",
+      "Mais um capítulo guardado: {nome}."
+    ],
+    "albumCheio": [
+      "Capítulo completo: {pct}%.",
+      "Álbum cheio, nenhum espaço vazio.",
+      "Fechou o capítulo todo.",
+      "Tudo colado.",
+      "Capítulo redondo: {pct}%.",
+      "Coleção completa. Poucos chegam aí."
+    ],
+    "prorrogacao": [
+      "Prorrogação em campo. Tempo extra vale.",
+      "Tempo extra: cada dia ativo ainda traz pacote.",
+      "A Copa deu prorrogação.",
+      "Ainda dá para somar.",
+      "Tempo extra rolando, sem pressa.",
+      "A bola ainda está em jogo."
+    ],
+    "temporadaNova": [
+      "Temporada aberta: {nome}.",
+      "{nome} começando. Álbum limpo.",
+      "Bola no centro: {nome}.",
+      "{nome} no ar. Os capítulos esperam.",
+      "Temporada {nome} escalada.",
+      "Começa {nome}. Página um."
+    ],
     "manha": [
       "Bom dia. O dia começa agora.",
       "Primeiro tempo do dia.",

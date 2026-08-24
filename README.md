@@ -142,7 +142,8 @@ instalado, funciona 100% offline.
 | **Relógio real** | O tempo vem de `Date.now()`, nunca de contagem de ticks: com a tela apagada ou o app em segundo plano o bloco não atrasa, e um bloco que terminou com o app fechado é fechado na volta com o horário certo. |
 | **Alarme** | Gerado sem arquivo de som: toque de gol no fim do foco, apito de árbitro começando o jogo no fim da pausa. Para avisar com o app fora da tela, o toque vai **gravado dentro de uma trilha silenciosa**, que o tocador de mídia leva até o fim mesmo com a página congelada. Três modos: desligado (música intacta), só nos 2 minutos finais (padrão) ou o bloco inteiro. O bloco aparece na barra de notificação, uma notificação avisa no fim, vibra quando o aparelho tem vibração, e o Wake Lock mantém a tela acesa durante o bloco, onde houver suporte. |
 | **Bloquear o que distrai** | Antes de cada bloco o app pergunta se o Modo Foco do Android está ligado — bloquear aplicativo é coisa que só o sistema faz, e nenhuma página da web consegue. O lembrete tem três saídas: começar, sair pra ligar, ou nunca mais perguntar. |
-| **Ciclos** | Nome, início e fim previsto. Todo bloco entra automaticamente no ciclo ativo. Ao encerrar, as estatísticas congelam e o ciclo vai para a Estante. |
+| **Temporadas e Copas** | Uma Temporada é o álbum inteiro; cada **Copa** dentro dela é um capítulo. Nome, início e fim previsto são os únicos dados obrigatórios. Todo bloco entra automaticamente na Copa de hoje. Ao encerrar, as estatísticas congelam e a Copa vai para a Estante. |
+| **Álbum da Copa** | A coleção da temporada: 18 figurinhas na Mini Copa, 30 na Copa padrão, todas visíveis com nome e critério desde o primeiro dia. Pacotes de 2, sem repetidas, liberados por estudo **e** por passagem do tempo. Ver abaixo. |
 | **Assunto** | Campo com autocompletar pelos assuntos do ciclo atual e atalho para os 5 últimos. Fica visível durante o bloco. |
 | **Histórico** | Hoje, últimos 7 dias em barras, lista completa com opção de corrigir o assunto ou apagar o registro, exportar e importar tudo em JSON. |
 | **Cartas** | Flashcards com prazo: escada de 1, 2, 4, 8 e 16 dias, teto pela data da prova e reta final nos últimos 3 dias. Travei / Quase / Mandei bem, lacunas com `{{chaves}}`, revisão livre fora da fila e edição de qualquer campo, inclusive degrau e data. Ao encerrar o ciclo, o baralho é guardado junto com ele. |
@@ -151,6 +152,168 @@ instalado, funciona 100% offline.
 
 Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
 murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
+
+#### O Álbum da Copa
+
+O sistema de recompensa do Copeiro. Ele celebra **estudo feito**, não tempo
+gasto navegando no app.
+
+O laço é: começar o bloco → estudar com o app no bolso → o bloco fecha →
+ganhar progresso ou pacote → voltar quando quiser → abrir → ver o próximo
+marco.
+
+##### A coleção é fixa e visível desde o primeiro dia
+
+Cada Copa é um capítulo com seis páginas, sempre as mesmas — dá pra comparar
+uma Copa com a outra:
+
+| Página | Copa padrão (28–56 dias) | Mini Copa (7–27 dias) |
+|---|---|---|
+| Palco da Copa | 5 colecionáveis | 3 |
+| Nossa Torcida | 5 colecionáveis | 3 |
+| Dia de Jogo | 5 colecionáveis | 2 |
+| Símbolos da Campanha | 5 colecionáveis | 2 |
+| Números da Copa | 6 registros | 4 |
+| Momentos Decisivos | 3 especiais + a taça | idem |
+| **total** | **30 figurinhas** | **18** |
+
+Todo espaço aparece desde o dia 1 com silhueta, nome e o critério de como se
+preenche. Nada é surpresa; a única coisa que varia é a **ordem** em que as
+colecionáveis chegam.
+
+##### Os quatro tipos de figurinha
+
+- **Colecionáveis** vêm em pacotes de 2 e nunca repetem. O baralho de cada
+  Copa é embaralhado com uma semente derivada do id da Copa, e o próximo
+  pacote sempre traz as duas primeiras que ainda não foram coladas — por isso
+  não existe repetida e não existe número guardado pra dessincronizar.
+- **Registros** se preenchem sozinhos com os dados reais da Copa (melhor dia,
+  dias ativos, blocos, tempo total e, na Copa padrão, melhor rodada e assunto
+  mais estudado). Depois do primeiro dia ativo ficam **Em jogo** e se
+  atualizam a cada recorde; no fechamento recebem o selo **Resultado final** e
+  congelam. Quem não informa assunto vê "Estudo livre" — o álbum funciona sem
+  matéria, sem meta e sem ciclo acadêmico.
+- **Especiais** têm condição pública e atingível sem precisar falhar de
+  propósito: **Estreia** (primeiro dia ativo), **Ritmo de Jogo** (estudar em 3
+  dias diferentes dentro de qualquer janela de 7) e **Até o Apito** (um dia
+  ativo nos 20% finais).
+- **A taça** é criada no fechamento com nome, período, tempo, dias ativos,
+  blocos e o percentual do capítulo. Nunca vem em pacote. Um toque nela abre o
+  cartão com os seis dados — é a peça que se mostra pra alguém.
+
+##### Dia ativo
+
+Um dia conta quando soma **10 minutos ou mais** de foco, no fuso do aparelho.
+Os minutos podem vir de um bloco ou de vários. Bloco fechado com o app em
+segundo plano conta igual, e encerrar antes do previsto não apaga o que foi
+estudado de verdade.
+
+##### O motor de entrega de pacotes
+
+Esforço e tempo, os dois. Nenhuma maratona libera o álbum no começo da Copa.
+
+```
+D = dias da Copa (início e fim inclusive)
+P = pacotes: 5 na Mini Copa, 10 na Copa padrão
+A = dias ativos esperados = min(D, max(P, ceil(45% de D)))
+
+pacote i sai quando as DUAS valem:
+  dias ativos     >= ceil(i × A ÷ P)
+  dias decorridos >= ceil(i × 80% de D ÷ P)
+```
+
+Cerca de 45% dos dias precisam ser ativos, o último pacote sai por volta de
+80% da duração, e os 20% finais sobram como folga natural. Estudar muito num
+dia só melhora recorde, mas não substitui presença em dias diferentes.
+
+Quando só uma das duas condições foi cumprida, a tela diz **exatamente** a
+outra: "Você já fez sua parte. Este pacote entra em campo em 2 dias." ou "O
+calendário já liberou este pacote. Falta estudar em 1 dia diferente."
+
+A conta é toda inteira de propósito: com `0,80` e `0,45` em ponto flutuante,
+`ceil(3 × 0,80 × 25 ÷ 5)` dava 13 em vez de 12 e o pacote atrasava um dia
+inteiro em toda Copa de 25 e de 50 dias.
+
+##### Prorrogação
+
+Passado o fim oficial, abre uma prorrogação de 7 dias. Os números oficiais da
+Copa ficam congelados; cada dia ativo ainda traz um pacote do capítulo, até 2
+na Mini Copa e 3 na Copa padrão. O mesmo estudo conta pra prorrogação e pra
+Copa nova. No fim, espaço não conquistado fica vazio — sem mensagem de culpa e
+sem perder nada do que já era teu.
+
+O crédito é **retroativo**: quem estudou na prorrogação e só abriu o app duas
+semanas depois recebe igual. O álbum é varrido do histórico inteiro a cada
+passada, nunca "o que aconteceu hoje".
+
+##### Nada conquistado se perde
+
+Pacote ganho, figurinha colada, especial conquistada e dia gasto na
+prorrogação são **catracas**: só sobem. Disso saem as regras seguintes.
+
+- Mexer nas datas de uma Copa em andamento recalcula só os próximos marcos.
+- O **formato** do capítulo (Mini ou padrão) trava na primeira conquista.
+  Enquanto o álbum está vazio as datas mandam; depois disso, encurtar uma Copa
+  padrão não pode fazer dez figurinhas coladas sumirem da tela.
+- "Colado" é decidido pelo registro da colagem, nunca pela posição no baralho.
+- O teto de pacotes do tipo nunca corta o que já foi conquistado: se um dado
+  antigo deixar a catraca acima do teto, quem cede é o teto.
+- Apagar bloco do histórico, trocar o fuso ou o relógio voltar no tempo não
+  revoga nada.
+- A janela oficial da Copa só **cresce** pra cobrir dia que o álbum já
+  reconheceu — arrastar o início pra frente não zera os seis registros.
+- O selo automático do capítulo é reversível. Ele é cache de valor calculado,
+  não conquista: se o relógio estava adiantado ou o fim previsto for esticado,
+  a Copa volta a jogar sem perder nada. Só a taça levantada à mão é
+  definitiva.
+- Abrir pacote continua possível depois do fechamento, e o percentual guardado
+  na taça acompanha.
+
+Restaurar um backup é a única coisa que substitui o álbum, porque substitui o
+histórico inteiro — o app avisa isso na confirmação antes de importar.
+
+##### A revelação
+
+O pacote é concedido depois do estudo, sem interromper a sessão: aparece um
+selo discreto na aba Álbum e uma linha no aviso de bloco concluído. Abrir é
+quando o Davi quiser.
+
+A abertura dura no máximo 5 segundos, tem "Pular" sempre à mão, revela as duas
+figurinhas com nome e página, oferece "Colar todas" num toque e fecha
+mostrando o progresso e o requisito exato do próximo pacote. As figurinhas são
+coladas e salvas **antes** de qualquer animação: sair no meio, o app morrer, o
+tablet dormir — nada custa pacote. Som, vibração e animação são desligáveis na
+tela Foco, e a tela respeita `prefers-reduced-motion`. Esc e o botão Voltar do
+Android fecham a sobreposição, não o app.
+
+O fim de um bloco tem prioridade sobre a revelação, e o som do pacote não toca
+enquanto o alarme do bloco está agendado na trilha: o alarme é a razão de o
+app existir e não divide canal com comemoração.
+
+##### Modelos de temporada
+
+| Modelo | O que cria |
+|---|---|
+| Ciclos PBL | três Copas de 40 dias em sequência |
+| Prova próxima | uma Copa daqui até o dia da prova |
+| Semestre | o semestre fatiado em Copas de ~6 semanas |
+| Concurso ou vestibular | N Copas mensais sucessivas |
+| Modo livre | 90 dias em três Copas de 30 |
+| Personalizada | Copa por Copa, no formulário da Estante |
+
+Copa abaixo de 7 dias ou acima de 56 nunca é recusada: o app explica o que
+muda e oferece dividir em capítulos, e o Davi decide. Copa nova já vem com a
+data do dia seguinte à anterior, pra dia ativo não cair em buraco entre Copas.
+
+##### O que o Álbum não faz
+
+Não vende pacote, não tem moeda nem loja, não deixa pagar pra completar, não
+usa repetida, não tem roleta, baú, brilho permanente nem falsa escassez. Não
+pune ausência, não tem sequência frágil, não tem contagem regressiva
+ameaçadora e nenhuma mensagem de culpa. E **não vai pra rede**: figurinha,
+pacote, percentual e registro não entram no boletim do campeonato nem em
+requisição nenhuma — a liga continua publicando só nome, minutos, dias ativos
+e blocos.
 
 #### Tema como dado
 

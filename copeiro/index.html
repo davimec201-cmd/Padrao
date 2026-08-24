@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0D80BF">
-<meta name="description" content="Pomodoro de estudo do Davi: ciclos, estante de campanhas e histórico. Funciona offline.">
+<meta name="description" content="Pomodoro de estudo do Davi: Copas, Álbum da Copa, estante de campanhas e histórico. Funciona offline.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -452,6 +452,280 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
 }
+
+/* ---------- Álbum da Copa ---------- */
+/* Peça esportiva colecionável: papel, borda fina, número grande legível.
+   Nenhuma cor de identidade escrita aqui — tudo var(--...). O tom mudo da
+   silhueta sai de --trilho e --linha, que aplicaTema() já deriva de
+   papel + tinta, então funciona em qualquer tema sem tocar neste arquivo. */
+
+/* Tons da arte da figurinha. Ficam no escopo da figurinha, não no :root,
+   porque o MESMO SVG é pintado de dois jeitos: cheio quando conquistado,
+   silhueta chapada quando o espaço ainda está vazio. */
+.fig{--fig-1:var(--primaria);--fig-2:var(--escura);--fig-3:var(--clara);--fig-4:var(--acento);--fig-linha:var(--tinta)}
+.fig.vazio{--fig-1:var(--trilho);--fig-2:var(--trilho);--fig-3:var(--trilho);--fig-4:var(--trilho);--fig-linha:var(--linha)}
+/* Pacote conquistado e ainda fechado: continua silhueta, senão a abertura
+   não revelaria nada. */
+.fig.no-pacote{--fig-1:var(--trilho);--fig-2:var(--trilho);--fig-3:var(--trilho);--fig-4:var(--trilho);--fig-linha:var(--primaria-borda)}
+.fig.taca.colada{--fig-1:var(--ouro);--fig-2:var(--ouro);--fig-3:var(--ouro-clara);--fig-4:var(--ouro-clara);--fig-linha:var(--ouro)}
+
+.fig svg{width:100%;height:auto;display:block}
+.fig svg .t1{fill:var(--fig-1)}
+.fig svg .t2{fill:var(--fig-2)}
+.fig svg .t3{fill:var(--fig-3)}
+.fig svg .t4{fill:var(--fig-4)}
+.fig svg .linha{fill:none;stroke:var(--fig-linha);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+
+/* ---------- Páginas do álbum ---------- */
+.album-paginas{display:grid;gap:16px}
+.album-pagina{
+  background:var(--card);border:1px solid var(--linha);border-radius:var(--raio);
+  box-shadow:var(--sombra);padding:16px;overflow:hidden;
+}
+.album-pagina-topo{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding-bottom:11px;margin-bottom:14px;border-bottom:1px solid var(--linha);
+}
+.album-pagina-topo h3{font-size:1rem;min-width:0}
+.album-pagina-topo span{
+  font-size:.76rem;font-weight:800;color:var(--suave);white-space:nowrap;
+  text-transform:uppercase;letter-spacing:.6px;font-variant-numeric:tabular-nums;
+}
+.album-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}
+
+/* ---------- O espaço da figurinha ---------- */
+/* padding, color e font-size vêm escritos de propósito: .vazio (usado como
+   estado do espaço) também é a classe do texto de lista vazia lá em cima. */
+.fig{
+  display:flex;flex-direction:column;gap:6px;min-width:0;min-height:var(--toque);
+  padding:8px;border:1px solid var(--linha);border-radius:14px;
+  background:var(--papel);color:var(--tinta);font-size:.9rem;text-align:center;
+}
+.fig-quadro{
+  position:relative;flex:0 0 auto;aspect-ratio:100/128;border-radius:10px;overflow:hidden;
+  background:var(--card);border:1px solid var(--linha);
+}
+.fig-arte{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:9px}
+.fig-valor{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;padding:8px 6px;
+}
+.fig-valor b{
+  font-size:clamp(1.2rem,5.2vw,1.65rem);line-height:1;font-weight:800;
+  color:var(--tinta);font-variant-numeric:tabular-nums;
+  max-width:100%;overflow-wrap:anywhere;
+}
+/* Registro de texto (o assunto mais estudado) nao e numero: quebra e diminui. */
+.fig-valor.texto b{font-size:.94rem;line-height:1.2;font-variant-numeric:normal}
+.fig-valor span{font-size:.68rem;line-height:1.25;color:var(--suave);font-weight:600}
+.fig h4{margin:0;font-size:.82rem;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.fig-pe{margin-top:auto;font-size:.72rem;line-height:1.3;color:var(--suave)}
+.fig-criterio{display:block;overflow-wrap:anywhere}
+.fig-data{font-weight:700;color:var(--primaria);font-variant-numeric:tabular-nums}
+.fig-selo{
+  align-self:center;padding:2px 9px;border-radius:999px;border:1px solid var(--linha);
+  background:var(--card);font-size:.69rem;font-weight:800;letter-spacing:.4px;white-space:nowrap;
+}
+
+/* Estados. Selo discreto e acabamento sóbrio: nada de brilho permanente,
+   nada de contagem regressiva, nada de vermelho. */
+.fig.no-pacote{border-color:var(--primaria-borda);background:var(--primaria-fundo)}
+.fig.no-pacote .fig-selo{color:var(--primaria);border-color:var(--primaria-borda)}
+.fig.colada{background:var(--card)}
+.fig.colada .fig-quadro{background:var(--papel)}
+.fig.em-jogo,.fig.final{background:var(--card)}
+.fig.em-jogo .fig-selo{color:var(--primaria);border-color:var(--primaria-borda);background:var(--primaria-fundo)}
+.fig.final .fig-selo{background:var(--tinta);border-color:var(--tinta);color:var(--clara)}
+/* Nos registros a arte fica de marca d'água: o número é que precisa ser lido. */
+.fig.registro.em-jogo .fig-arte,.fig.registro.final .fig-arte{opacity:.16}
+.fig.especial{border-width:2px;border-color:var(--primaria-borda)}
+.fig.taca{border-width:2px;border-color:var(--ouro-clara);background:var(--ouro-fundo)}
+/* Vazia, a taca nao pode parecer ja conquistada. */
+.fig.taca.vazio{border-color:var(--linha);background:var(--papel)}
+.fig.taca.vazio .fig-quadro{border-color:var(--linha)}
+.fig.taca .fig-quadro{border-color:var(--ouro-clara)}
+.fig.taca .fig-data{color:var(--ouro)}
+
+/* ---------- Cabeçalho do capítulo ---------- */
+.album-topo{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
+.album-titulo{flex:1 1 200px;min-width:0}
+.album-temporada{
+  margin:0 0 2px;font-size:.74rem;font-weight:800;letter-spacing:1.4px;
+  text-transform:uppercase;color:var(--primaria);
+}
+.album-pct{display:flex;flex-direction:column;align-items:flex-end;gap:3px;margin-left:auto;text-align:right}
+.album-pct b{font-size:1.85rem;line-height:1;color:var(--tinta);font-variant-numeric:tabular-nums}
+/* só a contagem: o irmão span anterior é o selo de fase */
+.album-pct b+span{font-size:.78rem;color:var(--suave);white-space:nowrap}
+/* Barra fina de coleção — quanto do capítulo está preenchido. Não é meta de horas. */
+.album-barra{height:7px;border-radius:999px;background:var(--trilho);overflow:hidden;margin-top:13px}
+.album-barra i{
+  display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--acento),var(--primaria));
+  transition:width .5s cubic-bezier(.22,.8,.3,1);
+}
+.album-chamado{
+  margin:13px 0 0;padding:11px 14px;border-radius:12px;font-size:.92rem;font-weight:600;
+  background:var(--primaria-fundo);border:1px solid var(--primaria-borda);color:var(--tinta);
+}
+/* Seletor de capítulo: fichas roláveis, uma linha só (é o .fichas depois da barra) */
+.album-barra ~ .fichas{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.album-barra ~ .fichas::-webkit-scrollbar{display:none}
+.album-barra ~ .fichas .ficha{flex:0 0 auto}
+.ficha small{margin-left:6px;font-weight:800;color:var(--suave);font-variant-numeric:tabular-nums}
+.ficha.ativa small{color:var(--clara)}
+
+/* Fase da Copa como selo. Prorrogação usa o âmbar de alerta, nunca o vermelho de erro. */
+.selo-fase{
+  display:inline-block;padding:3px 11px;border-radius:999px;white-space:nowrap;
+  border:1px solid var(--linha);background:var(--papel);
+  font-size:.73rem;font-weight:800;color:var(--suave);
+}
+.selo-fase.fase-emJogo{background:var(--primaria-fundo);border-color:var(--primaria-borda);color:var(--primaria)}
+.selo-fase.fase-prorrogacao{background:var(--alerta-fundo);border-color:var(--alerta-borda);color:var(--alerta-tinta)}
+.selo-fase.fase-fechada{background:var(--tinta);border-color:var(--tinta);color:var(--clara)}
+
+/* ---------- Cartão do pacote ---------- */
+.pacote-cartao{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.pacote-corpo{flex:1 1 240px;min-width:0}
+.pacote-corpo h2{font-size:1.05rem}
+.pacote-corpo .sub{margin:3px 0 0}
+.pacote-recado{margin:9px 0 0;font-size:.94rem;font-weight:600;color:var(--tinta)}
+.pacote-cartao.tem-pacote{border-color:var(--primaria-borda);background:var(--primaria-fundo)}
+.pacote-cartao .bt-grande{flex:0 0 auto}
+
+/* ---------- Selo de contagem na aba ---------- */
+.selo-album{
+  display:inline-flex;align-items:center;justify-content:center;vertical-align:1px;
+  min-width:21px;height:21px;padding:0 6px;margin-left:7px;border-radius:999px;
+  background:var(--primaria);color:var(--clara);
+  font-size:.7rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;
+}
+.abas button.ativa .selo-album{background:var(--clara);color:var(--primaria)}
+
+/* ---------- Revelação do pacote ---------- */
+/* Fica acima do modal (60) e do toaster (70). O escurecido é uma camada
+   própria com opacidade — assim o conteúdo em cima fica opaco de verdade. */
+.revelacao{
+  position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+  padding:20px 16px;overflow-y:auto;animation:revela-fundo .22s ease;
+}
+.revelacao-fundo{position:absolute;inset:0;background:var(--tinta);opacity:.97}
+.revelacao-caixa{
+  position:relative;z-index:1;margin:auto;width:100%;max-width:520px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  padding:68px 0 6px;text-align:center;color:var(--clara);
+}
+.revelacao-pular{
+  position:absolute;top:0;right:0;padding:0 18px;border-radius:999px;
+  border-color:var(--suave);color:var(--clara);font-weight:700;
+}
+.revelacao-pacote{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  animation:pacote-abre .6s cubic-bezier(.22,.9,.3,1) both;
+}
+.revelacao-pacote p{
+  margin:0;font-size:.78rem;font-weight:800;letter-spacing:2.2px;
+  text-transform:uppercase;color:var(--ouro-clara);
+}
+/* Pacote genérico de futebol: três faixas, sem escudo, sem mascote. */
+.pacote-arte{
+  display:flex;width:min(44vw,164px);aspect-ratio:100/128;overflow:hidden;
+  border:2px solid var(--clara);border-radius:14px;background:var(--card);
+}
+.pacote-arte i{flex:1;display:block}
+.pacote-arte i:nth-child(1){background:var(--primaria)}
+.pacote-arte i:nth-child(2){background:var(--escura)}
+.pacote-arte i:nth-child(3){background:var(--clara)}
+.revelacao-figs{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.revelacao-fig{animation:fig-entra .42s cubic-bezier(.22,.9,.3,1) both}
+.revelacao-fig .fig{box-shadow:var(--sombra)}
+.revelacao-pagina{margin:7px 0 0;font-size:.74rem;font-weight:700;letter-spacing:.6px;color:var(--ouro-clara)}
+.revelacao-frase{
+  margin:0;max-width:34ch;font-size:clamp(1.05rem,4.2vw,1.28rem);
+  font-weight:700;line-height:1.35;color:var(--clara);
+}
+.revelacao-progresso{
+  width:100%;padding:16px;border-radius:var(--raio);text-align:left;
+  background:var(--card);color:var(--tinta);animation:revela-sobe .3s ease both;
+}
+.revelacao-num{display:flex;align-items:baseline;gap:10px}
+.revelacao-num b{font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}
+.revelacao-num span{font-size:.84rem;color:var(--suave);font-weight:600}
+.revelacao-progresso .sub{margin:12px 0 0}
+.revelacao-bts{width:100%;justify-content:center}
+
+@keyframes revela-fundo{from{opacity:0}to{opacity:1}}
+@keyframes pacote-abre{0%{opacity:0;transform:scale(.9)}60%{opacity:1;transform:scale(1.03)}100%{opacity:1;transform:none}}
+@keyframes fig-entra{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes revela-sobe{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Ajuste do app: prefs.animacoes desligado põe .sem-animacao na sobreposição. */
+.revelacao.sem-animacao,
+.revelacao.sem-animacao .revelacao-pacote,
+.revelacao.sem-animacao .revelacao-fig,
+.revelacao.sem-animacao .revelacao-progresso{animation:none}
+.revelacao.sem-animacao .album-barra i{transition:none}
+
+/* ---------- Copas da temporada (Estante) ---------- */
+.temporada-copas{display:grid}
+.copa-linha{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--linha)}
+.copa-linha:last-child{border-bottom:0}
+.copa-linha.agora{background:var(--primaria-fundo);border-radius:12px;border-bottom-color:transparent;padding:12px 10px}
+.copa-id{flex:1 1 170px;min-width:0}
+.copa-id b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copa-id small{display:block;font-size:.78rem;font-weight:500;color:var(--suave)}
+.copa-pct{min-width:46px;text-align:right;font-weight:800;color:var(--primaria);font-variant-numeric:tabular-nums}
+
+@media (min-width:600px){
+  .album-grade{grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:12px}
+  .album-pct b{font-size:2.1rem}
+}
+@media (min-width:760px){
+  .album-pagina{padding:18px}
+  .album-grade{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+  .fig{padding:10px;gap:7px}
+  .revelacao-figs{gap:16px}
+}
+
+/* Quem pede menos movimento não vê animação nenhuma nesta tela. */
+@media (prefers-reduced-motion:reduce){
+  .revelacao,.revelacao-pacote,.revelacao-fig,.revelacao-progresso{animation:none}
+  .album-barra i{transition:none}
+}
+/* ---------- Notas de escopo e cartão da taça ---------- */
+.album-pe-nota{
+  margin:14px 0 0;padding-top:11px;border-top:1px solid var(--linha);
+  font-size:.76rem;line-height:1.4;color:var(--suave);
+}
+.album-rodape .sub{font-size:.95rem;font-weight:600;color:var(--tinta)}
+.fig[data-taca]{cursor:pointer}
+.fig[data-taca]:focus-visible{outline:3px solid var(--primaria);outline-offset:2px}
+/* Os seis dados da figurinha final, no cartão que se mostra pra alguém. */
+.taca-dados{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px 14px;
+  margin-top:4px;text-align:left;
+}
+.taca-dados b{
+  display:block;font-size:1.3rem;line-height:1.1;color:var(--tinta);
+  font-variant-numeric:tabular-nums;
+}
+.taca-dados span{
+  display:block;margin-bottom:6px;font-size:.72rem;color:var(--suave);
+  text-transform:uppercase;letter-spacing:.5px;
+}
+
+/* Chave geral de animação: o ajuste do app põe .sem-animacao no <body> e
+   todo movimento que o Álbum acrescentou para. O alarme do bloco não
+   depende de animação nenhuma, então nada aqui encosta nele. */
+body.sem-animacao .album-barra i{transition:none}
+body.sem-animacao .revelacao,
+body.sem-animacao .revelacao-pacote,
+body.sem-animacao .revelacao-fig,
+body.sem-animacao .revelacao-progresso,
+body.sem-animacao .aviso,
+body.sem-animacao .aviso.brilho,
+body.sem-animacao .tela{animation:none}
 </style>
 </head>
 <body>
@@ -475,6 +749,7 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 
 <nav class="abas" id="abas" aria-label="Telas do app">
   <button class="ativa" data-tela="foco">Foco</button>
+  <button data-tela="album">Álbum<span class="selo-album oculto" id="seloAlbum"></span></button>
   <button data-tela="historico">Histórico</button>
   <button data-tela="progresso">Progresso</button>
   <button data-tela="cartas">Cartas</button>
@@ -549,6 +824,14 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
             <button class="ficha" id="fichaLembreteFoco">Lembrar do Modo Foco</button>
           </div>
           <p class="sub" id="subLembreteFoco" style="margin-top:10px"></p>
+          <hr class="divisor">
+          <p class="sub" style="margin-top:18px;font-weight:700;color:var(--tinta)">Comemoração do Álbum</p>
+          <div class="fichas" id="fichasFestejo" style="margin-top:8px">
+            <button class="ficha" data-festejo="somAlbum">Som</button>
+            <button class="ficha" data-festejo="vibracao">Vibração</button>
+            <button class="ficha" data-festejo="animacoes">Animação</button>
+          </div>
+          <p class="sub" style="margin-top:10px">Desliga o que tu não quiser: a abertura do pacote também tem "Pular", e o prêmio nunca depende da animação. O alarme do bloco não é afetado — ele é a razão de o app existir.</p>
         </div>
 
         <div class="cartao">
@@ -594,6 +877,60 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
       </div>
 
     </div>
+  </section>
+
+  <!-- ================= TELA: ÁLBUM ================= -->
+  <section class="tela oculto" id="tela-album">
+
+    <div class="cartao oculto" id="albumVazio">
+      <div class="faixas faixas-fina" style="margin:-18px -18px 16px"></div>
+      <h2>O Álbum da Copa</h2>
+      <p class="sub" id="albumVazioTexto"></p>
+      <div class="linha-bts" style="margin-top:16px">
+        <button class="bt bt-azul" id="btAlbumComecar">Escolher um modelo</button>
+      </div>
+    </div>
+
+    <div id="albumConteudo">
+
+      <div class="cartao">
+        <div class="faixas faixas-fina" style="margin:-18px -18px 16px"></div>
+        <div class="fichas oculto" id="albumTemporadas" style="margin-bottom:14px"></div>
+        <div class="album-topo">
+          <div class="album-titulo">
+            <p class="album-temporada" id="albumTemporada"></p>
+            <h2 id="albumCopa"></h2>
+            <p class="sub" id="albumPeriodo"></p>
+          </div>
+          <div class="album-pct">
+            <span class="selo-fase" id="albumSelo"></span>
+            <b id="albumContagem">0 de 30</b>
+            <span id="albumPct">0%</span>
+          </div>
+        </div>
+        <div class="album-barra"><i id="albumBarra" style="width:0%"></i></div>
+        <p class="album-chamado oculto" id="albumChamado"></p>
+        <div class="fichas" id="albumCapitulos" style="margin-top:14px"></div>
+      </div>
+
+      <div class="cartao pacote-cartao" id="pacoteCartao">
+        <div class="pacote-corpo">
+          <h2 id="pacoteTitulo">Pacotes da Copa</h2>
+          <p class="sub" id="pacoteContagem"></p>
+          <p class="pacote-recado" id="pacoteRecado"></p>
+        </div>
+        <button class="bt bt-azul bt-grande oculto" id="btAbrirPacote">Abrir pacote</button>
+      </div>
+
+      <div class="album-paginas" id="albumPaginas"></div>
+
+      <div class="cartao album-rodape">
+        <h2>Próximo marco</h2>
+        <p class="sub" id="albumMarco"></p>
+      </div>
+
+    </div>
+
   </section>
 
   <!-- ================= TELA: HISTÓRICO ================= -->
@@ -880,13 +1217,22 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
 
     <div class="cartao">
       <div class="faixas faixas-fina" style="margin:-18px -18px 14px"></div>
-      <h2>Campanha em andamento</h2>
+      <h2 id="temporadaNome">Temporada</h2>
+      <p class="sub" id="temporadaResumo"></p>
+      <div id="temporadaCorpo"></div>
+      <div class="linha-bts" style="margin-top:14px">
+        <button class="bt bt-azul" id="btNovaTemporada">Nova temporada</button>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2 id="copaFormTitulo">Copa em andamento</h2>
       <p class="sub" id="cicloResumo"></p>
       <div id="cicloFormBox">
         <div class="campos campos-3">
           <div>
-            <label class="rot" for="cicloNome">Nome do ciclo</label>
-            <input type="text" id="cicloNome" maxlength="50" placeholder="Ex.: Ciclo 3 — Cardio">
+            <label class="rot" for="cicloNome">Nome da Copa</label>
+            <input type="text" id="cicloNome" maxlength="50" placeholder="Ex.: Copa 3 — Cardio">
           </div>
           <div>
             <label class="rot" for="cicloInicio">Início</label>
@@ -897,16 +1243,18 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
             <input type="date" id="cicloFim">
           </div>
         </div>
+        <p class="sub" id="copaDica" style="margin-top:12px"></p>
         <div class="linha-bts" style="margin-top:14px">
-          <button class="bt bt-azul" id="btSalvarCiclo">Salvar ciclo</button>
-          <button class="bt bt-perigo oculto" id="btEncerrarCiclo">Levantar a taça (encerrar)</button>
+          <button class="bt bt-azul" id="btSalvarCiclo">Salvar Copa</button>
+          <button class="bt" id="btNovaCopa">Nova Copa</button>
+          <button class="bt bt-escuro oculto" id="btEncerrarCiclo">Levantar a taça</button>
         </div>
       </div>
       <div class="numeros oculto" id="cicloNumeros" style="margin-top:16px"></div>
     </div>
 
     <div class="cartao">
-      <h2>Estante de ciclos</h2>
+      <h2>Estante de Copas</h2>
       <p class="sub" id="estanteResumo"></p>
       <div class="estante" id="estante"></div>
     </div>
@@ -925,6 +1273,58 @@ input:focus,select:focus,.bt:focus-visible,.abas button:focus-visible{
       <p class="detalhe" id="modalDetalhe"></p>
       <div class="linha-bts" id="modalBotoes"></div>
     </div>
+  </div>
+</div>
+
+<!-- Modelos de temporada: a temporada é o álbum, cada Copa é um capítulo -->
+<div class="modal oculto" id="modalTemporada">
+  <div class="modal-caixa">
+    <div class="faixas faixas-larga"></div>
+    <div class="modal-corpo">
+      <h2>Nova temporada</h2>
+      <p class="detalhe">Escolhe um modelo pronto ou ajusta as datas na mão. Nome e datas são os únicos dados obrigatórios — meta de horas, matéria e ciclo acadêmico ficam de fora.</p>
+      <div class="fichas" id="modelosFichas"></div>
+      <p class="sub" id="modeloResumo" style="margin-top:12px"></p>
+      <div class="campos" style="margin-top:14px">
+        <div class="campo-modelo">
+          <label class="rot" for="campoModeloNome">Nome da temporada</label>
+          <input type="text" id="campoModeloNome" maxlength="50">
+        </div>
+        <div class="campo-modelo">
+          <label class="rot" for="campoModeloInicio">Início</label>
+          <input type="date" id="campoModeloInicio">
+        </div>
+        <div class="campo-modelo">
+          <label class="rot" for="campoModeloFim">Fim (ou o dia da prova)</label>
+          <input type="date" id="campoModeloFim">
+        </div>
+        <div class="campo-modelo">
+          <label class="rot" for="campoModeloQuantas">Quantas Copas</label>
+          <input type="number" id="campoModeloQuantas" min="1" max="24" value="3">
+        </div>
+      </div>
+      <div class="linha-bts" style="margin-top:18px">
+        <button class="bt bt-azul" id="btCriarTemporada">Abrir a temporada</button>
+        <button class="bt" id="btCancelarTemporada">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Revelação do pacote: no máximo 5 s, pulável, e nada se perde ao sair.
+     As figurinhas já foram coladas antes desta tela aparecer. -->
+<div class="revelacao oculto" id="revelacao" role="dialog" aria-modal="true" aria-label="Pacote do Álbum">
+  <div class="revelacao-fundo"></div>
+  <div class="revelacao-caixa" aria-live="polite">
+    <button class="bt bt-fantasma revelacao-pular" id="btPularRevelacao">Pular</button>
+    <div class="revelacao-pacote" id="revelacaoPacote">
+      <div class="pacote-arte" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p>Pacote conquistado</p>
+    </div>
+    <div class="revelacao-figs oculto" id="revelacaoFigs"></div>
+    <p class="revelacao-frase" id="revelacaoFrase"></p>
+    <div class="revelacao-progresso oculto" id="revelacaoProgresso"></div>
+    <div class="linha-bts revelacao-bts" id="revelacaoBotoes"></div>
   </div>
 </div>
 
@@ -1081,9 +1481,12 @@ function escondeAvisoArmazem() {
 
 function estadoNovo() {
   return {
-    versao: 1,
+    versao: 2,
     blocos: [],        // {id, inicio, fim, minutos, assunto, cicloId, cicloNome}
-    ciclos: [],        // {id, nome, inicio, fimPrevisto, fimReal|null, congelado|null}
+    // Um ciclo É uma Copa: o capítulo do Álbum daquela temporada.
+    ciclos: [],        // {id, nome, inicio, fimPrevisto, fimReal|null, congelado|null,
+                       //  temporadaId, album}
+    temporadas: [],    // {id, nome, modelo, criadaEm, fechadaEm|null} — dona do Álbum
     recordes: { dia: 0, semana: 0, sequencia: 0 },
     marcosVistos: [],  // marcos do contador vitalício já comemorados
     prefs: {
@@ -1094,7 +1497,10 @@ function estadoNovo() {
       pausaCurta: 5,        // pausa entre blocos
       pausaLonga: 15,       // pausa maior, no fim do ciclo de focos
       focosAteLonga: 3,     // quantos focos até a pausa maior
-      tetoCartas: 20        // sugestão de fila por dia — nunca trava nada
+      tetoCartas: 20,       // sugestão de fila por dia — nunca trava nada
+      somAlbum: true,       // som curto na abertura do pacote
+      vibracao: true,       // vibração do app inteiro
+      animacoes: true       // animação da revelação do pacote
     },
     contadorFoco: { n: 0, dia: null },   // focos desde a última pausa longa
     cartas: [],        // {id, frente, verso, assunto, cicloId, cicloNome, nivel,
@@ -1125,6 +1531,7 @@ function carregaEstado() {
   // Defesa contra arquivo antigo ou importação incompleta
   estado.blocos = Array.isArray(salvo.blocos) ? salvo.blocos : [];
   estado.ciclos = Array.isArray(salvo.ciclos) ? salvo.ciclos : [];
+  estado.temporadas = Array.isArray(salvo.temporadas) ? salvo.temporadas : [];
   estado.recordes = Object.assign(base.recordes, salvo.recordes || {});
   estado.marcosVistos = Array.isArray(salvo.marcosVistos) ? salvo.marcosVistos : [];
   estado.prefs = Object.assign(base.prefs, salvo.prefs || {});
@@ -1142,6 +1549,31 @@ function carregaEstado() {
   if (['nada', 'fim', 'inteiro'].indexOf(estado.prefs.modoAviso) === -1) {
     estado.prefs.modoAviso = (salvo.prefs && salvo.prefs.alarmeFundo === false) ? 'nada' : 'fim';
   }
+  migraParaAlbum();
+}
+
+/**
+ * Traz o que existia antes do Álbum pra estrutura nova, sem perder nada:
+ * cada ciclo salvo vira uma Copa de uma temporada herdada, e o capítulo do
+ * álbum é calculado do histórico real que já estava no aparelho — inclusive
+ * das campanhas que já estão na estante.
+ */
+function migraParaAlbum() {
+  // Copa apontando pra temporada que não existe mais some do seletor de
+  // capítulo, e álbum inalcançável é o mesmo que álbum perdido: reacolhe.
+  const conhecidas = estado.temporadas.map((t) => t.id);
+  estado.ciclos.forEach((c) => {
+    if (c.temporadaId && conhecidas.indexOf(c.temporadaId) === -1) c.temporadaId = null;
+  });
+  const orfaos = estado.ciclos.filter((c) => !c.temporadaId);
+  if (orfaos.length) {
+    const ano = String(orfaos[0].inicio || chaveHoje()).slice(0, 4);
+    const herdada = estado.temporadas.find((t) => t.modelo === 'herdada') ||
+      criaTemporada('Temporada ' + ano, 'herdada');
+    orfaos.forEach((c) => { c.temporadaId = herdada.id; });
+  }
+  estado.ciclos.forEach(garanteAlbum);
+  estado.versao = 2;
 }
 
 function salvaEstado() {
@@ -1191,9 +1623,32 @@ function pausaLongaAgora() {
   return focosNoContador() >= estado.prefs.focosAteLonga;
 }
 
-/** Ciclo em andamento (sem data de encerramento), se houver. */
+/**
+ * A Copa em andamento hoje, se houver.
+ *
+ * Uma temporada pode ter três Copas abertas de uma vez (os modelos criam a
+ * temporada inteira de saída), então "a primeira sem fim real" não serve
+ * mais: a Copa de hoje é a que contém a data de hoje. Se nenhuma contém —
+ * o fim previsto já passou e a próxima ainda não começou — vale a última
+ * que começou, pra bloco nenhum ficar sem casa.
+ */
 function cicloAtivo() {
-  return estado.ciclos.find((c) => !c.fimReal) || null;
+  const hoje = chaveHoje();
+  const abertos = estado.ciclos.filter((c) => !c.fimReal);
+  if (!abertos.length) return null;
+  const emCurso = abertos.filter((c) => c.inicio <= hoje && hoje <= c.fimPrevisto)
+    .sort((a, b) => (a.inicio < b.inicio ? -1 : a.inicio > b.inicio ? 1 : 0));
+  if (emCurso.length) return emCurso[0];
+  const comecados = abertos.filter((c) => c.inicio <= hoje)
+    .sort((a, b) => (a.inicio > b.inicio ? -1 : a.inicio < b.inicio ? 1 : 0));
+  return comecados[0] || null;
+}
+
+/** A próxima Copa a começar, quando não há nenhuma em andamento. */
+function proximaCopa() {
+  const hoje = chaveHoje();
+  return estado.ciclos.filter((c) => !c.fimReal && c.inicio > hoje)
+    .sort((a, b) => (a.inicio < b.inicio ? -1 : a.inicio > b.inicio ? 1 : 0))[0] || null;
 }
 
 /** Ciclos já encerrados, do mais novo pro mais antigo. */
@@ -1342,6 +1797,92 @@ function desenhaFichasDeTema() {
    ===================================================================== */
 
 const FRASES_BASE = {
+  /* --- Vozes do Álbum da Copa --- */
+  pacoteGanho: [
+    'Pacote conquistado, Davi. Tá guardado no Álbum.',
+    'Caiu pacote novo. Abre quando tu quiser.',
+    'Sua campanha ganhou mais uma página, Davi.',
+    'Pacote no bolso, copeiro. O Álbum te espera.',
+    'Isso aí valeu pacote, Davi.',
+    'Tem figurinha nova esperando por ti.',
+    'Pacote conquistado — e sem pressa nenhuma pra abrir.',
+    'O Álbum mexeu, Davi. Pacote novo na conta.',
+    'Trabalho feito, pacote garantido.',
+    'Mais um pacote pra campanha, Davi.'
+  ],
+  pacoteAberto: [
+    'Pacote aberto, Davi.',
+    'Olha o que veio.',
+    'Duas novas pra campanha.',
+    'Chegaram, copeiro.',
+    'Página nova no Álbum.',
+    'Direto pro papel, Davi.',
+    'Colou, e ficou bonito.',
+    'Essas duas são tuas.',
+    'Álbum mais cheio, Davi.',
+    'Boa. Mais duas na coleção.'
+  ],
+  figurinhaColada: [
+    '{fig} colada em {pagina}, Davi.',
+    '{fig} entrou pra {pagina}.',
+    '{pagina} ganhou a {fig}.',
+    '{fig} no lugar dela, Davi.',
+    'Colada: {fig}.',
+    '{fig} agora é tua, copeiro.',
+    'Mais uma em {pagina}.',
+    '{fig} fechou o espaço dela.'
+  ],
+  especialGanha: [
+    '{fig} conquistada, Davi.',
+    'Especial na conta: {fig}.',
+    'Isso é {fig}, copeiro.',
+    '{fig} — dessas não caem toda hora.',
+    'Bateu {fig}, Davi.',
+    '{fig} garantida no papel.',
+    'Especial no Álbum: {fig}.',
+    '{fig}. Merecida, Davi.'
+  ],
+  copaFechada: [
+    'Capítulo fechado: {nome}.',
+    '{nome} virou página do Álbum, Davi.',
+    'Fim de Copa. {nome} fica guardada.',
+    '{nome} entrou pro Álbum pra sempre.',
+    'A taça de {nome} já está colada, Davi.',
+    'Capítulo {nome} encerrado. Foi copeiro.',
+    '{nome} fechou. Ninguém tira isso de ti.',
+    'Álbum com mais um capítulo: {nome}.'
+  ],
+  albumCheio: [
+    'Capítulo completo, Davi. {pct}%.',
+    'Álbum cheio: não sobrou espaço nenhum.',
+    '{pct}% — isso é campanha inteira, copeiro.',
+    'Fechou o capítulo todo, Davi.',
+    'Tudo colado. Respeito.',
+    'Capítulo redondo: {pct}%.',
+    'Coleção completa, Davi. Poucos chegam aí.',
+    'Nenhum espaço vazio. {pct}% de campanha.'
+  ],
+  prorrogacao: [
+    'Prorrogação em campo, Davi. Tempo extra vale.',
+    'Tempo extra: cada dia ativo ainda traz pacote.',
+    'A Copa deu prorrogação, copeiro.',
+    'Ainda dá pra somar, Davi.',
+    'Prorrogação: jogo aberto do mesmo jeito.',
+    'Tempo extra rolando, sem pressa.',
+    'A bola ainda está em jogo, Davi.',
+    'Prorrogação — o que vier daqui é lucro.'
+  ],
+  temporadaNova: [
+    'Temporada aberta: {nome}.',
+    '{nome} começando, Davi. Álbum limpo.',
+    'Bola no centro: {nome}.',
+    '{nome} no ar. Os capítulos estão esperando.',
+    'Álbum novo pra {nome}, copeiro.',
+    'Temporada {nome} escalada.',
+    'Começa {nome}, Davi. Página um.',
+    '{nome} entrou em campo.'
+  ],
+
   manha: [
     'Bom dia, Davi. Dia de copar.',
     'Levanta que a bola vai rolar, Davi.',
@@ -1963,6 +2504,7 @@ async function testaAlarmeEmSegundoPlano() {
 
 /** Vibração, quando o aparelho tiver. */
 function vibra(padrao) {
+  if (estado.prefs.vibracao === false) return;
   try {
     if (navigator.vibrate) navigator.vibrate(padrao);
   } catch (erro) { /* sem vibração, segue o jogo */ }
@@ -2220,6 +2762,9 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
 
   const quebrados = atualizaRecordes(antes.recordes);
   const marcosNovos = verificaMarcos();
+  // O pacote é concedido aqui, mas não interrompe nada: o Álbum ganha um selo
+  // e o Davi abre quando quiser, hoje ou semana que vem.
+  const doAlbum = sincronizaAlbum(true);
   if (temLiga() && estado.campeonato.meuNome) sincronizaCampeonato(true);
 
   desenhaTimer();
@@ -2230,7 +2775,8 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
     frase: fala('concluiBloco', { min: fmtDuracao(minutos), assunto: assunto }),
     detalhe: fmtDuracao(minutos) + ' em ' + escapaHTML(assunto) +
              (cicloNome ? ' — ' + escapaHTML(cicloNome) : '') +
-             '. Hoje: ' + fmtDuracao(minutosDoDia(chaveHoje())) + '. ' + textoDoCicloDeFocos(),
+             '. Hoje: ' + fmtDuracao(minutosDoDia(chaveHoje())) + '. ' + textoDoCicloDeFocos() +
+             (doAlbum.pacotes ? ' <b>' + (doAlbum.pacotes === 1 ? 'Um pacote novo espera' : doAlbum.pacotes + ' pacotes novos esperam') + ' no Álbum.</b>' : ''),
     botoes: [
       { texto: (pausaLongaAgora() ? 'Pausa longa de ' + estado.prefs.pausaLonga : 'Pausa de ' + estado.prefs.pausaCurta) + ' min',
         tipo: 'bt-azul', acao: () => { fechaModal(); comecaPausa(); } },
@@ -2456,6 +3002,9 @@ function acumuladoDoCiclo(ciclo) {
 /* ---------- Modal ---------- */
 
 function abreModal(cfg) {
+  // O fim do bloco tem prioridade sobre a revelação do pacote: a revelação
+  // sai da frente sem custar nada, porque as figurinhas já estão coladas.
+  if (typeof revelacao !== 'undefined' && revelacao) fechaRevelacao();
   $('#modalTitulo').textContent = cfg.titulo || '';
   $('#modalFrase').textContent = cfg.frase || '';
   $('#modalDetalhe').innerHTML = cfg.detalhe || '';
@@ -2568,7 +3117,10 @@ function desenhaCabecalho() {
   const ciclo = cicloAtivo();
   const el = $('#infoCabecalho');
   if (!ciclo) {
-    el.innerHTML = 'Sem campanha aberta<br>Cadastra o ciclo na Estante';
+    const proxima = proximaCopa();
+    el.innerHTML = proxima
+      ? '<b>' + escapaHTML(proxima.nome) + '</b><br>começa em ' + dataCurta(proxima.inicio)
+      : 'Sem Copa aberta<br>Abre a primeira na Estante';
     return;
   }
   const dia = Math.max(1, diasEntre(ciclo.inicio, chaveHoje()) + 1);
@@ -2627,6 +3179,11 @@ function desenhaFoco() {
     recado = 'A trilha toca do começo ao fim do bloco: é o modo mais garantido, mas o Android pausa a música de outros apps enquanto isso.';
   }
   $('#subAlarmeFundo').textContent = recado;
+
+  // Comemoração do Álbum: som, vibração e animação, cada um desligável
+  $$('#fichasFestejo .ficha[data-festejo]').forEach((f) => {
+    f.classList.toggle('ativa', estado.prefs[f.dataset.festejo] !== false);
+  });
 
   // Lembrete do Modo Foco do Android
   const lembrete = !!estado.prefs.lembreteFoco;
@@ -2974,48 +3531,81 @@ function desenhaEixoVazio(ctx, L, A, texto) {
 /* ---------- Tela Estante ---------- */
 
 function desenhaEstante() {
-  const ciclo = cicloAtivo();
+  const ciclo = copaDoFormulario();
   const numeros = $('#cicloNumeros');
+  const nova = (copaEmEdicao === 'nova') || !ciclo;
 
-  if (ciclo) {
+  $('#copaFormTitulo').textContent = nova
+    ? 'Abrir uma Copa'
+    : (ciclo === cicloAtivo() ? 'Copa em andamento' : 'Editando: ' + ciclo.nome);
+
+  if (ciclo && !nova) {
     const est = estatCiclo(ciclo);
-    const dia = Math.max(1, diasEntre(ciclo.inicio, chaveHoje()) + 1);
-    const total = Math.max(dia, diasEntre(ciclo.inicio, ciclo.fimPrevisto) + 1);
-    const faseFinal = dia > total * 0.75;
-    $('#cicloResumo').textContent = ciclo.nome + ' — dia ' + dia + ' de ' + total +
-      (faseFinal ? '. Reta final: é decisão.' : '. Fase de grupos rolando.');
+    const fase = faseDaCopa(ciclo);
+    const cfg = configDaCopa(ciclo);
+    const dia = decorridosDaCopa(ciclo);
+    const total = diasDaCopa(ciclo);
+    let recado = ciclo.nome + ' — ' + cfg.nome + ', ' + total + ' dias';
+    if (fase === 'emJogo') {
+      recado += ', dia ' + dia + ' de ' + total +
+        (dia > total * 0.8 ? '. Reta final: é decisão.' : '. Fase de grupos rolando.');
+    } else if (fase === 'prorrogacao') {
+      recado += '. Prorrogação até ' + dataCurta(fimDaProrrogacao(ciclo)) +
+        ': cada dia ativo ainda traz um pacote deste capítulo.';
+    } else if (fase === 'futura') {
+      recado += '. Começa em ' + dataCurta(ciclo.inicio) + '.';
+    } else {
+      recado += '. Capítulo fechado — levanta a taça quando quiser.';
+    }
+    $('#cicloResumo').textContent = recado;
     $('#btEncerrarCiclo').classList.remove('oculto');
     numeros.classList.remove('oculto');
+    const p = preenchimentoDoAlbum(ciclo);
     numeros.innerHTML =
-      '<div class="numero destaque"><b>' + fmtHoras(est.minutos) + '</b><span>horas no ciclo</span></div>' +
+      '<div class="numero destaque"><b>' + fmtHoras(est.minutos) + '</b><span>horas na Copa</span></div>' +
       '<div class="numero"><b>' + est.blocos + '</b><span>blocos</span></div>' +
       '<div class="numero"><b>' + est.diasAtivos + '</b><span>dias ativos</span></div>' +
-      '<div class="numero"><b>' + est.maiorSequencia + '</b><span>maior sequência</span></div>';
+      '<div class="numero"><b>' + p.pct + '%</b><span>do álbum</span></div>';
   } else {
-    $('#cicloResumo').textContent = 'Nenhuma campanha aberta. Cadastra o ciclo pra ligar as estatísticas.';
+    $('#cicloResumo').textContent = nova && cicloAtivo()
+      ? 'Copa nova nesta temporada. Nome, início e fim previsto — o resto o álbum monta sozinho.'
+      : 'Nenhuma Copa aberta. Nome, início e fim previsto são os únicos dados obrigatórios.';
     $('#btEncerrarCiclo').classList.add('oculto');
     numeros.classList.add('oculto');
   }
 
-  // Preenche o formulário com o ciclo em andamento
-  if (ciclo && document.activeElement !== $('#cicloNome')) {
-    $('#cicloNome').value = ciclo.nome;
-    $('#cicloInicio').value = ciclo.inicio;
-    $('#cicloFim').value = ciclo.fimPrevisto;
+  // Preenche o formulário com a Copa escolhida
+  if (document.activeElement !== $('#cicloNome')) {
+    if (nova) {
+      $('#cicloNome').value = '';
+      // Copa nova começa no dia seguinte à última da temporada: dia ativo em
+      // buraco entre Copas não entra em capítulo nenhum.
+      const anteriores = copasDaTemporada(temporadaAtiva());
+      const ultima = anteriores[anteriores.length - 1];
+      $('#cicloInicio').value = ultima ? chaveMais(ultima.fimPrevisto, 1) : chaveHoje();
+      $('#cicloFim').value = '';
+    } else {
+      $('#cicloNome').value = ciclo.nome;
+      $('#cicloInicio').value = ciclo.inicio;
+      $('#cicloFim').value = ciclo.fimPrevisto;
+    }
   }
+  desenhaDicaDaCopa();
 
   // Estante
   const encerrados = ciclosEncerrados();
   $('#estanteResumo').textContent = encerrados.length
-    ? encerrados.length + (encerrados.length === 1 ? ' campanha guardada.' : ' campanhas guardadas.') + ' Isso aqui não some nunca.'
-    : 'A estante tá esperando a primeira taça. Encerra um ciclo e ele fica aqui pra sempre.';
+    ? encerrados.length + (encerrados.length === 1 ? ' Copa guardada.' : ' Copas guardadas.') + ' Isso aqui não some nunca.'
+    : 'A estante tá esperando a primeira taça. Encerra uma Copa e ela fica aqui pra sempre.';
 
   $('#estante').innerHTML = encerrados.map((c) => {
     const e = estatCiclo(c);
+    garanteAlbum(c);
+    const p = preenchimentoDoAlbum(c);
     const camp = e.campeonato || (c.congelado && c.congelado.campeonato) || null;
     const campeao = !!(camp && camp.posicao === 1);
     return '<article class="trofeu' + (campeao ? ' campeao' : '') + '">' +
-      (campeao ? '<span class="coroa" title="Campeão do ciclo">👑</span>' : '') +
+      (campeao ? '<span class="coroa" title="Campeão da Copa">👑</span>' : '') +
       '<h3>' + escapaHTML(c.nome) + '</h3>' +
       '<p class="periodo">' + dataCurta(c.inicio) + ' → ' + dataCurta(c.fimReal) +
       ' · ' + (diasEntre(c.inicio, c.fimReal) + 1) + ' dias</p>' +
@@ -3027,12 +3617,53 @@ function desenhaEstante() {
         (e.cartas ? '<div><b>' + e.cartas + '</b><span>cartas</span></div>' +
                     '<div><b>' + (e.revisoes || 0) + '</b><span>revisões</span></div>' : '') +
       '</div>' +
-      (camp ? '<p class="sub" style="margin-top:12px">' +
+      '<p class="sub" style="margin-top:12px">Álbum: ' + p.cheios + ' de ' + p.total +
+        ' figurinhas (' + p.pct + '%) · <a href="#" data-ver-copa="' + escapaHTML(c.id) +
+        '">ver o capítulo</a></p>' +
+      (camp ? '<p class="sub" style="margin-top:6px">' +
         (campeao ? 'Campeão do ' : camp.posicao + 'º de ' + camp.de + ' no ') +
         escapaHTML(camp.nome) + (campeao ? ' 🏆' : '') + '</p>' : '') +
       '<div class="prateleira"></div>' +
       '</article>';
   }).join('');
+}
+
+/** A Copa que o formulário da Estante está editando. */
+function copaDoFormulario() {
+  if (copaEmEdicao === 'nova') return null;
+  if (copaEmEdicao) {
+    const c = estado.ciclos.find((x) => x.id === copaEmEdicao);
+    if (c) return c;
+    copaEmEdicao = null;
+  }
+  return cicloAtivo();
+}
+
+/** Dica viva embaixo do formulário: tamanho do capítulo que essas datas dão. */
+function desenhaDicaDaCopa() {
+  const el = $('#copaDica');
+  if (!el) return;
+  const inicio = $('#cicloInicio').value;
+  const fim = $('#cicloFim').value;
+  if (!inicio || !fim || diasEntre(inicio, fim) < 0) {
+    el.textContent = 'Nome, início e fim previsto são os únicos dados obrigatórios. Meta de horas, matéria e ciclo acadêmico ficam de fora — o álbum funciona sem nada disso.';
+    return;
+  }
+  const dias = diasEntre(inicio, fim) + 1;
+  if (dias < COPA_DIAS_MIN) {
+    el.textContent = dias + (dias === 1 ? ' dia. ' : ' dias. ') + 'A Copa mais curta tem ' +
+      COPA_DIAS_MIN + ' dias — abaixo disso o capítulo não fecha.';
+    return;
+  }
+  if (dias > COPA_DIAS_MAX) {
+    el.textContent = dias + ' dias. Acima de ' + COPA_DIAS_MAX + ' dias vale mais dividir em ' +
+      Math.ceil(dias / COPA_FATIA) + ' Copas: um capítulo por Copa, e dá pra comparar.';
+    return;
+  }
+  const cfg = dias >= 28 ? COPA_TIPOS.padrao : COPA_TIPOS.mini;
+  el.textContent = dias + ' dias · ' + cfg.nome + ' · ' +
+    (cfg.pacotes * 2 + cfg.registros + 4) + ' figurinhas, sendo ' + cfg.pacotes +
+    ' pacotes de 2, ' + cfg.registros + ' registros, 3 especiais e a taça.';
 }
 
 /* ---------- Redesenha tudo ---------- */
@@ -3044,7 +3675,9 @@ function atualizaTudo() {
   desenhaCartas();
   desenhaHistorico();
   desenhaProgresso();
+  desenhaTemporada();
   desenhaEstante();
+  desenhaAlbum();
 }
 
 function vaiPara(nome) {
@@ -3151,14 +3784,14 @@ $('#campoAssunto').addEventListener('keydown', (ev) => {
   if (ev.key === 'Enter') { ev.preventDefault(); $('#campoAssunto').blur(); $('#btPrincipal').click(); }
 });
 
-/* ---- Ciclo: salvar ---- */
+/* ---- Copa: salvar ---- */
 $('#btSalvarCiclo').addEventListener('click', () => {
   const nome = $('#cicloNome').value.trim();
   const inicio = $('#cicloInicio').value;
   const fim = $('#cicloFim').value;
 
   if (!nome || !inicio || !fim) {
-    avisa('Falta dado', 'Precisa de nome, início e fim previsto pra abrir a campanha.');
+    avisa('Falta dado', 'Precisa de nome, início e fim previsto pra abrir a Copa.');
     return;
   }
   if (diasEntre(inicio, fim) < 0) {
@@ -3166,24 +3799,85 @@ $('#btSalvarCiclo').addEventListener('click', () => {
     return;
   }
 
-  const ativo = cicloAtivo();
-  if (ativo) {
-    ativo.nome = nome;
-    ativo.inicio = inicio;
-    ativo.fimPrevisto = fim;
-    // Mantém o nome do ciclo nos blocos já registrados
-    estado.blocos.forEach((b) => { if (b.cicloId === ativo.id) b.cicloNome = nome; });
-    avisa('Campanha', 'Ciclo atualizado, Davi.');
-  } else {
-    estado.ciclos.push({
-      id: idNovo(), nome: nome, inicio: inicio,
-      fimPrevisto: fim, fimReal: null, congelado: null
+  const dias = diasEntre(inicio, fim) + 1;
+  if (dias < COPA_DIAS_MIN) {
+    // Avisa, nunca recusa: o app nunca travou período nenhum, e não vai
+    // começar agora. Só explica o que um capítulo tão curto exige.
+    abreModal({
+      titulo: dias + (dias === 1 ? ' dia é Copa relâmpago' : ' dias é Copa relâmpago'),
+      frase: 'O capítulo cabe, mas fica apertado: são ' + COPA_TIPOS.mini.pacotes +
+             ' pacotes pra sair em ' + dias + (dias === 1 ? ' dia.' : ' dias.'),
+      detalhe: 'A Copa mais folgada tem ' + COPA_DIAS_MIN + ' dias ou mais. Nesta aqui ' +
+               'quase todo dia precisa ser ativo pra tirar os ' + COPA_TIPOS.mini.pacotes +
+               ' pacotes — o que já for conquistado fica, de qualquer jeito.',
+      botoes: [
+        { texto: 'Abrir assim mesmo', tipo: 'bt-azul',
+          acao: () => { fechaModal(); salvaCopaDoFormulario(nome, inicio, fim, 1); } },
+        { texto: 'Ajustar as datas', tipo: '', acao: fechaModal }
+      ]
     });
-    avisa('Campanha', 'Ciclo aberto. Bola rolando, Davi.');
+    return;
   }
+  if (dias > COPA_DIAS_MAX) {
+    const quantas = Math.ceil(dias / COPA_FATIA);
+    abreModal({
+      titulo: dias + ' dias é campanha longa',
+      frase: 'O álbum rende mais dividido: ' + quantas + ' Copas de mais ou menos ' +
+             Math.round(dias / quantas) + ' dias.',
+      detalhe: 'Cada Copa vira um capítulo com a mesma estrutura, e aí dá pra comparar uma com a outra. ' +
+               'Se tu preferir uma Copa só, ela também funciona — entra como Copa padrão.',
+      botoes: [
+        { texto: 'Dividir em ' + quantas, tipo: 'bt-azul',
+          acao: () => { fechaModal(); salvaCopaDoFormulario(nome, inicio, fim, quantas); } },
+        { texto: 'Uma Copa só', tipo: '',
+          acao: () => { fechaModal(); salvaCopaDoFormulario(nome, inicio, fim, 1); } }
+      ]
+    });
+    return;
+  }
+
+  salvaCopaDoFormulario(nome, inicio, fim, 1);
+});
+
+/**
+ * Grava a Copa do formulário. Editar uma Copa em andamento só recalcula os
+ * próximos marcos: pacote ganho, figurinha colada e especial conquistada
+ * ficam onde estão, porque as catracas do álbum nunca descem.
+ */
+function salvaCopaDoFormulario(nome, inicio, fim, fatias) {
+  const alvo = copaDoFormulario();
+
+  if (alvo && fatias === 1) {
+    alvo.nome = nome;
+    alvo.inicio = inicio;
+    alvo.fimPrevisto = fim;
+    if (!alvo.temporadaId) alvo.temporadaId = temporadaParaNovaCopa().id;
+    garanteAlbum(alvo);
+    // Mantém o nome da Copa nos blocos já registrados
+    estado.blocos.forEach((b) => { if (b.cicloId === alvo.id) b.cicloNome = nome; });
+    avisa('Copa', 'Copa atualizada. Nada do que tu já conquistou saiu do álbum — só os próximos marcos mudaram.');
+  } else {
+    const temporada = temporadaParaNovaCopa();
+    const total = diasEntre(inicio, fim) + 1;
+    const pedacos = fatias > 1
+      ? fatiaPeriodo(inicio, fim, Math.ceil(total / fatias))
+      : [{ inicio: inicio, fim: fim }];
+    pedacos.forEach((p, i) => {
+      estado.ciclos.push(copaNova(
+        pedacos.length === 1 ? nome : nome + ' — Copa ' + (i + 1),
+        p.inicio, p.fim, temporada.id
+      ));
+    });
+    avisa('Copa', pedacos.length === 1
+      ? 'Copa aberta. Bola rolando, Davi — o capítulo já está inteiro no Álbum.'
+      : pedacos.length + ' Copas abertas nesta temporada. Um capítulo pra cada.');
+  }
+
+  copaEmEdicao = null;
+  sincronizaAlbum(false);
   salvaEstado();
   atualizaTudo();
-});
+}
 
 /* ---- Ciclo: encerrar (levantar a taça) ---- */
 $('#btEncerrarCiclo').addEventListener('click', () => {
@@ -3227,7 +3921,14 @@ function encerraCiclo(ciclo) {
   // As cartas da campanha saem da fila, mas continuam inteiras: dá pra rever
   // quando quiser pelo modo livre, e pra trazer de volta editando a carta.
   cartasDoCiclo.forEach((c) => { c.guardada = true; });
+
+  // O capítulo do Álbum fecha junto: os registros congelam e a figurinha
+  // final da Copa é criada. Os espaços vazios ficam vazios, sem cobrança.
+  fechaAlbumDaCopa(ciclo, ciclo.fimReal, false);
+  const album = preenchimentoDoAlbum(ciclo);
+
   salvaEstado();
+  copaEmEdicao = null;
   $('#cicloNome').value = '';
   $('#cicloInicio').value = '';
   $('#cicloFim').value = '';
@@ -3236,8 +3937,20 @@ function encerraCiclo(ciclo) {
   abreModal({
     titulo: 'Taça na estante',
     frase: fala('encerraCiclo', { nome: ciclo.nome }),
-    detalhe: fmtHoras(est.minutos) + ' em ' + est.diasAtivos + ' dias ativos. Fica guardado pra sempre.',
-    botoes: [{ texto: 'Fechar', tipo: 'bt-azul', acao: fechaModal }]
+    detalhe: fmtHoras(est.minutos) + ' em ' + est.diasAtivos + ' dias ativos. ' +
+             'O capítulo do Álbum fechou com ' + album.cheios + ' de ' + album.total +
+             ' figurinhas (' + album.pct + '%) e a taça da Copa já está colada. ' +
+             'Fica guardado pra sempre.',
+    botoes: [
+      { texto: 'Ver o capítulo', tipo: 'bt-azul', acao: () => {
+          fechaModal();
+          temporadaAberta = ciclo.temporadaId;
+          capituloAberto = ciclo.id;
+          desenhaAlbum();
+          vaiPara('album');
+        } },
+      { texto: 'Fechar', tipo: '', acao: fechaModal }
+    ]
   });
   vibra([200, 80, 200, 80, 400]);
 }
@@ -3259,11 +3972,14 @@ $('#listaTudo').addEventListener('click', (ev) => {
   abreModal({
     titulo: 'Apagar registro?',
     frase: fmtDuracao(bloco.minutos) + ' em ' + bloco.assunto,
-    detalhe: 'Some do histórico, das estatísticas e do mapa do ano.',
+    detalhe: 'Some do histórico, das estatísticas e do mapa do ano. O álbum não devolve nada: pacote, figurinha e especial que já são teus ficam onde estão.',
     botoes: [
       { texto: 'Apagar', tipo: 'bt-perigo', acao: () => {
           estado.blocos = estado.blocos.filter((b) => b.id !== id);
           sincronizaMarcasEmSilencio();
+          // O álbum não desfaz nada: as catracas seguram pacote, figurinha e
+          // especial que já eram do Davi. Só os registros provisórios mudam.
+          sincronizaAlbum(false);
           fechaModal();
           atualizaTudo();
         } },
@@ -3315,18 +4031,26 @@ $('#arquivoImportar').addEventListener('change', (ev) => {
     }
     abreModal({
       titulo: 'Importar backup?',
-      frase: dados.blocos.length + ' blocos e ' + ((dados.ciclos || []).length) + ' ciclos no arquivo.',
-      detalhe: 'Isso substitui todo o histórico que está neste aparelho.',
+      frase: dados.blocos.length + ' blocos e ' + ((dados.ciclos || []).length) + ' Copas no arquivo.',
+      detalhe: 'Isso substitui todo o histórico deste aparelho, <b>e o álbum vai junto</b>: ' +
+               'figurinha colada e pacote conquistado depois deste backup não voltam. ' +
+               'Se tu quer guardar o que tem aqui, exporta antes.',
       botoes: [
         { texto: 'Substituir tudo', tipo: 'bt-azul', acao: () => {
             const base = estadoNovo();
             estado = Object.assign(base, dados);
             estado.blocos = dados.blocos;
             estado.ciclos = Array.isArray(dados.ciclos) ? dados.ciclos : [];
-            estado.prefs = Object.assign({ duracao: 30 }, dados.prefs || {});
+            estado.temporadas = Array.isArray(dados.temporadas) ? dados.temporadas : [];
+            estado.prefs = Object.assign({ duracao: 30 }, base.prefs, dados.prefs || {});
             if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
             estado.timer = null;
             sincronizaMarcasEmSilencio();
+            migraParaAlbum();          // backup antigo ganha temporada e capítulos
+            sincronizaAlbum(false);    // sem comemorar conquista de arquivo velho
+            temporadaAberta = null;
+            capituloAberto = null;
+            copaEmEdicao = null;
             fechaModal();
             desenhaSaudacao();
             atualizaTudo();
@@ -3351,7 +4075,13 @@ document.addEventListener('visibilitychange', () => {
     pedeTravaTela();
     agendaAlarmeDoTimer();            // o relógio do áudio pode ter parado: remarca
   }
-  if (diaAtualDaTela !== chaveHoje()) { diaAtualDaTela = chaveHoje(); desenhaSaudacao(); atualizaTudo(); }
+  sincronizaAlbum(false);             // o calendário pode ter liberado pacote fora do app
+  if (diaAtualDaTela !== chaveHoje()) {
+    diaAtualDaTela = chaveHoje();
+    desenhaSaudacao();
+    sincronizaAlbum(false);   // dia novo pode ter liberado pacote pelo calendário
+    atualizaTudo();
+  }
 });
 
 /* ---- Redesenho do gráfico ao girar o tablet ---- */
@@ -3369,6 +4099,7 @@ setInterval(() => {
   if (diaAtualDaTela !== chaveHoje()) {
     diaAtualDaTela = chaveHoje();
     desenhaSaudacao();
+    sincronizaAlbum(false);
     atualizaTudo();
   }
 }, 30000);
@@ -3393,16 +4124,40 @@ const cartasVivas = () => estado.cartas.filter((c) => !c.guardada);
 
 /** Últimos dias do ciclo: tudo entra na fila, sem olhar degrau. */
 function emRetaFinal() {
-  const ciclo = cicloAtivo();
-  if (!ciclo || !ciclo.fimPrevisto) return false;
-  const faltam = diasEntre(chaveHoje(), ciclo.fimPrevisto);
+  const alvo = fimDaCampanhaDasCartas();
+  if (!alvo) return false;
+  const faltam = diasEntre(chaveHoje(), alvo);
   return faltam >= 0 && faltam <= DIAS_DE_RETA_FINAL;
+}
+
+/**
+ * O prazo que as cartas persegue: o fim da TEMPORADA, não o de uma Copa.
+ *
+ * Antes do Álbum, o ciclo ia até a prova, então o fim do ciclo era o prazo
+ * certo. Agora uma temporada pode ser fatiada em três Copas de 30 dias, e a
+ * prova está no fim da última — parar a escada no fim da Copa 1 faria a
+ * revisão amontoar sem motivo três vezes por temporada.
+ */
+function fimDaCampanhaDasCartas() {
+  const copas = copasDaTemporada(temporadaAtiva()).filter((c) => !c.fimReal);
+  if (copas.length) return copas[copas.length - 1].fimPrevisto;
+  const ciclo = cicloAtivo();
+  return ciclo ? ciclo.fimPrevisto : null;
+}
+
+/** As Copas que compartilham o baralho: as da temporada em curso. */
+function copasDoBaralho() {
+  const copas = copasDaTemporada(temporadaAtiva());
+  if (copas.length) return copas.map((c) => c.id);
+  const ciclo = cicloAtivo();
+  return ciclo ? [ciclo.id] : [];
 }
 
 /** Cartas do baralho em uso: as da campanha aberta mais as sem campanha. */
 function cartasDaCampanha() {
-  const ciclo = cicloAtivo();
-  return cartasVivas().filter((c) => !ciclo || !c.cicloId || c.cicloId === ciclo.id);
+  const daTemporada = copasDoBaralho();
+  if (!daTemporada.length) return cartasVivas();
+  return cartasVivas().filter((c) => !c.cicloId || daTemporada.indexOf(c.cicloId) !== -1);
 }
 
 /** A fila de hoje, já ordenada pela data mais antiga e pelo degrau mais baixo. */
@@ -3419,10 +4174,11 @@ function filaDeCartas() {
 function dataDaProxima(carta) {
   const nivel = Math.min(Math.max(carta.nivel || 0, 0), ESCADA_CARTAS.length - 1);
   let proxima = chaveMais(chaveHoje(), ESCADA_CARTAS[nivel]);
-  const ciclo = cicloAtivo();
-  if (ciclo && ciclo.fimPrevisto && carta.cicloId === ciclo.id
-      && diasEntre(proxima, ciclo.fimPrevisto) < 0) {
-    proxima = ciclo.fimPrevisto;
+  const alvo = fimDaCampanhaDasCartas();
+  const daTemporada = copasDoBaralho();
+  if (alvo && carta.cicloId && daTemporada.indexOf(carta.cicloId) !== -1
+      && diasEntre(proxima, alvo) < 0) {
+    proxima = alvo;
   }
   return proxima;
 }
@@ -3892,7 +4648,11 @@ function urlDaLiga(caminho) {
   return base + '/ligas/' + liga + (caminho ? '/' + caminho : '') + '.json';
 }
 
-/** O que este aparelho publica: só o resumo do ciclo, nada de assunto. */
+/**
+ * O que este aparelho publica: só o resumo da Copa, nada de assunto.
+ * O Álbum é local e fica local: figurinha, pacote, percentual e registro não
+ * entram no boletim, no link de convite, nem em requisição nenhuma.
+ */
 function meuBoletim() {
   const ciclo = cicloAtivo();
   if (!ciclo) return null;
@@ -4243,11 +5003,1633 @@ function leConviteDaURL() {
   entraNaLiga(carga);
 }
 
+/* ======================= 13. ÁLBUM DA COPA =======================
+   A coleção da temporada. Cada Copa é um capítulo, e cada capítulo tem os
+   mesmos espaços, sempre visíveis desde o primeiro dia: o Davi sabe de
+   antemão o que existe e como cada espaço é preenchido.
+
+   Três decisões seguram tudo:
+
+   1. Nada que foi conquistado pode ser perdido. Pacote ganho, figurinha
+      colada, especial conquistada e dia gasto na prorrogação são CATRACAS:
+      só sobem. Mexer nas datas da Copa recalcula os próximos marcos e não
+      encosta no que já é do Davi.
+
+   2. A recompensa não depende de ficar dentro do app. A fórmula só olha
+      dias ativos e dias decorridos — nada de tempo de tela, nada de sessão
+      aberta. Bloco fechado com o tablet no bolso conta igual.
+
+   3. O conteúdo do pacote é derivado, não guardado. O baralho de
+      colecionáveis é embaralhado com uma semente fixa da Copa, e o próximo
+      pacote sempre traz as duas primeiras que ainda não foram coladas.
+      Assim nunca vem repetida e não existe número guardado pra
+      dessincronizar.
+   ================================================================ */
+
+const MIN_DIA_ATIVO = 10;          // minutos acumulados que fazem o dia contar
+const DIAS_DE_PRORROGACAO = 7;     // janela de recuperação depois do fim oficial
+const COPA_DIAS_MIN = 7;
+const COPA_DIAS_MAX = 56;
+const COPA_FATIA = 42;             // tamanho sugerido ao dividir uma Copa longa
+
+/* Composição dos dois tamanhos de capítulo. `porPagina` diz quantos
+   colecionáveis cada página traz — a Mini Copa usa as mesmas páginas com
+   menos espaços, pra dar pra comparar Copas diferentes lado a lado. */
+const COPA_TIPOS = {
+  mini:   { nome: 'Mini Copa',   pacotes: 5,  registros: 4, recuperacao: 2, porPagina: [3, 3, 2, 2] },
+  padrao: { nome: 'Copa padrão', pacotes: 10, registros: 6, recuperacao: 3, porPagina: [5, 5, 5, 5] }
+};
+
+const PAGINAS_ALBUM = [
+  { id: 'palco', nome: 'Palco da Copa', tipo: 'col',
+    itens: ['col-estadio', 'col-refletores', 'col-gramado', 'col-tunel', 'col-placar'] },
+  { id: 'torcida', nome: 'Nossa Torcida', tipo: 'col',
+    itens: ['col-arquibancada', 'col-faixa', 'col-bandeirao', 'col-mosaico', 'col-bumbo'] },
+  { id: 'jogo', nome: 'Dia de Jogo', tipo: 'col',
+    itens: ['col-ingresso', 'col-escalacao', 'col-apito', 'col-bola', 'col-radio'] },
+  { id: 'simbolos', nome: 'Símbolos da Campanha', tipo: 'col',
+    itens: ['col-camisa', 'col-bracadeira', 'col-chuteira', 'col-rede', 'col-cachecol'] },
+  { id: 'numeros', nome: 'Números da Copa', tipo: 'reg',
+    itens: ['reg-melhor-dia', 'reg-dias-ativos', 'reg-blocos', 'reg-tempo', 'reg-melhor-semana', 'reg-materia'] },
+  { id: 'decisivos', nome: 'Momentos Decisivos', tipo: 'esp',
+    itens: ['esp-estreia', 'esp-ritmo', 'esp-apito', 'fim-copa'] }
+];
+
+/* Nome e critério de cada espaço. O critério aparece no espaço vazio desde o
+   primeiro dia — a coleção é fixa e nada fica escondido. */
+const FIGURINHAS = {
+  'col-estadio':      { nome: 'O Estádio',            pagina: 'Palco da Copa' },
+  'col-refletores':   { nome: 'Refletores',           pagina: 'Palco da Copa' },
+  'col-gramado':      { nome: 'Gramado Riscado',      pagina: 'Palco da Copa' },
+  'col-tunel':        { nome: 'Túnel do Vestiário',   pagina: 'Palco da Copa' },
+  'col-placar':       { nome: 'Placar Eletrônico',    pagina: 'Palco da Copa' },
+  'col-arquibancada': { nome: 'Arquibancada Lotada',  pagina: 'Nossa Torcida' },
+  'col-faixa':        { nome: 'Faixa da Torcida',     pagina: 'Nossa Torcida' },
+  'col-bandeirao':    { nome: 'Bandeirão',            pagina: 'Nossa Torcida' },
+  'col-mosaico':      { nome: 'Mosaico',              pagina: 'Nossa Torcida' },
+  'col-bumbo':        { nome: 'Bumbo da Banda',       pagina: 'Nossa Torcida' },
+  'col-ingresso':     { nome: 'Ingresso',             pagina: 'Dia de Jogo' },
+  'col-escalacao':    { nome: 'Escalação',            pagina: 'Dia de Jogo' },
+  'col-apito':        { nome: 'Apito do Árbitro',     pagina: 'Dia de Jogo' },
+  'col-bola':         { nome: 'Bola em Jogo',         pagina: 'Dia de Jogo' },
+  'col-radio':        { nome: 'Rádio de Pilha',       pagina: 'Dia de Jogo' },
+  'col-camisa':       { nome: 'Camisa Titular',       pagina: 'Símbolos da Campanha' },
+  'col-bracadeira':   { nome: 'Braçadeira de Capitão',pagina: 'Símbolos da Campanha' },
+  'col-chuteira':     { nome: 'Chuteira Gasta',       pagina: 'Símbolos da Campanha' },
+  'col-rede':         { nome: 'Rede do Gol',          pagina: 'Símbolos da Campanha' },
+  'col-cachecol':     { nome: 'Cachecol',             pagina: 'Símbolos da Campanha' },
+
+  'reg-melhor-dia':    { nome: 'Melhor Dia',          pagina: 'Números da Copa', criterio: 'O dia de mais minutos da Copa.' },
+  'reg-dias-ativos':   { nome: 'Dias Ativos',         pagina: 'Números da Copa', criterio: 'Dias com 10 min ou mais de foco.' },
+  'reg-blocos':        { nome: 'Blocos Concluídos',   pagina: 'Números da Copa', criterio: 'Todo bloco fechado na Copa.' },
+  'reg-tempo':         { nome: 'Tempo Total',         pagina: 'Números da Copa', criterio: 'Tudo que foi estudado na Copa.' },
+  'reg-melhor-semana': { nome: 'Melhor Rodada',       pagina: 'Números da Copa', criterio: 'A melhor janela de 7 dias.' },
+  'reg-materia':       { nome: 'Assunto da Copa',     pagina: 'Números da Copa', criterio: 'O assunto de mais minutos.' },
+
+  'esp-estreia': { nome: 'Estreia',       pagina: 'Momentos Decisivos', criterio: 'Primeiro dia ativo da Copa.' },
+  'esp-ritmo':   { nome: 'Ritmo de Jogo', pagina: 'Momentos Decisivos', criterio: 'Estudar em 3 dias diferentes dentro de 7 dias.' },
+  'esp-apito':   { nome: 'Até o Apito',   pagina: 'Momentos Decisivos', criterio: 'Um dia ativo nos 20% finais da Copa.' },
+  'fim-copa':    { nome: 'Taça da Copa',  pagina: 'Momentos Decisivos', criterio: 'Criada no fechamento da Copa.' }
+};
+
+const CRITERIO_COLECIONAVEL = 'Vem em pacote, com o estudo em dias diferentes.';
+
+/* ---------- Sorteio determinístico ---------- */
+
+/** Semente estável a partir de um texto (FNV-1a): mesma Copa, mesma ordem. */
+function sementeDe(texto) {
+  let h = 2166136261;
+  const s = String(texto);
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/** Gerador pseudoaleatório com semente (mulberry32). */
+function sorteador(semente) {
+  let a = semente >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function embaralhaComSemente(lista, semente) {
+  const copia = lista.slice();
+  const sorteia = sorteador(semente);
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(sorteia() * (i + 1));
+    const troca = copia[i]; copia[i] = copia[j]; copia[j] = troca;
+  }
+  return copia;
+}
+
+/* ---------- Temporadas ---------- */
+
+function temporadaAtiva() {
+  return estado.temporadas.find((t) => !t.fechadaEm) || null;
+}
+
+function temporadaPorId(id) {
+  return estado.temporadas.find((t) => t.id === id) || null;
+}
+
+/** Copas de uma temporada, da mais antiga pra mais nova. */
+function copasDaTemporada(temporada) {
+  if (!temporada) return [];
+  return estado.ciclos.filter((c) => c.temporadaId === temporada.id)
+    .slice().sort((a, b) => (a.inicio < b.inicio ? -1 : a.inicio > b.inicio ? 1 : 0));
+}
+
+function criaTemporada(nome, modelo) {
+  const t = {
+    id: idNovo(),
+    nome: nome || 'Temporada',
+    modelo: modelo || 'livre-mao',
+    criadaEm: chaveHoje(),
+    fechadaEm: null
+  };
+  estado.temporadas.push(t);
+  return t;
+}
+
+/** A temporada onde uma Copa nova entra; cria a primeira se não houver. */
+function temporadaParaNovaCopa() {
+  return temporadaAtiva() || criaTemporada('Temporada ' + new Date().getFullYear(), 'livre-mao');
+}
+
+/* ---------- A Copa e suas fases ---------- */
+
+/** Dias totais da Copa, contando início e fim. */
+function diasDaCopa(ciclo) {
+  return Math.max(1, diasEntre(ciclo.inicio, ciclo.fimPrevisto) + 1);
+}
+
+/**
+ * A janela que conta para os números oficiais da Copa.
+ *
+ * Sai das datas, com duas travas:
+ *
+ * - Ela ignora `fimReal`. Levantar a taça durante a prorrogação não pode
+ *   transformar o estudo da prorrogação em número oficial — o briefing é
+ *   explícito: os números oficiais ficam congelados.
+ * - Ela só CRESCE pra cobrir dia que o álbum já reconheceu. Arrastar o início
+ *   pra frente depois de duas semanas de campanha zeraria os seis registros
+ *   pra sempre; a data da figurinha Estreia puxa a janela de volta.
+ *
+ * No fechamento a janela é congelada junto com o resto.
+ */
+function janelaOficialDaCopa(ciclo) {
+  const a = ciclo.album;
+  if (a && a.fechado && a.fechado.janela) return a.fechado.janela;
+  let de = ciclo.inicio, ate = ciclo.fimPrevisto;
+  const marcas = a && a.especiais ? Object.keys(a.especiais).map((k) => a.especiais[k]) : [];
+  marcas.forEach((d) => { if (d) { if (d < de) de = d; if (d > ate) ate = d; } });
+  if (ate < de) ate = de;              // datas invertidas não zeram a Copa
+  return { de: de, ate: ate };
+}
+
+/**
+ * Tamanho do capítulo. Trava no primeiro item conquistado: a partir daí mexer
+ * nas datas recalcula os próximos marcos e nunca a composição do capítulo.
+ * Sem essa trava, encurtar uma Copa padrão faria dez figurinhas coladas
+ * sumirem da tela — o dado sobreviveria, mas pro Davi teria desaparecido.
+ */
+function tipoDeCopa(ciclo) {
+  const a = ciclo.album;
+  if (!a) return diasDaCopa(ciclo) >= 28 ? 'padrao' : 'mini';
+  if (albumIntocado(a)) a.tipo = diasDaCopa(ciclo) >= 28 ? 'padrao' : 'mini';
+  if (a.tipo !== 'mini' && a.tipo !== 'padrao') a.tipo = diasDaCopa(ciclo) >= 28 ? 'padrao' : 'mini';
+  // Rede de segurança: figurinha colada que só existe no formato padrão é
+  // prova de que o formato era padrão. Conserta o formato, nunca a figurinha.
+  if (a.tipo === 'mini' && Object.keys(a.colagens || {}).length) {
+    const daMini = colecionaveisDoTipo('mini');
+    if (Object.keys(a.colagens).some((id) => id.indexOf('col-') === 0 && daMini.indexOf(id) === -1)) {
+      a.tipo = 'padrao';
+    }
+  }
+  return a.tipo;
+}
+
+/** Nada conquistado ainda? Só aí as datas ainda mandam no formato. */
+function albumIntocado(a) {
+  return !a.pacotes && !a.abertos && !a.fechado &&
+    !Object.keys(a.colagens || {}).length &&
+    !Object.keys(a.especiais || {}).length &&
+    !(a.diasProrrogacao || []).length;
+}
+
+function configDaCopa(ciclo) {
+  return COPA_TIPOS[tipoDeCopa(ciclo)];
+}
+
+/**
+ * Fase da Copa, só pelas datas: 'futura', 'emJogo', 'prorrogacao' ou
+ * 'fechada'. Não olha o selo do álbum de propósito — é ela que decide se um
+ * capítulo selado automaticamente pode voltar a jogar.
+ */
+function faseDaCopa(ciclo) {
+  if (ciclo.fimReal) return 'fechada';
+  const hoje = chaveHoje();
+  if (hoje < ciclo.inicio) return 'futura';
+  if (hoje <= ciclo.fimPrevisto) return 'emJogo';
+  if (diasEntre(ciclo.fimPrevisto, hoje) <= DIAS_DE_PRORROGACAO) return 'prorrogacao';
+  return 'fechada';
+}
+
+/** O capítulo já foi selado (registros congelados e taça criada)? */
+function capituloSelado(ciclo) {
+  return !!(ciclo.album && ciclo.album.fechado);
+}
+
+const NOME_DA_FASE = {
+  futura: 'A começar',
+  emJogo: 'Em jogo',
+  prorrogacao: 'Prorrogação',
+  fechada: 'Encerrada'
+};
+
+/** Último dia da prorrogação. */
+function fimDaProrrogacao(ciclo) {
+  return chaveMais(ciclo.fimPrevisto, DIAS_DE_PRORROGACAO);
+}
+
+/* ---------- Espaços de cada capítulo ---------- */
+
+/** Os colecionáveis de um formato de capítulo, na ordem das páginas. */
+function colecionaveisDoTipo(tipo) {
+  const cfg = COPA_TIPOS[tipo] || COPA_TIPOS.padrao;
+  const lista = [];
+  PAGINAS_ALBUM.forEach((pag, i) => {
+    if (pag.tipo !== 'col') return;
+    lista.push.apply(lista, pag.itens.slice(0, cfg.porPagina[i]));
+  });
+  return lista;
+}
+
+/** Os colecionáveis deste capítulo, na ordem das páginas. */
+function colecionaveisDaCopa(ciclo) {
+  return colecionaveisDoTipo(tipoDeCopa(ciclo));
+}
+
+/** Os espaços de uma página, já cortados no tamanho do capítulo. */
+function itensDaPagina(ciclo, indice) {
+  const pag = PAGINAS_ALBUM[indice];
+  const cfg = configDaCopa(ciclo);
+  if (pag.tipo === 'col') return pag.itens.slice(0, cfg.porPagina[indice]);
+  if (pag.tipo === 'reg') return pag.itens.slice(0, cfg.registros);
+  return pag.itens.slice();
+}
+
+/** Total de espaços do capítulo (18 na Mini Copa, 30 na Copa padrão). */
+function totalDeEspacos(ciclo) {
+  return PAGINAS_ALBUM.reduce((soma, pag, i) => soma + itensDaPagina(ciclo, i).length, 0);
+}
+
+/* ---------- Dias ativos ---------- */
+
+/** Um dia é ativo quando soma 10 min ou mais de foco, no fuso do aparelho. */
+function diaAtivo(chave, mapa) {
+  return ((mapa || mapaMinutos())[chave] || 0) >= MIN_DIA_ATIVO;
+}
+
+/**
+ * Dias ativos dentro de uma faixa de datas, em ordem.
+ * O Álbum conta por DATA e não por cicloId de propósito: bloco registrado
+ * antes de a Copa ser cadastrada conta, e mexer nas datas não some com dia
+ * nenhum que já valeu.
+ */
+function diasAtivosEntre(de, ate, mapa) {
+  mapa = mapa || mapaMinutos();
+  return Object.keys(mapa)
+    .filter((d) => d >= de && d <= ate && mapa[d] >= MIN_DIA_ATIVO)
+    .sort();
+}
+
+/** Dias ativos do período oficial da Copa. */
+function diasAtivosDaCopa(ciclo, mapa) {
+  const j = janelaOficialDaCopa(ciclo);
+  return diasAtivosEntre(j.de, j.ate, mapa);
+}
+
+/** Dias decorridos da Copa hoje, contando o dia de início, limitado a D. */
+function decorridosDaCopa(ciclo) {
+  const d = diasEntre(ciclo.inicio, chaveHoje()) + 1;
+  return Math.min(diasDaCopa(ciclo), Math.max(0, d));
+}
+
+/* ---------- Motor de entrega de pacotes ---------- */
+
+/**
+ * Os dois requisitos do pacote `i`.
+ *
+ * A = dias ativos esperados pra tirar todos os pacotes. Nunca menor que a
+ * quantidade de pacotes (senão um dia só liberaria mais de um) e nunca maior
+ * que a Copa inteira — uma Copa encurtada a menos dias que pacotes ainda
+ * precisa ser completável, senão o álbum promete o que o calendário não tem.
+ *
+ * Tudo em conta inteira de propósito. Com 0,80 e 0,45 em ponto flutuante,
+ * Math.ceil(3 * 0.80 * 25 / 5) dava 13 em vez de 12 e o pacote atrasava um
+ * dia inteiro em toda Copa de 25 e de 50 dias.
+ */
+function requisitosDoPacote(ciclo, i) {
+  const D = diasDaCopa(ciclo);
+  const P = configDaCopa(ciclo).pacotes;
+  const A = Math.min(D, Math.max(P, Math.ceil((9 * D) / 20)));   // 45% de D
+  return {
+    ativos: Math.ceil((i * A) / P),
+    decorridos: Math.ceil((i * 4 * D) / (5 * P))                 // 80% de D
+  };
+}
+
+/**
+ * Quantos pacotes as duas condições já liberam hoje. Os dois limiares crescem
+ * com i, então basta andar do primeiro pacote até falhar.
+ */
+function pacotesCalculados(ciclo, mapa) {
+  const P = configDaCopa(ciclo).pacotes;
+  const ativos = diasAtivosDaCopa(ciclo, mapa).length;
+  const decorridos = decorridosDaCopa(ciclo);
+  let n = 0;
+  for (let i = 1; i <= P; i++) {
+    const r = requisitosDoPacote(ciclo, i);
+    if (ativos < r.ativos || decorridos < r.decorridos) break;
+    n = i;
+  }
+  return n;
+}
+
+/** Quantos pacotes a prorrogação já devolveu — só pro texto da tela. */
+function pacotesRecuperados(ciclo) {
+  return Math.min(configDaCopa(ciclo).recuperacao, (ciclo.album.diasProrrogacao || []).length);
+}
+
+/**
+ * Pacotes que o Davi já tem direito de abrir, agora.
+ *
+ * É uma catraca só: `album.pacotes`. A prorrogação DEPOSITA nela em vez de
+ * somar por fora — somando por fora, o mesmo dia contava duas vezes assim que
+ * virasse oficial, e o teto de recuperação virava decoração.
+ *
+ * O teto de pacotes do tipo nunca corta o que já foi conquistado: se um dado
+ * antigo, um backup editado à mão ou uma Copa fora de faixa deixar a catraca
+ * acima do teto, quem cede é o teto.
+ */
+function pacotesDisponiveis(ciclo) {
+  const a = ciclo.album;
+  return Math.max(a.pacotes, a.abertos);
+}
+
+/** Pacotes conquistados e ainda fechados. */
+function pacotesParaAbrir(ciclo) {
+  return Math.max(0, pacotesDisponiveis(ciclo) - ciclo.album.abertos);
+}
+
+/** Soma dos pacotes fechados em todas as Copas — é o selo da aba. */
+function pacotesFechadosNoApp() {
+  return estado.ciclos.reduce((soma, c) => {
+    garanteAlbum(c);
+    return soma + pacotesParaAbrir(c);
+  }, 0);
+}
+
+/**
+ * O que falta pro próximo pacote, em texto exato. Quando só uma condição foi
+ * cumprida, o recado é sobre a OUTRA — nunca um "quase" vago.
+ */
+function recadoDoProximoPacote(ciclo) {
+  const cfg = configDaCopa(ciclo);
+  const disponiveis = pacotesDisponiveis(ciclo);
+  if (disponiveis >= cfg.pacotes) return 'Todos os pacotes desta Copa já entraram em campo.';
+
+  const fase = faseDaCopa(ciclo);
+  if (fase === 'fechada' || capituloSelado(ciclo)) {
+    return 'A Copa fechou. Os espaços que ficaram vazios seguem aí, e nada do que tu conquistou saiu do álbum.';
+  }
+  if (fase === 'futura') {
+    return 'A Copa começa em ' + dataCurta(ciclo.inicio) + '. O primeiro pacote depende de estudo e de dia decorrido.';
+  }
+  if (fase === 'prorrogacao') {
+    // Sem contagem regressiva e sem falar de perda: é tempo extra, não castigo.
+    const teto = cfg.recuperacao;
+    const usados = (ciclo.album.diasProrrogacao || []).length;
+    const ainda = Math.max(0, teto - usados);
+    if (ainda <= 0) {
+      return 'A prorrogação já trouxe tudo o que dava neste capítulo: ' + teto +
+             (teto === 1 ? ' pacote.' : ' pacotes.');
+    }
+    return 'Prorrogação até ' + dataCurta(fimDaProrrogacao(ciclo)) +
+           ': cada dia ativo ainda traz um pacote deste capítulo, até ' + ainda +
+           (ainda === 1 ? ' pacote.' : ' pacotes.');
+  }
+
+  const i = disponiveis + 1;
+  const r = requisitosDoPacote(ciclo, i);
+  const ativos = diasAtivosDaCopa(ciclo).length;
+  const decorridos = decorridosDaCopa(ciclo);
+  const faltamDias = Math.max(0, r.decorridos - decorridos);
+  const faltamAtivos = Math.max(0, r.ativos - ativos);
+
+  if (faltamAtivos === 0 && faltamDias > 0) {
+    return 'Você já fez sua parte. Este pacote entra em campo em ' + faltamDias +
+           (faltamDias === 1 ? ' dia.' : ' dias.');
+  }
+  if (faltamDias === 0 && faltamAtivos > 0) {
+    // O briefing pede "Este pacote já está disponível", mas o que está
+    // liberado é o CALENDÁRIO, não o pacote: dizer "disponível" ao lado de um
+    // botão que não abre nada se lê como defeito do app.
+    return 'O calendário já liberou este pacote. Falta estudar em ' + faltamAtivos +
+           (faltamAtivos === 1 ? ' dia diferente.' : ' dias diferentes.');
+  }
+  if (faltamAtivos > 0 && faltamDias > 0) {
+    return 'Falta estudar em ' + faltamAtivos + (faltamAtivos === 1 ? ' dia diferente' : ' dias diferentes') +
+           ', e ele entra em campo em ' + faltamDias + (faltamDias === 1 ? ' dia.' : ' dias.');
+  }
+  return 'Pacote pronto pra abrir.';
+}
+
+/* ---------- Conteúdo dos pacotes ---------- */
+
+/** Baralho desta Copa: ordem fixa das colecionáveis, sorteada pela semente. */
+function baralhoDaCopa(ciclo) {
+  return embaralhaComSemente(colecionaveisDaCopa(ciclo), ciclo.album.semente);
+}
+
+/**
+ * As colecionáveis que ainda não foram coladas, na ordem do baralho.
+ * O pacote seguinte leva as duas primeiras daqui — por isso nunca repete e
+ * nada precisa ser guardado sobre o conteúdo de pacote nenhum.
+ */
+function colecionaveisNaFila(ciclo) {
+  const colagens = ciclo.album.colagens || {};
+  return baralhoDaCopa(ciclo).filter((id) => !colagens[id]);
+}
+
+/** As duas figurinhas do próximo pacote a abrir. */
+function conteudoDoProximoPacote(ciclo) {
+  return colecionaveisNaFila(ciclo).slice(0, 2);
+}
+
+/* ---------- Especiais ---------- */
+
+/**
+ * Datas em que cada especial foi conquistada, calculadas do histórico.
+ * O que já está gravado em album.especiais manda: catraca, nunca revoga.
+ */
+function calculaEspeciais(ciclo, mapa) {
+  const dias = diasAtivosDaCopa(ciclo, mapa);
+  const achado = {};
+
+  if (dias.length) achado.estreia = dias[0];
+
+  // Ritmo de Jogo: 3 dias diferentes dentro de qualquer janela de 7 dias
+  for (let i = 2; i < dias.length; i++) {
+    if (diasEntre(dias[i - 2], dias[i]) <= 6) { achado.ritmo = dias[i]; break; }
+  }
+
+  // Até o Apito: um dia ativo nos 20% finais da Copa
+  const abreJanela = abreORetaFinalDaCopa(ciclo);
+  const noFim = dias.find((d) => d >= abreJanela);
+  if (noFim) achado.apito = noFim;
+
+  return achado;
+}
+
+/**
+ * Começo dos 20% finais. Conta inteira, arredondando pra cima: a janela nunca
+ * fica vazia (nem em Copa curta importada) e o Davi ganha o dia de folga em
+ * vez de perder.
+ */
+function abreORetaFinalDaCopa(ciclo) {
+  const D = diasDaCopa(ciclo);
+  const janela = Math.max(1, Math.ceil(D / 5));
+  return chaveMais(ciclo.inicio, Math.max(0, D - janela));
+}
+
+/* ---------- Registros ---------- */
+
+/** Melhor janela de 7 dias dentro de uma faixa fechada de datas. */
+function melhorSemanaEntre(mapa, de, ate) {
+  let melhor = { fim: null, minutos: 0 };
+  let cursor = de;
+  while (diasEntre(cursor, ate) >= 0) {
+    let soma = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = chaveMais(cursor, i);
+      if (d > ate) break;
+      soma += mapa[d] || 0;
+    }
+    if (soma > melhor.minutos) melhor = { fim: chaveMais(cursor, 6), minutos: soma };
+    cursor = chaveMais(cursor, 1);
+  }
+  return melhor;
+}
+
+/**
+ * Os números oficiais da Copa. Enquanto a Copa está aberta são provisórios e
+ * se atualizam a cada recorde; no fechamento vão pra album.fechado e não
+ * mudam mais — nem com estudo feito na prorrogação.
+ */
+function registrosDaCopa(ciclo) {
+  if (ciclo.album.fechado) return ciclo.album.fechado.registros;
+
+  const j = janelaOficialDaCopa(ciclo);
+  const de = j.de, ate = j.ate;
+  const blocos = estado.blocos.filter((b) => {
+    const d = chaveDia(b.fim || b.inicio);
+    return d >= de && d <= ate;
+  });
+  const mapa = mapaMinutos(blocos);
+  const dias = diasAtivosEntre(de, ate, mapa);
+  const melhor = melhorDia(mapa);
+  const semana = melhorSemanaEntre(mapa, de, ate);
+
+  const porAssunto = {};
+  blocos.forEach((b) => {
+    const nome = (b.assunto || '').trim() || 'Estudo livre';
+    porAssunto[nome] = (porAssunto[nome] || 0) + b.minutos;
+  });
+  let materia = null, materiaMin = 0;
+  Object.keys(porAssunto).forEach((nome) => {
+    if (porAssunto[nome] > materiaMin) { materia = nome; materiaMin = porAssunto[nome]; }
+  });
+
+  return {
+    melhorDia: { minutos: melhor.minutos, dia: melhor.chave },
+    diasAtivos: dias.length,
+    blocos: blocos.length,
+    minutos: blocos.reduce((s, b) => s + b.minutos, 0),
+    melhorSemana: { minutos: semana.minutos, fim: semana.fim },
+    materia: { nome: materia || 'Estudo livre', minutos: materiaMin }
+  };
+}
+
+/** Um registro só entra em jogo depois do primeiro dia ativo da Copa. */
+function registroEmJogo(ciclo) {
+  return registrosDaCopa(ciclo).diasAtivos > 0;
+}
+
+/** Valor de um registro, já formatado, e o detalhe de apoio. */
+function valorDoRegistro(id, reg) {
+  if (id === 'reg-melhor-dia') {
+    return { valor: reg.melhorDia.minutos ? fmtDuracao(reg.melhorDia.minutos) : '—',
+             detalhe: reg.melhorDia.dia ? dataCurta(reg.melhorDia.dia) : 'sem dia ativo ainda' };
+  }
+  if (id === 'reg-dias-ativos') {
+    return { valor: String(reg.diasAtivos), detalhe: reg.diasAtivos === 1 ? 'dia ativo' : 'dias ativos' };
+  }
+  if (id === 'reg-blocos') {
+    return { valor: String(reg.blocos), detalhe: reg.blocos === 1 ? 'bloco' : 'blocos' };
+  }
+  if (id === 'reg-tempo') {
+    return { valor: reg.minutos ? fmtHoras(reg.minutos) : '—', detalhe: 'na Copa' };
+  }
+  if (id === 'reg-melhor-semana') {
+    return { valor: reg.melhorSemana.minutos ? fmtHoras(reg.melhorSemana.minutos) : '—',
+             detalhe: reg.melhorSemana.fim ? 'até ' + dataCurta(reg.melhorSemana.fim) : 'sem rodada fechada' };
+  }
+  if (id === 'reg-materia') {
+    return { valor: reg.materia.nome,
+             detalhe: reg.materia.minutos ? fmtDuracao(reg.materia.minutos) : 'nada registrado ainda' };
+  }
+  return { valor: '—', detalhe: '' };
+}
+
+/* ---------- Estado de cada espaço ---------- */
+
+/**
+ * Estado de todos os espaços do capítulo, num objeto só:
+ * 'vazio' | 'no-pacote' | 'colada' | 'em-jogo' | 'final'
+ */
+function estadosDoAlbum(ciclo) {
+  garanteAlbum(ciclo);
+  const a = ciclo.album;
+  const fechado = !!a.fechado;
+  const mapa = {};
+
+  // Colecionáveis: colada é o que está gravado; no-pacote é o que já foi
+  // conquistado e ainda espera abertura.
+  colecionaveisDaCopa(ciclo).forEach((id) => {
+    mapa[id] = { estado: 'vazio', criterio: CRITERIO_COLECIONAVEL };
+  });
+  Object.keys(a.colagens || {}).forEach((id) => {
+    if (mapa[id]) mapa[id] = { estado: 'colada', em: a.colagens[id] };
+  });
+  const naFila = colecionaveisNaFila(ciclo);
+  const quantas = pacotesParaAbrir(ciclo) * 2;
+  naFila.slice(0, quantas).forEach((id) => {
+    if (mapa[id]) mapa[id] = { estado: 'no-pacote', criterio: 'Pacote conquistado, esperando abertura.' };
+  });
+
+  // Registros
+  const reg = registrosDaCopa(ciclo);
+  const emJogo = reg.diasAtivos > 0;
+  itensDaPagina(ciclo, 4).forEach((id) => {
+    const v = valorDoRegistro(id, reg);
+    mapa[id] = emJogo
+      ? { estado: fechado ? 'final' : 'em-jogo', valor: v.valor, detalhe: v.detalhe }
+      : { estado: 'vazio', criterio: FIGURINHAS[id].criterio };
+  });
+
+  // Especiais e a taça
+  ['esp-estreia', 'esp-ritmo', 'esp-apito'].forEach((id) => {
+    const chave = id.replace('esp-', '');
+    mapa[id] = a.especiais[chave]
+      ? { estado: 'colada', em: a.especiais[chave] }
+      : { estado: 'vazio', criterio: FIGURINHAS[id].criterio };
+  });
+  mapa['fim-copa'] = (fechado && a.fechado.final)
+    ? { estado: 'colada', em: a.fechado.em }
+    : { estado: 'vazio', criterio: FIGURINHAS['fim-copa'].criterio };
+
+  return mapa;
+}
+
+/** Quantos espaços do capítulo já estão preenchidos, e o percentual. */
+function preenchimentoDoAlbum(ciclo) {
+  const estados = estadosDoAlbum(ciclo);
+  const total = totalDeEspacos(ciclo);
+  let cheios = 0;
+  PAGINAS_ALBUM.forEach((pag, i) => {
+    itensDaPagina(ciclo, i).forEach((id) => {
+      const e = estados[id] && estados[id].estado;
+      if (e === 'colada' || e === 'em-jogo' || e === 'final') cheios++;
+    });
+  });
+  return { cheios: cheios, total: total, pct: total ? Math.round((cheios / total) * 100) : 0 };
+}
+
+/* ---------- Sincronização (as catracas) ---------- */
+
+/** Cria o álbum da Copa se ainda não existir. Nunca sobrescreve nada. */
+function garanteAlbum(ciclo) {
+  if (!ciclo.album || typeof ciclo.album !== 'object') {
+    ciclo.album = {
+      tipo: diasDaCopa(ciclo) >= 28 ? 'padrao' : 'mini',
+      semente: sementeDe(ciclo.id),
+      pacotes: 0,
+      abertos: 0,
+      colagens: {},
+      especiais: {},
+      diasProrrogacao: [],
+      fechado: null
+    };
+    return ciclo.album;
+  }
+  const a = ciclo.album;
+  if (!a.semente) a.semente = sementeDe(ciclo.id);
+  if (typeof a.pacotes !== 'number' || !isFinite(a.pacotes)) a.pacotes = 0;
+  if (typeof a.abertos !== 'number' || !isFinite(a.abertos)) a.abertos = 0;
+  if (!a.colagens || typeof a.colagens !== 'object') a.colagens = {};
+  if (!a.especiais || typeof a.especiais !== 'object') a.especiais = {};
+  if (!Array.isArray(a.diasProrrogacao)) a.diasProrrogacao = [];
+  if (a.fechado && typeof a.fechado !== 'object') a.fechado = null;
+  if (a.fechado && !a.fechado.registros) a.fechado = null;   // selo pela metade
+  if (a.tipo !== 'mini' && a.tipo !== 'padrao') a.tipo = diasDaCopa(ciclo) >= 28 ? 'padrao' : 'mini';
+  // Backup vindo de outro aparelho pode ter colagem sem o contador: o
+  // contador acompanha, nunca desce. E a catraca nunca fica atrás do que
+  // já está colado no papel — colagem vale mais que contador.
+  const colados = Object.keys(a.colagens).length;
+  a.abertos = Math.max(a.abertos, Math.floor(colados / 2));
+  a.pacotes = Math.max(a.pacotes, a.abertos);
+  return a;
+}
+
+/**
+ * Roda as catracas de uma Copa e devolve o que mudou agora.
+ * Só sobe: pacote ganho, especial conquistada e dia gasto na prorrogação
+ * ficam gravados pra sempre, mesmo que as datas mudem depois.
+ */
+function sincronizaAlbumDaCopa(ciclo, mapa) {
+  const a = garanteAlbum(ciclo);
+  const novidades = { pacotes: 0, especiais: [] };
+
+  // Capítulo selado pelo relógio pode voltar a jogar: o selo automático é
+  // cache de valor calculado, não conquista. Esticar a data da Copa, ou o
+  // Android acertar um relógio que estava adiantado, devolve a Copa ao jogo
+  // sem encostar em pacote, figurinha ou especial.
+  if (a.fechado && a.fechado.automatico && !ciclo.fimReal && faseDaCopa(ciclo) !== 'fechada') {
+    a.fechado = null;
+  }
+  if (a.fechado) return novidades;
+
+  mapa = mapa || mapaMinutos();
+  const cfg = configDaCopa(ciclo);   // resolve e trava o tipo
+
+  // Catraca dos pacotes do período oficial
+  const calculado = Math.min(cfg.pacotes, pacotesCalculados(ciclo, mapa));
+  if (calculado > a.pacotes) {
+    novidades.pacotes += calculado - a.pacotes;
+    a.pacotes = calculado;
+  }
+
+  // Catraca das especiais: varre o histórico todo, não só o dia de hoje.
+  // Assim tanto faz quando o app foi aberto — a conquista é do estudo.
+  const achado = calculaEspeciais(ciclo, mapa);
+  ['estreia', 'ritmo', 'apito'].forEach((chave) => {
+    if (achado[chave] && !a.especiais[chave]) {
+      a.especiais[chave] = achado[chave];
+      novidades.especiais.push('esp-' + chave);
+    }
+  });
+
+  // Prorrogação: cada dia ativo devolve no máximo 1 pacote perdido.
+  // Varre a janela inteira, retroativo, e não só o dia de hoje: quem estudou
+  // na prorrogação e só abriu o app depois não pode perder o pacote.
+  if (diasEntre(ciclo.fimPrevisto, chaveHoje()) > 0) {
+    const de = chaveMais(ciclo.fimPrevisto, 1);
+    const ate = fimDaProrrogacao(ciclo);
+    diasAtivosEntre(de, ate, mapa).forEach((d) => {
+      if (a.diasProrrogacao.indexOf(d) !== -1) return;
+      if (a.diasProrrogacao.length >= cfg.recuperacao) return;
+      if (a.pacotes >= cfg.pacotes) return;
+      a.diasProrrogacao.push(d);
+      a.pacotes = Math.min(cfg.pacotes, a.pacotes + 1);   // deposita na catraca
+      novidades.pacotes++;
+    });
+  }
+
+  return novidades;
+}
+
+/**
+ * Fecha o capítulo e cria a figurinha final. Chamado quando a Copa acaba —
+ * pelo botão de levantar a taça ou pelo fim da prorrogação.
+ * O app não encerra o ciclo sozinho: só sela o capítulo do álbum.
+ */
+function fechaAlbumDaCopa(ciclo, quando, automatico) {
+  const a = garanteAlbum(ciclo);
+  if (a.fechado) return false;
+  sincronizaAlbumDaCopa(ciclo);           // credita tudo ANTES de congelar
+  const reg = registrosDaCopa(ciclo);
+  const janela = janelaOficialDaCopa(ciclo);
+  // A taça já entra em cena aqui: sem ela o percentual dela mesma sairia
+  // contando um espaço vazio que na verdade acabou de ser preenchido.
+  a.fechado = {
+    em: quando,
+    automatico: !!automatico,
+    janela: janela,
+    registros: reg,
+    final: { montando: true }
+  };
+  const p = preenchimentoDoAlbum(ciclo);
+  a.fechado.final = {
+    nome: ciclo.nome,
+    inicio: janela.de,
+    fim: ciclo.fimReal || janela.ate,
+    minutos: reg.minutos,
+    diasAtivos: reg.diasAtivos,
+    blocos: reg.blocos,
+    percentual: p.pct
+  };
+  return true;
+}
+
+/**
+ * Passada de manutenção: cria o álbum que falta, roda as catracas de todas as
+ * Copas e sela as que já venceram. Silenciosa — usada na abertura do app e na
+ * virada do dia, pra não comemorar coisa velha.
+ */
+function sincronizaAlbum(comAviso) {
+  const mapa = mapaMinutos();
+  const novidades = { pacotes: 0, especiais: [], fechadas: [] };
+
+  estado.ciclos.forEach((ciclo) => {
+    garanteAlbum(ciclo);
+    const n = sincronizaAlbumDaCopa(ciclo, mapa);
+    novidades.pacotes += n.pacotes;
+    novidades.especiais.push.apply(novidades.especiais, n.especiais);
+
+    // O selo automático vem depois das catracas, sempre: um pacote ganho no
+    // último dia da prorrogação entra antes de o capítulo congelar.
+    if (!ciclo.album.fechado && faseDaCopa(ciclo) === 'fechada') {
+      const quando = ciclo.fimReal || fimDaProrrogacao(ciclo);
+      if (fechaAlbumDaCopa(ciclo, quando, true)) novidades.fechadas.push(ciclo);
+    }
+  });
+
+  salvaEstado();
+
+  if (comAviso) {
+    if (novidades.pacotes > 0) {
+      avisa('Álbum', fala('pacoteGanho', { n: novidades.pacotes }), animacoesLigadas());
+    }
+    novidades.especiais.forEach((id) => {
+      avisa('Figurinha especial', fala('especialGanha', { fig: FIGURINHAS[id].nome }), animacoesLigadas());
+    });
+  }
+  novidades.fechadas.forEach((ciclo) => {
+    avisa('Copa fechada', fala('copaFechada', { nome: ciclo.nome }), animacoesLigadas());
+  });
+
+  return novidades;
+}
+
+/* ---------- Abrir pacote ---------- */
+
+/**
+ * Abre o próximo pacote: cola as duas figurinhas e sobe o contador.
+ * A colagem acontece AQUI, não no botão "Colar todas" — sair da revelação
+ * pelo meio não pode custar figurinha nenhuma.
+ */
+let abrindoPacote = false;
+
+function abrePacote(ciclo) {
+  const a = garanteAlbum(ciclo);
+  if (abrindoPacote) return null;          // toque duplo não consome dois pacotes
+  if (pacotesParaAbrir(ciclo) <= 0) return null;
+  const itens = conteudoDoProximoPacote(ciclo);
+  if (itens.length < 2) return null;
+  abrindoPacote = true;
+  const hoje = chaveHoje();
+  // A data original da conquista nunca é sobrescrita.
+  itens.forEach((id) => { if (!a.colagens[id]) a.colagens[id] = hoje; });
+  a.abertos++;
+  // Abrir pacote depois do fechamento é permitido, então o percentual guardado
+  // na taça acompanha — senão o troféu na Estante mostraria menos do que o
+  // álbum realmente tem.
+  if (a.fechado && a.fechado.final) a.fechado.final.percentual = preenchimentoDoAlbum(ciclo).pct;
+  salvaEstado();                            // grava ANTES de qualquer animação
+  abrindoPacote = false;
+  return itens;
+}
+
+/* ---------- Arte das figurinhas ----------
+   SVG inline, sem cor escrita: cada forma usa a classe t1..t4 e cada traço
+   usa a classe linha, e o CSS pinta. Assim a MESMA arte serve de silhueta
+   chapada no espaço vazio e de figurinha cheia depois de colada — a leitura
+   vem do contorno, não da cor.
+
+   Identidade genérica de futebol: nenhum escudo, brasão, logotipo, mascote
+   ou nome de clube. Nada de <text>: a fonte não é garantida, e número de
+   camisa é desenhado em bloco.
+   ---------------------------------------------------------------------- */
+const ARTE_FIGURINHAS = {
+  /* --- Palco da Copa --- */
+  'col-estadio': '<svg viewBox="0 0 100 128"><path class="t2" d="M10 100V66Q50 30 90 66v34z"/><path class="t1" d="M18 96V72Q50 44 82 72v24z"/><rect class="t3" x="26" y="80" width="48" height="16" rx="2"/><rect class="t2" x="46" y="84" width="8" height="12"/><rect class="t1" x="8" y="100" width="84" height="10" rx="3"/><path class="linha" d="M10 100V66Q50 30 90 66v34z"/></svg>',
+  'col-refletores': '<svg viewBox="0 0 100 128"><rect class="t3" x="24" y="20" width="52" height="26" rx="4"/><circle class="t4" cx="37" cy="29" r="5"/><circle class="t4" cx="50" cy="29" r="5"/><circle class="t4" cx="63" cy="29" r="5"/><circle class="t4" cx="43" cy="39" r="5"/><circle class="t4" cx="57" cy="39" r="5"/><path class="t2" d="M46 46h8l4 58H42z"/><rect class="t1" x="30" y="104" width="40" height="8" rx="3"/><path class="linha" d="M24 20h52v26H24z"/></svg>',
+  'col-gramado': '<svg viewBox="0 0 100 128"><rect class="t1" x="10" y="34" width="80" height="60" rx="3"/><rect class="t2" x="20" y="34" width="10" height="60" opacity="0.32"/><rect class="t2" x="40" y="34" width="10" height="60" opacity="0.32"/><rect class="t2" x="60" y="34" width="10" height="60" opacity="0.32"/><rect class="t2" x="80" y="34" width="10" height="60" opacity="0.32"/><circle class="linha" cx="50" cy="64" r="13"/><path class="linha" d="M10 34h80v60H10z M50 34v60"/></svg>',
+  'col-tunel': '<svg viewBox="0 0 100 128"><rect class="t1" x="14" y="30" width="72" height="76" rx="5"/><path class="t2" d="M30 106V64a20 20 0 0 1 40 0v42z"/><path class="t3" d="M42 106V70a8 8 0 0 1 16 0v36z"/><rect class="t4" x="14" y="30" width="72" height="8" rx="4"/><path class="linha" d="M30 106V64a20 20 0 0 1 40 0v42"/><path class="linha" d="M14 30h72v76H14z"/></svg>',
+  'col-placar': '<svg viewBox="0 0 100 128"><rect class="t2" x="10" y="34" width="80" height="52" rx="5"/><rect class="t3" x="18" y="44" width="26" height="32" rx="3"/><rect class="t3" x="56" y="44" width="26" height="32" rx="3"/><rect class="t1" x="24" y="50" width="14" height="8" rx="2"/><rect class="t1" x="24" y="62" width="14" height="8" rx="2"/><rect class="t1" x="62" y="50" width="14" height="8" rx="2"/><circle class="t4" cx="50" cy="54" r="3"/><circle class="t4" cx="50" cy="66" r="3"/><path class="t2" d="M46 86h8v20h-8z"/><rect class="t1" x="30" y="106" width="40" height="7" rx="3"/></svg>',
+
+  /* --- Nossa Torcida --- */
+  'col-arquibancada': '<svg viewBox="0 0 100 128"><path class="t3" d="M8 106L18 44h64l10 62z"/><path class="t1" d="M14 58h72v6H14z M12 74h76v6H12z M10 90h80v6H10z"/><circle class="t2" cx="28" cy="52" r="5"/><circle class="t2" cx="44" cy="52" r="5"/><circle class="t2" cx="60" cy="52" r="5"/><circle class="t2" cx="74" cy="52" r="5"/><circle class="t2" cx="22" cy="68" r="5"/><circle class="t2" cx="40" cy="68" r="5"/><circle class="t2" cx="58" cy="68" r="5"/><circle class="t2" cx="76" cy="68" r="5"/><circle class="t2" cx="30" cy="84" r="5"/><circle class="t2" cx="50" cy="84" r="5"/><circle class="t2" cx="70" cy="84" r="5"/></svg>',
+  'col-faixa': '<svg viewBox="0 0 100 128"><rect class="t2" x="12" y="26" width="6" height="86" rx="3"/><rect class="t2" x="82" y="26" width="6" height="86" rx="3"/><rect class="t1" x="18" y="46" width="64" height="34"/><rect class="t3" x="18" y="56" width="64" height="6"/><rect class="t3" x="18" y="68" width="48" height="6"/><path class="linha" d="M18 46h64v34H18z"/></svg>',
+  'col-bandeirao': '<svg viewBox="0 0 100 128"><rect class="t2" x="18" y="20" width="6" height="92" rx="3"/><path class="t1" d="M24 28q22-10 34 0t34 0v40q-22 10-34 0t-34 0z"/><path class="t3" d="M24 44q22-10 34 0t34 0v10q-22 10-34 0t-34 0z"/><path class="linha" d="M24 28q22-10 34 0t34 0v40q-22 10-34 0t-34 0z"/></svg>',
+  'col-mosaico': '<svg viewBox="0 0 100 128"><rect class="t1" x="20" y="40" width="18" height="18" rx="2"/><rect class="t2" x="42" y="40" width="18" height="18" rx="2"/><rect class="t1" x="64" y="40" width="18" height="18" rx="2"/><rect class="t2" x="20" y="62" width="18" height="18" rx="2"/><rect class="t4" x="42" y="62" width="18" height="18" rx="2"/><rect class="t2" x="64" y="62" width="18" height="18" rx="2"/><rect class="t1" x="20" y="84" width="18" height="18" rx="2"/><rect class="t2" x="42" y="84" width="18" height="18" rx="2"/><rect class="t1" x="64" y="84" width="18" height="18" rx="2"/><path class="linha" d="M20 40h18v18H20z M42 40h18v18H42z M64 40h18v18H64z M20 62h18v18H20z M42 62h18v18H42z M64 62h18v18H64z M20 84h18v18H20z M42 84h18v18H42z M64 84h18v18H64z"/></svg>',
+  'col-bumbo': '<svg viewBox="0 0 100 128"><path class="linha" d="M18 108L82 30 M82 108L18 30"/><circle class="t1" cx="50" cy="68" r="32"/><circle class="t3" cx="50" cy="68" r="22"/><circle class="t2" cx="50" cy="68" r="8"/><circle class="linha" cx="50" cy="68" r="32"/><circle class="linha" cx="50" cy="68" r="22"/></svg>',
+
+  /* --- Dia de Jogo --- */
+  'col-ingresso': '<svg viewBox="0 0 100 128"><rect class="t1" x="12" y="44" width="44" height="40" rx="3"/><rect class="t3" x="62" y="44" width="26" height="40" rx="3"/><circle class="t2" cx="24" cy="54" r="4"/><rect class="t2" x="18" y="64" width="32" height="5" rx="2"/><rect class="t2" x="18" y="73" width="22" height="5" rx="2"/><rect class="t4" x="68" y="56" width="14" height="16" rx="2"/><path class="linha" d="M12 44h44v40H12z M62 44h26v40H62z"/><path class="linha" d="M59 47v5 M59 56v5 M59 65v5 M59 74v5"/></svg>',
+  'col-escalacao': '<svg viewBox="0 0 100 128"><rect class="t3" x="18" y="26" width="64" height="86" rx="5"/><rect class="t2" x="40" y="20" width="20" height="12" rx="4"/><circle class="t1" cx="50" cy="44" r="4"/><circle class="t1" cx="32" cy="62" r="4"/><circle class="t1" cx="50" cy="62" r="4"/><circle class="t1" cx="68" cy="62" r="4"/><circle class="t1" cx="36" cy="84" r="4"/><circle class="t1" cx="64" cy="84" r="4"/><circle class="t4" cx="50" cy="100" r="5"/><path class="linha" d="M50 44L32 62 M50 44L68 62 M32 62L36 84 M68 62L64 84 M36 84L50 100 M64 84L50 100"/><path class="linha" d="M18 26h64v86H18z"/></svg>',
+  'col-apito': '<svg viewBox="0 0 100 128"><path class="linha" d="M34 30q-12 12-6 26"/><circle class="t2" cx="32" cy="58" r="7"/><rect class="t2" x="14" y="70" width="26" height="16" rx="3"/><path class="t1" d="M38 62h30a16 16 0 0 1 0 32H38a16 16 0 0 1 0-32z"/><circle class="t4" cx="62" cy="78" r="8"/><path class="linha" d="M38 62h30a16 16 0 0 1 0 32H38a16 16 0 0 1 0-32z"/></svg>',
+  'col-bola': '<svg viewBox="0 0 100 128"><circle class="t3" cx="50" cy="66" r="34"/><path class="t2" d="M50 48l16 11-6 19H40l-6-19z"/><path class="t2" d="M50 34l-13 5 13 8 13-8z"/><path class="t2" d="M21 56l-3 15 13 7 5-18z"/><path class="t2" d="M79 56l3 15-13 7-5-18z"/><path class="t2" d="M37 83l-6 11 19 4 19-4-6-11z"/><circle class="linha" cx="50" cy="66" r="34"/></svg>',
+  'col-radio': '<svg viewBox="0 0 100 128"><path class="linha" d="M74 42L88 20"/><rect class="t2" x="16" y="42" width="68" height="56" rx="5"/><circle class="t3" cx="40" cy="70" r="16"/><circle class="t1" cx="40" cy="70" r="9"/><rect class="t3" x="62" y="52" width="14" height="30" rx="3"/><circle class="t4" cx="69" cy="90" r="5"/><path class="linha" d="M16 42h68v56H16z"/></svg>',
+
+  /* --- Símbolos da Campanha --- */
+  'col-camisa': '<svg viewBox="0 0 100 128"><path class="t1" d="M36 28h28l22 12-8 16-8-4v56H30V52l-8 4-8-16z"/><path class="t3" d="M42 28h16a8 8 0 0 1-16 0z"/><rect class="t2" x="42" y="70" width="6" height="22" rx="2"/><rect class="t2" x="52" y="70" width="6" height="22" rx="2"/><path class="linha" d="M36 28h28l22 12-8 16-8-4v56H30V52l-8 4-8-16z"/></svg>',
+  'col-bracadeira': '<svg viewBox="0 0 100 128"><path class="t3" d="M32 26h36v76a18 18 0 0 1-36 0z"/><rect class="t1" x="26" y="54" width="48" height="24" rx="4"/><rect class="t2" x="34" y="60" width="32" height="5" rx="2"/><rect class="t4" x="34" y="68" width="20" height="5" rx="2"/><path class="linha" d="M32 26h36v76a18 18 0 0 1-36 0z"/><path class="linha" d="M26 54h48v24H26z"/></svg>',
+  'col-chuteira': '<svg viewBox="0 0 100 128"><path class="t1" d="M18 62h26l14 8h16a12 12 0 0 1 12 12v10H18z"/><rect class="t2" x="14" y="92" width="72" height="10" rx="2"/><rect class="t2" x="22" y="102" width="8" height="7" rx="2"/><rect class="t2" x="40" y="102" width="8" height="7" rx="2"/><rect class="t2" x="58" y="102" width="8" height="7" rx="2"/><rect class="t2" x="72" y="102" width="8" height="7" rx="2"/><path class="linha" d="M18 62h26l14 8h16a12 12 0 0 1 12 12v10H18z"/><path class="linha" d="M34 66l6 10 M46 70l4 8"/></svg>',
+  'col-rede': '<svg viewBox="0 0 100 128"><rect class="t3" x="20" y="48" width="60" height="58"/><rect class="t2" x="12" y="40" width="76" height="8" rx="3"/><rect class="t2" x="12" y="40" width="8" height="66" rx="3"/><rect class="t2" x="80" y="40" width="8" height="66" rx="3"/><path class="linha" d="M32 48v58 M44 48v58 M56 48v58 M68 48v58 M20 60h60 M20 74h60 M20 88h60"/></svg>',
+  'col-cachecol': '<svg viewBox="0 0 100 128"><rect class="t1" x="18" y="48" width="16" height="50" rx="2"/><rect class="t1" x="66" y="48" width="16" height="50" rx="2"/><path class="t1" d="M14 40q36-22 72 0v16q-36-22-72 0z"/><path class="t3" d="M14 46q36-22 72 0v5q-36-22-72 0z"/><rect class="t3" x="18" y="66" width="16" height="7"/><rect class="t3" x="66" y="66" width="16" height="7"/><path class="linha" d="M20 98v10 M26 98v10 M32 98v10 M68 98v10 M74 98v10 M80 98v10"/><path class="linha" d="M14 40q36-22 72 0v16q-36-22-72 0z"/></svg>',
+
+  /* --- Números da Copa (registros) --- */
+  'reg-melhor-dia': '<svg viewBox="0 0 100 128"><circle class="t4" cx="72" cy="32" r="12"/><path class="linha" d="M72 14v-6 M72 56v6 M54 32h-6 M90 32h6 M58 18l-4-4 M86 46l4 4"/><rect class="t1" x="30" y="44" width="20" height="62" rx="3"/><rect class="t3" x="14" y="84" width="12" height="22" rx="3"/><rect class="t3" x="54" y="76" width="12" height="30" rx="3"/><rect class="t2" x="10" y="106" width="80" height="7" rx="3"/></svg>',
+  'reg-dias-ativos': '<svg viewBox="0 0 100 128"><rect class="t3" x="14" y="30" width="72" height="80" rx="5"/><rect class="t2" x="14" y="30" width="72" height="16" rx="5"/><rect class="t2" x="30" y="22" width="6" height="14" rx="3"/><rect class="t2" x="64" y="22" width="6" height="14" rx="3"/><rect class="t1" x="24" y="54" width="12" height="12" rx="2"/><rect class="t1" x="44" y="54" width="12" height="12" rx="2"/><rect class="t1" x="44" y="72" width="12" height="12" rx="2"/><rect class="t1" x="64" y="72" width="12" height="12" rx="2"/><rect class="t1" x="24" y="90" width="12" height="12" rx="2"/><path class="linha" d="M14 30h72v80H14z"/></svg>',
+  'reg-blocos': '<svg viewBox="0 0 100 128"><rect class="t1" x="18" y="88" width="30" height="18" rx="2"/><rect class="t2" x="52" y="88" width="30" height="18" rx="2"/><rect class="t2" x="26" y="66" width="30" height="18" rx="2"/><rect class="t1" x="60" y="66" width="22" height="18" rx="2"/><rect class="t1" x="18" y="44" width="30" height="18" rx="2"/><rect class="t3" x="52" y="44" width="22" height="18" rx="2"/><rect class="t4" x="34" y="22" width="30" height="18" rx="2"/><path class="linha" d="M18 88h30v18H18z M52 88h30v18H52z M26 66h30v18H26z M60 66h22v18H60z M18 44h30v18H18z M52 44h22v18H52z M34 22h30v18H34z"/></svg>',
+  'reg-tempo': '<svg viewBox="0 0 100 128"><rect class="t2" x="42" y="20" width="16" height="10" rx="3"/><circle class="t3" cx="50" cy="72" r="34"/><circle class="t1" cx="50" cy="72" r="26"/><circle class="t3" cx="50" cy="72" r="4"/><path class="linha" d="M50 72V52 M50 72l16 10"/><circle class="linha" cx="50" cy="72" r="34"/><path class="linha" d="M50 38v-8"/></svg>',
+  'reg-melhor-semana': '<svg viewBox="0 0 100 128"><rect class="t3" x="12" y="84" width="9" height="22" rx="2"/><rect class="t3" x="24" y="72" width="9" height="34" rx="2"/><rect class="t3" x="36" y="78" width="9" height="28" rx="2"/><rect class="t1" x="48" y="40" width="9" height="66" rx="2"/><rect class="t3" x="60" y="66" width="9" height="40" rx="2"/><rect class="t3" x="72" y="80" width="9" height="26" rx="2"/><rect class="t3" x="84" y="88" width="9" height="18" rx="2"/><rect class="t2" x="8" y="106" width="88" height="7" rx="3"/><circle class="t4" cx="52" cy="30" r="6"/></svg>',
+  'reg-materia': '<svg viewBox="0 0 100 128"><path class="t1" d="M12 44q22-10 38 4v54q-16-14-38-6z"/><path class="t3" d="M88 44q-22-10-38 4v54q16-14 38-6z"/><path class="t4" d="M66 40v32l-7-6-7 6V40z"/><path class="linha" d="M12 44q22-10 38 4v54q-16-14-38-6z M88 44q-22-10-38 4v54q16-14 38-6z M50 48v54"/></svg>',
+
+  /* --- Momentos Decisivos --- */
+  'esp-estreia': '<svg viewBox="0 0 100 128"><rect class="t2" x="10" y="24" width="80" height="8" rx="3"/><path class="t3" d="M40 32h20q-2 34 0 74H40z"/><path class="t1" d="M14 32h22q-4 34 4 74H14z"/><path class="t1" d="M86 32H64q4 34-4 74h26z"/><circle class="t4" cx="50" cy="84" r="12"/><path class="linha" d="M14 32h22q-4 34 4 74H14z M86 32H64q4 34-4 74h26z"/></svg>',
+  'esp-ritmo': '<svg viewBox="0 0 100 128"><path class="t1" d="M32 106h36L54 34h-8z"/><path class="t3" d="M40 92h20l-8-42h-4z"/><path class="linha" d="M50 100L76 44"/><circle class="t4" cx="76" cy="44" r="7"/><rect class="t2" x="24" y="106" width="52" height="8" rx="3"/><path class="linha" d="M32 106h36L54 34h-8z"/></svg>',
+  'esp-apito': '<svg viewBox="0 0 100 128"><rect class="t2" x="44" y="22" width="6" height="88" rx="3"/><path class="t1" d="M50 28h36l-11 13 11 13H50z"/><path class="t4" d="M50 34h20l-6 7 6 7H50z"/><rect class="t3" x="24" y="104" width="52" height="8" rx="3"/><path class="linha" d="M50 28h36l-11 13 11 13H50z"/><path class="linha" d="M32 62q-8 6-8 16 M22 60q-12 9-12 24"/></svg>',
+  'fim-copa': '<svg viewBox="0 0 100 128"><path class="t1" d="M32 24h36v22a18 18 0 0 1-36 0z"/><path class="t4" d="M44 32h12v10H44z"/><rect class="t2" x="46" y="64" width="8" height="18"/><path class="t2" d="M34 82h32l4 12H30z"/><rect class="t3" x="26" y="94" width="48" height="12" rx="3"/><path class="linha" d="M32 30H20a12 12 0 0 0 12 12 M68 30h12a12 12 0 0 1-12 12"/><path class="linha" d="M32 24h36v22a18 18 0 0 1-36 0z"/><path class="linha" d="M16 64q6-8 0-16 M84 64q-6-8 0-16"/></svg>'
+};
+
+/* ---------- Tela do Álbum ---------- */
+
+let temporadaAberta = null;   // temporada escolhida na tela (null = a ativa)
+let capituloAberto = null;    // Copa escolhida na tela (null = a em curso)
+let copaEmEdicao = null;      // Copa no formulário da Estante: id, 'nova' ou null
+
+/** A temporada mostrada no Álbum. */
+function temporadaDoAlbum() {
+  if (temporadaAberta) {
+    const t = temporadaPorId(temporadaAberta);
+    if (t) return t;
+    temporadaAberta = null;
+  }
+  const ciclo = cicloAtivo();
+  if (ciclo && ciclo.temporadaId) {
+    const t = temporadaPorId(ciclo.temporadaId);
+    if (t) return t;
+  }
+  return temporadaAtiva() || estado.temporadas[estado.temporadas.length - 1] || null;
+}
+
+/** A Copa (capítulo) mostrada no Álbum. */
+function copaDoAlbum() {
+  const temporada = temporadaDoAlbum();
+  const copas = copasDaTemporada(temporada);
+  if (capituloAberto) {
+    const escolhida = copas.find((c) => c.id === capituloAberto);
+    if (escolhida) return escolhida;
+    capituloAberto = null;
+  }
+  const atual = cicloAtivo();
+  if (atual && copas.indexOf(atual) !== -1) return atual;
+  // Sem Copa em curso: mostra a que está mais perto de hoje
+  const hoje = chaveHoje();
+  const comecadas = copas.filter((c) => c.inicio <= hoje);
+  if (comecadas.length) return comecadas[comecadas.length - 1];
+  return copas[0] || null;
+}
+
+function desenhaAlbum() {
+  const temporada = temporadaDoAlbum();
+  const ciclo = copaDoAlbum();
+
+  // Sem temporada nem Copa: convite, nunca cobrança
+  $('#albumVazio').classList.toggle('oculto', !!ciclo);
+  $('#albumConteudo').classList.toggle('oculto', !ciclo);
+  desenhaSeloDoAlbum();
+  if (!ciclo) {
+    $('#albumVazioTexto').textContent = temporada
+      ? 'A temporada "' + temporada.nome + '" ainda não tem Copa. Abre a primeira na Estante e o capítulo aparece aqui inteiro, com todos os espaços à vista.'
+      : 'O álbum começa com uma temporada. Escolhe um modelo na Estante — ou monta a tua Copa na mão — e o capítulo aparece aqui inteiro, com todos os espaços à vista.';
+    return;
+  }
+
+  garanteAlbum(ciclo);
+  const cfg = configDaCopa(ciclo);
+  const fase = faseDaCopa(ciclo);
+  const p = preenchimentoDoAlbum(ciclo);
+  const D = diasDaCopa(ciclo);
+
+  $('#albumTemporada').textContent = temporada ? temporada.nome : 'Temporada';
+  $('#albumCopa').textContent = ciclo.nome;
+  // A contagem é a informação principal e o percentual é apoio: figurinha se
+  // conta, não se mede.
+  $('#albumContagem').textContent = p.cheios + ' de ' + p.total;
+  $('#albumPct').textContent = 'figurinhas · ' + p.pct + '%';
+  $('#albumBarra').style.width = p.pct + '%';
+  $('#albumSelo').textContent = NOME_DA_FASE[fase];
+  $('#albumSelo').className = 'selo-fase fase-' + fase;
+
+  let linha = cfg.nome + ' · ' + D + ' dias · ' + dataCurta(ciclo.inicio) + ' → ' + dataCurta(ciclo.fimPrevisto);
+  if (fase === 'emJogo') {
+    linha += ' · dia ' + decorridosDaCopa(ciclo) + ' de ' + D;
+  } else if (fase === 'prorrogacao') {
+    linha += ' · prorrogação até ' + dataCurta(fimDaProrrogacao(ciclo));
+  } else if (fase === 'fechada' && ciclo.album.fechado) {
+    linha += ' · capítulo fechado em ' + dataCurta(ciclo.album.fechado.em);
+  }
+  $('#albumPeriodo').textContent = linha;
+
+  // Seletor de temporada — só aparece quando há mais de uma
+  const seletorT = $('#albumTemporadas');
+  if (estado.temporadas.length > 1) {
+    seletorT.classList.remove('oculto');
+    seletorT.innerHTML = estado.temporadas.map((t) => (
+      '<button class="ficha' + (temporada && t.id === temporada.id ? ' ativa' : '') +
+      '" data-temporada="' + escapaHTML(t.id) + '">' + escapaHTML(t.nome) + '</button>'
+    )).join('');
+  } else {
+    seletorT.classList.add('oculto');
+    seletorT.innerHTML = '';
+  }
+
+  // Seletor de capítulo
+  const copas = copasDaTemporada(temporada);
+  $('#albumCapitulos').innerHTML = copas.map((c, i) => {
+    garanteAlbum(c);
+    const pc = preenchimentoDoAlbum(c);
+    return '<button class="ficha' + (c.id === ciclo.id ? ' ativa' : '') +
+      '" data-capitulo="' + escapaHTML(c.id) + '">Cap. ' + (i + 1) + ' · ' +
+      escapaHTML(c.nome) + ' <small>' + pc.pct + '%</small></button>';
+  }).join('');
+
+  // Cartão do pacote
+  const fechados = pacotesParaAbrir(ciclo);
+  const disponiveis = pacotesDisponiveis(ciclo);
+  $('#pacoteTitulo').textContent = fechados
+    ? (fechados === 1 ? '1 pacote pra abrir' : fechados + ' pacotes pra abrir')
+    : 'Pacotes da Copa';
+  $('#pacoteContagem').textContent = disponiveis + ' de ' + cfg.pacotes + ' pacotes conquistados · ' +
+    (cfg.pacotes * 2) + ' colecionáveis no capítulo';
+  $('#pacoteRecado').textContent = recadoDoProximoPacote(ciclo);
+  const bt = $('#btAbrirPacote');
+  bt.classList.toggle('oculto', fechados <= 0);
+  bt.textContent = fechados > 1 ? 'Abrir pacote (' + fechados + ')' : 'Abrir pacote';
+  $('#pacoteCartao').classList.toggle('tem-pacote', fechados > 0);
+
+  // Chamado caloroso quando a Copa fechou e a taça não foi levantada
+  const chamado = $('#albumChamado');
+  if (fase === 'fechada' && !ciclo.fimReal) {
+    chamado.classList.remove('oculto');
+    chamado.textContent = 'Este capítulo está fechado e guardado. Quando quiser, levanta a taça na Estante e abre a próxima Copa.';
+  } else if (fase === 'prorrogacao') {
+    chamado.classList.remove('oculto');
+    chamado.textContent = fala('prorrogacao');
+  } else {
+    chamado.classList.add('oculto');
+  }
+
+  // As páginas
+  const estados = estadosDoAlbum(ciclo);
+  $('#albumPaginas').innerHTML = PAGINAS_ALBUM.map((pag, i) => {
+    const itens = itensDaPagina(ciclo, i);
+    const cheios = itens.filter((id) => {
+      const e = estados[id] && estados[id].estado;
+      return e === 'colada' || e === 'em-jogo' || e === 'final';
+    }).length;
+    return '<section class="album-pagina">' +
+      '<div class="album-pagina-topo">' +
+        '<h3>' + escapaHTML(pag.nome) + '</h3>' +
+        '<span>' + cheios + ' de ' + itens.length + '</span>' +
+      '</div>' +
+      '<div class="album-grade">' +
+        itens.map((id) => htmlDoEspaco(ciclo, id, estados[id] || { estado: 'vazio' })).join('') +
+      '</div>' +
+      (pag.tipo === 'reg'
+        ? '<p class="album-pe-nota">Estes números contam o período desta Copa. Os da Estante e do Progresso têm escopo próprio.</p>'
+        : '') +
+    '</section>';
+  }).join('');
+
+  $('#albumMarco').textContent = proximoMarcoDaCopa(ciclo);
+}
+
+/**
+ * O próximo acontecimento datado do capítulo — a coisa que faz voltar.
+ * Sempre a próxima conquista, nunca um prazo em cima do Davi.
+ */
+function proximoMarcoDaCopa(ciclo) {
+  const a = ciclo.album;
+  const cfg = configDaCopa(ciclo);
+  if (a.fechado) {
+    return 'Capítulo guardado. ' + (pacotesParaAbrir(ciclo)
+      ? 'Os pacotes conquistados seguem abríveis, sem prazo.'
+      : 'O que tu colou fica aqui pra sempre.');
+  }
+  const marcos = [];
+  if (pacotesDisponiveis(ciclo) < cfg.pacotes) {
+    const r = requisitosDoPacote(ciclo, pacotesDisponiveis(ciclo) + 1);
+    const dia = chaveMais(ciclo.inicio, Math.max(0, r.decorridos - 1));
+    marcos.push('Pacote ' + (pacotesDisponiveis(ciclo) + 1) + ' de ' + cfg.pacotes +
+      (diasEntre(chaveHoje(), dia) > 0 ? ', a partir de ' + dataCurta(dia) : ', já pelo calendário'));
+  }
+  if (!a.especiais.apito) {
+    const abre = abreORetaFinalDaCopa(ciclo);
+    marcos.push('Até o Apito abre em ' + dataCurta(abre));
+  }
+  marcos.push('Capítulo fecha em ' + dataCurta(ciclo.fimPrevisto));
+  return marcos.slice(0, 2).join(' · ');
+}
+
+/** Cartão de detalhe da taça: a peça que o Davi mostra pra alguém. */
+function abreCartaoDaTaca(ciclo) {
+  const f = ciclo.album.fechado && ciclo.album.fechado.final;
+  if (!f) {
+    avisa('Taça da Copa', 'A taça é criada quando o capítulo fecha. Todos os dados dela já estão sendo somados.');
+    return;
+  }
+  const p = preenchimentoDoAlbum(ciclo);
+  abreModal({
+    titulo: 'Taça da ' + f.nome,
+    frase: dataCurta(f.inicio) + ' → ' + dataCurta(f.fim),
+    detalhe: '<span class="taca-dados">' +
+      '<b>' + fmtHoras(f.minutos) + '</b><span>estudadas</span>' +
+      '<b>' + f.diasAtivos + '</b><span>dias ativos</span>' +
+      '<b>' + f.blocos + '</b><span>blocos</span>' +
+      '<b>' + p.cheios + ' de ' + p.total + '</b><span>figurinhas</span>' +
+      '<b>' + p.pct + '%</b><span>do capítulo</span>' +
+      '</span>',
+    botoes: [{ texto: 'Fechar', tipo: 'bt-azul', acao: fechaModal }]
+  });
+}
+
+/** Um espaço do álbum: silhueta e critério, arte cheia, ou registro. */
+function htmlDoEspaco(ciclo, id, est) {
+  const fig = FIGURINHAS[id] || { nome: id, pagina: '' };
+  const classes = ['fig', est.estado];
+  if (id.indexOf('esp-') === 0) classes.push('especial');
+  if (id.indexOf('reg-') === 0) classes.push('registro');
+  if (id === 'fim-copa') classes.push('taca');
+
+  const arte = '<div class="fig-arte">' + (ARTE_FIGURINHAS[id] || '') + '</div>';
+  // Registro numerico usa numero grande; registro de texto quebra e diminui.
+  const ehTexto = /[A-Za-zÀ-ÿ]{3}/.test(String(est.valor || '').replace(/min|h$/g, ''));
+  const valor = (est.estado === 'em-jogo' || est.estado === 'final')
+    ? '<div class="fig-valor' + (ehTexto ? ' texto' : '') + '"><b>' + escapaHTML(est.valor) + '</b><span>' +
+      escapaHTML(est.detalhe || '') + '</span></div>'
+    : '';
+
+  let pe;
+  if (est.estado === 'colada') {
+    pe = '<span class="fig-pe fig-data">' + dataCurta(est.em) + '</span>';
+  } else if (est.estado === 'em-jogo') {
+    pe = '<span class="fig-pe fig-selo">Em jogo</span>';
+  } else if (est.estado === 'final') {
+    pe = '<span class="fig-pe fig-selo">Resultado final</span>';
+  } else if (est.estado === 'no-pacote') {
+    pe = '<span class="fig-pe fig-selo">No pacote</span>';
+  } else {
+    pe = '<span class="fig-pe fig-criterio">' + escapaHTML(criterioDoEspaco(ciclo, id, est)) + '</span>';
+  }
+
+  const abridor = (id === 'fim-copa' && est.estado === 'colada')
+    ? ' data-taca="' + escapaHTML(ciclo.id) + '" role="button" tabindex="0"'
+    : '';
+
+  return '<article class="' + classes.join(' ') + '"' + abridor + '>' +
+    '<div class="fig-quadro">' + arte + valor + '</div>' +
+    '<h4>' + escapaHTML(fig.nome) + '</h4>' + pe +
+    '</article>';
+}
+
+/** O critério visível no espaço vazio — sempre concreto, nunca misterioso. */
+function criterioDoEspaco(ciclo, id, est) {
+  if (est && est.criterio && id !== 'esp-apito') return est.criterio;
+  if (id === 'esp-apito') {
+    return 'Um dia ativo de ' + dataCurta(abreORetaFinalDaCopa(ciclo)) + ' até ' +
+           dataCurta(ciclo.fimPrevisto) + '.';
+  }
+  return (FIGURINHAS[id] && FIGURINHAS[id].criterio) || CRITERIO_COLECIONAVEL;
+}
+
+/** Selo discreto na aba: quantos pacotes esperam abertura. */
+function desenhaSeloDoAlbum() {
+  const n = pacotesFechadosNoApp();
+  const selo = $('#seloAlbum');
+  if (!selo) return;
+  selo.textContent = n > 9 ? '9+' : String(n);
+  selo.classList.toggle('oculto', n <= 0);
+}
+
+/* ---------- Revelação do pacote ---------- */
+
+let revelacao = null;      // { ciclo, itens, passo }
+let temposRevelacao = [];
+
+function animacoesLigadas() {
+  if (estado.prefs.animacoes === false) return false;
+  try {
+    return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (erro) {
+    return true;
+  }
+}
+
+/** Liga a chave geral de animação no <body>: o CSS do álbum obedece a ela. */
+function aplicaPreferenciaDeAnimacao() {
+  document.body.classList.toggle('sem-animacao', estado.prefs.animacoes === false);
+}
+
+/**
+ * Som curto de pacote — três notas subindo.
+ * Cala a boca em três situações: quando o Davi desligou o som do álbum,
+ * quando ele já desligou o aviso de fundo do bloco (uma chave de som só),
+ * e quando o alarme do bloco está agendado na trilha — o alarme é a função
+ * central do app e não divide o canal com comemoração.
+ */
+function somDePacote() {
+  if (estado.prefs.somAlbum === false) return;
+  if (estado.prefs.modoAviso === 'nada') return;
+  if (document.visibilityState !== 'visible') return;
+  if (timerRodando()) return;
+  const ctx = garanteAudio();
+  if (!ctx) return;
+  const t0 = ctx.currentTime + 0.02;
+  [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => nota(f, t0 + i * 0.085, 0.16, 0.15));
+}
+
+function limpaTemposRevelacao() {
+  temposRevelacao.forEach((t) => clearTimeout(t));
+  temposRevelacao = [];
+}
+
+function abreRevelacao(ciclo) {
+  const itens = abrePacote(ciclo);
+  if (!itens) { avisa('Álbum', 'Nenhum pacote fechado nesta Copa agora.'); return; }
+
+  revelacao = { ciclo: ciclo, itens: itens };
+  atualizaTudo();
+  try { history.pushState({ revelacao: 1 }, ''); } catch (erro) { /* sem histórico, segue */ }
+
+  const caixa = $('#revelacao');
+  caixa.classList.remove('oculto');
+  caixa.classList.toggle('sem-animacao', !animacoesLigadas());
+  somDePacote();
+  vibra([120, 60, 180]);
+  $('#btPularRevelacao').focus();
+
+  limpaTemposRevelacao();
+  if (animacoesLigadas()) {
+    mostraPassoDaRevelacao('pacote');
+    temposRevelacao.push(setTimeout(() => mostraPassoDaRevelacao('figs'), 900));
+    temposRevelacao.push(setTimeout(() => mostraPassoDaRevelacao('fim'), 3400));
+  } else {
+    mostraPassoDaRevelacao('figs');
+    temposRevelacao.push(setTimeout(() => mostraPassoDaRevelacao('fim'), 1400));
+  }
+}
+
+function mostraPassoDaRevelacao(passo) {
+  if (!revelacao) return;
+  revelacao.passo = passo;
+  const ciclo = revelacao.ciclo;
+
+  $('#revelacaoPacote').classList.toggle('oculto', passo !== 'pacote');
+  $('#revelacaoFigs').classList.toggle('oculto', passo === 'pacote');
+  $('#revelacaoProgresso').classList.toggle('oculto', passo !== 'fim');
+  $('#btPularRevelacao').classList.toggle('oculto', passo === 'fim');
+
+  if (passo === 'pacote') {
+    $('#revelacaoFrase').textContent = fala('pacoteAberto');
+    $('#revelacaoBotoes').innerHTML = '';
+    return;
+  }
+
+  if (passo === 'figs') {
+    const estados = estadosDoAlbum(ciclo);
+    $('#revelacaoFigs').innerHTML = revelacao.itens.map((id, i) => (
+      '<div class="revelacao-fig" style="animation-delay:' + (i * 0.35) + 's">' +
+      htmlDoEspaco(ciclo, id, estados[id] || { estado: 'colada', em: chaveHoje() }) +
+      '<p class="revelacao-pagina">' + escapaHTML(FIGURINHAS[id].pagina) + '</p></div>'
+    )).join('');
+    $('#revelacaoFrase').textContent = fala('figurinhaColada', {
+      fig: FIGURINHAS[revelacao.itens[0]].nome,
+      pagina: FIGURINHAS[revelacao.itens[0]].pagina
+    });
+    $('#revelacaoBotoes').innerHTML = '<button class="bt bt-azul bt-grande" id="btColarTodas">Colar todas</button>';
+    $('#btColarTodas').addEventListener('click', () => {
+      limpaTemposRevelacao();
+      mostraPassoDaRevelacao('fim');
+    });
+    return;
+  }
+
+  // Passo final: progresso e o requisito exato do próximo pacote
+  limpaTemposRevelacao();
+  const p = preenchimentoDoAlbum(ciclo);
+  const faltam = pacotesParaAbrir(ciclo);
+  const cheio = p.cheios >= p.total;
+  $('#revelacaoFrase').textContent = cheio ? fala('albumCheio', { pct: p.pct }) : fala('pacoteAberto');
+  $('#revelacaoProgresso').innerHTML =
+    '<div class="revelacao-num"><b>' + p.pct + '%</b><span>' + p.cheios + ' de ' + p.total + ' figurinhas</span></div>' +
+    '<div class="album-barra"><i style="width:' + p.pct + '%"></i></div>' +
+    '<p class="sub">' + escapaHTML(recadoDoProximoPacote(ciclo)) + '</p>';
+  $('#revelacaoBotoes').innerHTML =
+    (faltam > 0 ? '<button class="bt bt-azul" id="btProximoPacote">Abrir o próximo</button>' : '') +
+    '<button class="bt" id="btFecharRevelacao">Ver o álbum</button>';
+  if (faltam > 0) {
+    $('#btProximoPacote').addEventListener('click', () => {
+      fechaRevelacao();
+      abreRevelacao(ciclo);
+    });
+  }
+  $('#btFecharRevelacao').addEventListener('click', fechaRevelacao);
+}
+
+function fechaRevelacao() {
+  if (!revelacao) return;
+  limpaTemposRevelacao();
+  revelacao = null;
+  $('#revelacao').classList.add('oculto');
+  atualizaTudo();
+  const bt = $('#btAbrirPacote');
+  if (bt && !bt.classList.contains('oculto')) bt.focus();
+}
+
+/* ---------- Temporada e Copas na Estante ---------- */
+
+/* Cinco modelos prontos. Só nome, início e fim são obrigatórios: nenhum
+   modelo pede meta de horas, matéria ou ciclo acadêmico. */
+const MODELOS_DE_TEMPORADA = [
+  { id: 'pbl', nome: 'Ciclos PBL',
+    resumo: 'Uma temporada com três Copas de 40 dias, do jeito da faculdade.',
+    campos: ['inicio'], copas: 3, dias: 40, rotulo: 'Copa' },
+  { id: 'prova', nome: 'Prova próxima',
+    resumo: 'Uma Copa daqui até o dia da prova — o tamanho do capítulo sai do prazo.',
+    campos: ['fim'], copas: 1, dias: null, rotulo: 'Até a prova' },
+  { id: 'semestre', nome: 'Semestre',
+    resumo: 'O semestre inteiro, fatiado em Copas de 4 a 8 semanas.',
+    campos: ['inicio', 'fim'], copas: null, dias: COPA_FATIA, rotulo: 'Copa' },
+  { id: 'concurso', nome: 'Concurso ou vestibular',
+    resumo: 'Copas mensais, uma atrás da outra.',
+    campos: ['inicio', 'quantas'], copas: null, dias: 30, rotulo: 'Mês' },
+  { id: 'livre', nome: 'Modo livre',
+    resumo: 'Noventa dias em três Copas de 30. Sem prova, sem matéria, sem meta.',
+    campos: [], copas: 3, dias: 30, rotulo: 'Copa' }
+];
+
+/* Temporadas que não vieram de modelo: montadas Copa por Copa no formulário
+   da Estante (a "temporada personalizada" do briefing) ou herdadas de um
+   backup anterior ao Álbum. */
+const MODELOS_SEM_FICHA = {
+  'livre-mao': 'Personalizada',
+  'herdada': 'Campanhas de antes do Álbum'
+};
+
+/** Nome do modelo de uma temporada, inclusive dos que não têm ficha. */
+function nomeDoModelo(id) {
+  const m = MODELOS_DE_TEMPORADA.find((x) => x.id === id);
+  return m ? m.nome : (MODELOS_SEM_FICHA[id] || 'Personalizada');
+}
+
+let modeloEscolhido = 'livre';
+
+function desenhaTemporada() {
+  const temporada = temporadaAtiva();
+  const caixa = $('#temporadaCorpo');
+
+  if (!temporada) {
+    $('#temporadaNome').textContent = 'Nenhuma temporada aberta';
+    $('#temporadaResumo').textContent = 'A temporada é o álbum inteiro; cada Copa dentro dela é um capítulo. Escolhe um modelo pronto ou abre a Copa na mão aqui embaixo.';
+    caixa.innerHTML = '';
+    return;
+  }
+
+  const copas = copasDaTemporada(temporada);
+  $('#temporadaNome').textContent = temporada.nome;
+  $('#temporadaResumo').textContent = nomeDoModelo(temporada.modelo) + ' · ' +
+    (copas.length ? copas.length + (copas.length === 1 ? ' Copa' : ' Copas') : 'sem Copa ainda') +
+    ' · aberta em ' + dataCurta(temporada.criadaEm);
+
+  if (!copas.length) {
+    caixa.innerHTML = '<p class="vazio">Abre a primeira Copa no formulário abaixo.</p>';
+    return;
+  }
+
+  caixa.innerHTML = '<div class="temporada-copas">' + copas.map((c, i) => {
+    garanteAlbum(c);
+    const p = preenchimentoDoAlbum(c);
+    const fase = faseDaCopa(c);
+    const cfg = configDaCopa(c);
+    return '<div class="copa-linha' + (cicloAtivo() === c ? ' agora' : '') + '">' +
+      '<div class="copa-id"><b>' + escapaHTML(c.nome) + '</b>' +
+        '<small>Cap. ' + (i + 1) + ' · ' + cfg.nome + ' · ' + dataCurta(c.inicio) + ' → ' + dataCurta(c.fimPrevisto) + '</small></div>' +
+      '<span class="selo-fase fase-' + fase + '">' + NOME_DA_FASE[fase] + '</span>' +
+      '<span class="copa-pct">' + p.pct + '%</span>' +
+      '<button class="bt-editar" data-editar-copa="' + escapaHTML(c.id) + '" title="Editar esta Copa">&#9998;</button>' +
+      '<button class="bt-editar" data-ver-copa="' + escapaHTML(c.id) + '" title="Ver o capítulo no Álbum">&#8594;</button>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
+/** Modal dos modelos de temporada. */
+function abreModelosDeTemporada() {
+  modeloEscolhido = 'livre';
+  desenhaModelos();
+  $('#modalTemporada').classList.remove('oculto');
+}
+
+function fechaModelosDeTemporada() {
+  $('#modalTemporada').classList.add('oculto');
+}
+
+function desenhaModelos() {
+  $('#modelosFichas').innerHTML = MODELOS_DE_TEMPORADA.map((m) => (
+    '<button class="ficha' + (m.id === modeloEscolhido ? ' ativa' : '') +
+    '" data-modelo="' + m.id + '">' + escapaHTML(m.nome) + '</button>'
+  )).join('');
+
+  const m = MODELOS_DE_TEMPORADA.find((x) => x.id === modeloEscolhido);
+  $('#modeloResumo').textContent = m.resumo;
+  $('#campoModeloInicio').closest('.campo-modelo').classList.toggle('oculto', m.campos.indexOf('inicio') === -1);
+  $('#campoModeloFim').closest('.campo-modelo').classList.toggle('oculto', m.campos.indexOf('fim') === -1);
+  $('#campoModeloQuantas').closest('.campo-modelo').classList.toggle('oculto', m.campos.indexOf('quantas') === -1);
+  if (!$('#campoModeloInicio').value) $('#campoModeloInicio').value = chaveHoje();
+  if (!$('#campoModeloNome').value) $('#campoModeloNome').value = sugereNomeDeTemporada();
+}
+
+function sugereNomeDeTemporada() {
+  const ano = new Date().getFullYear();
+  const n = estado.temporadas.filter((t) => String(t.criadaEm).slice(0, 4) === String(ano)).length + 1;
+  return 'Temporada ' + ano + (n > 1 ? '/' + n : '');
+}
+
+/** Cria a temporada do modelo escolhido, já com as Copas dentro. */
+function criaTemporadaDoModelo() {
+  const m = MODELOS_DE_TEMPORADA.find((x) => x.id === modeloEscolhido);
+  const nome = $('#campoModeloNome').value.trim() || sugereNomeDeTemporada();
+  const inicio = m.campos.indexOf('inicio') !== -1
+    ? ($('#campoModeloInicio').value || chaveHoje())
+    : chaveHoje();
+
+  let fatias = [];
+
+  if (m.id === 'prova') {
+    const fim = $('#campoModeloFim').value;
+    if (!fim) { avisa('Temporada', 'Escolhe a data da prova pra eu montar a Mini Copa.'); return; }
+    const dias = diasEntre(inicio, fim) + 1;
+    if (dias < COPA_DIAS_MIN) {
+      avisa('Temporada', 'Faltam menos de ' + COPA_DIAS_MIN + ' dias pra prova. A Copa mais curta tem ' + COPA_DIAS_MIN + ' dias — dá pra abrir na mão se tu quiser mesmo assim.');
+      return;
+    }
+    fatias = fatiaPeriodo(inicio, fim, dias > COPA_DIAS_MAX ? COPA_FATIA : dias);
+  } else if (m.id === 'semestre') {
+    const fim = $('#campoModeloFim').value;
+    if (!fim) { avisa('Temporada', 'Escolhe o fim do semestre.'); return; }
+    if (diasEntre(inicio, fim) < 0) { avisa('Temporada', 'O fim tem que vir depois do início.'); return; }
+    fatias = fatiaPeriodo(inicio, fim, COPA_FATIA);
+  } else if (m.id === 'concurso') {
+    const quantas = Math.min(24, Math.max(1, Number($('#campoModeloQuantas').value) || 3));
+    fatias = fatiasSeguidas(inicio, quantas, 30);
+  } else {
+    fatias = fatiasSeguidas(inicio, m.copas, m.dias);
+  }
+
+  if (!fatias.length) { avisa('Temporada', 'Não consegui montar as Copas com essas datas.'); return; }
+
+  const temporada = criaTemporada(nome, m.id);
+  fatias.forEach((f, i) => {
+    estado.ciclos.push(copaNova(
+      fatias.length === 1 ? nome : m.rotulo + ' ' + (i + 1),
+      f.inicio, f.fim, temporada.id
+    ));
+  });
+  temporadaAberta = temporada.id;
+  capituloAberto = null;
+  sincronizaAlbum(false);
+  salvaEstado();
+  fechaModelosDeTemporada();
+  atualizaTudo();
+  vaiPara('album');
+  avisa('Temporada', fala('temporadaNova', { nome: nome, n: fatias.length }), true);
+}
+
+/** Objeto de Copa novo, já com o álbum montado. */
+function copaNova(nome, inicio, fim, temporadaId) {
+  const copa = {
+    id: idNovo(), nome: nome, inicio: inicio, fimPrevisto: fim,
+    fimReal: null, congelado: null, temporadaId: temporadaId || null
+  };
+  garanteAlbum(copa);
+  return copa;
+}
+
+/** Divide uma faixa de datas em fatias de no máximo `tamanho` dias. */
+function fatiaPeriodo(inicio, fim, tamanho) {
+  const total = diasEntre(inicio, fim) + 1;
+  if (total <= 0) return [];
+  const quantas = Math.max(1, Math.ceil(total / tamanho));
+  const base = Math.floor(total / quantas);
+  const sobra = total % quantas;
+  const fatias = [];
+  let cursor = inicio;
+  for (let i = 0; i < quantas; i++) {
+    const dias = base + (i < sobra ? 1 : 0);
+    if (dias <= 0) break;
+    fatias.push({ inicio: cursor, fim: chaveMais(cursor, dias - 1) });
+    cursor = chaveMais(cursor, dias);
+  }
+  return fatias;
+}
+
+/** N fatias seguidas de tamanho fixo, a partir de uma data. */
+function fatiasSeguidas(inicio, quantas, dias) {
+  const fatias = [];
+  let cursor = inicio;
+  for (let i = 0; i < quantas; i++) {
+    fatias.push({ inicio: cursor, fim: chaveMais(cursor, dias - 1) });
+    cursor = chaveMais(cursor, dias);
+  }
+  return fatias;
+}
+
+/* ---------- Eventos do Álbum e da Temporada ---------- */
+
+$('#albumTemporadas').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-temporada]');
+  if (!bt) return;
+  temporadaAberta = bt.dataset.temporada;
+  capituloAberto = null;
+  desenhaAlbum();
+});
+
+$('#albumCapitulos').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-capitulo]');
+  if (!bt) return;
+  capituloAberto = bt.dataset.capitulo;
+  desenhaAlbum();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+$('#btAbrirPacote').addEventListener('click', () => {
+  const ciclo = copaDoAlbum();
+  if (ciclo) abreRevelacao(ciclo);
+});
+
+$('#btAlbumComecar').addEventListener('click', abreModelosDeTemporada);
+
+$('#albumPaginas').addEventListener('click', (ev) => {
+  const taca = ev.target.closest('[data-taca]');
+  if (!taca) return;
+  const c = estado.ciclos.find((x) => x.id === taca.dataset.taca);
+  if (c) abreCartaoDaTaca(c);
+});
+
+$('#btPularRevelacao').addEventListener('click', () => {
+  limpaTemposRevelacao();
+  mostraPassoDaRevelacao('fim');
+});
+
+/* Fechar a revelação por fora não custa figurinha: elas já foram coladas
+   antes de a tela abrir. */
+$('#revelacao').addEventListener('click', (ev) => {
+  if (ev.target === $('#revelacao') || ev.target.classList.contains('revelacao-fundo')) fechaRevelacao();
+});
+
+/* Esc no teclado e Voltar do Android fecham a sobreposição, não o app.
+   O Copeiro roda instalado em tela cheia, onde Voltar é o gesto natural. */
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Escape') return;
+  if (revelacao) { fechaRevelacao(); return; }
+  if (!$('#modalTemporada').classList.contains('oculto')) fechaModelosDeTemporada();
+});
+
+window.addEventListener('popstate', () => {
+  if (revelacao) fechaRevelacao();
+});
+
+/* ---- Temporada ---- */
+$('#btNovaTemporada').addEventListener('click', abreModelosDeTemporada);
+$('#btCancelarTemporada').addEventListener('click', fechaModelosDeTemporada);
+$('#btCriarTemporada').addEventListener('click', criaTemporadaDoModelo);
+
+$('#modelosFichas').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-modelo]');
+  if (!bt) return;
+  modeloEscolhido = bt.dataset.modelo;
+  desenhaModelos();
+});
+
+/* ---- Copas da temporada: editar e ver o capítulo ---- */
+function abreCapituloNoAlbum(id) {
+  const c = estado.ciclos.find((x) => x.id === id);
+  if (!c) return;
+  temporadaAberta = c.temporadaId;
+  capituloAberto = c.id;
+  desenhaAlbum();
+  vaiPara('album');
+}
+
+$('#temporadaCorpo').addEventListener('click', (ev) => {
+  const ver = ev.target.closest('[data-ver-copa]');
+  if (ver) { abreCapituloNoAlbum(ver.dataset.verCopa); return; }
+  const editar = ev.target.closest('[data-editar-copa]');
+  if (editar) {
+    copaEmEdicao = editar.dataset.editarCopa;
+    desenhaEstante();
+    $('#cicloNome').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+
+$('#estante').addEventListener('click', (ev) => {
+  const ver = ev.target.closest('[data-ver-copa]');
+  if (!ver) return;
+  ev.preventDefault();
+  abreCapituloNoAlbum(ver.dataset.verCopa);
+});
+
+$('#btNovaCopa').addEventListener('click', () => {
+  copaEmEdicao = 'nova';
+  desenhaEstante();
+  $('#cicloNome').focus();
+});
+
+$('#cicloInicio').addEventListener('change', desenhaDicaDaCopa);
+$('#cicloFim').addEventListener('change', desenhaDicaDaCopa);
+
+/* ---- Comemoração do Álbum: som, vibração e animação ---- */
+$('#fichasFestejo').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('.ficha[data-festejo]');
+  if (!bt) return;
+  const chave = bt.dataset.festejo;
+  estado.prefs[chave] = (estado.prefs[chave] === false);
+  salvaEstado();
+  aplicaPreferenciaDeAnimacao();
+  desenhaFoco();
+});
+
 /* ---- Início ---- */
 function inicia() {
   carregaEstado();
   pedePersistencia();             // pede ao Android pra não descartar os dados
   sincronizaMarcasEmSilencio();   // acerta recordes/marcos sem comemorar coisa velha
+  // O álbum avança pelo calendário: pacote liberado com o app fechado está
+  // esperando aqui. Silencioso, pra não festejar conquista de semana passada.
+  sincronizaAlbum(false);
+  aplicaPreferenciaDeAnimacao();
   desenhaSaudacao();
   atualizaTudo();
   desenhaTimer();

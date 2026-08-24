@@ -18,6 +18,90 @@
     "#FFFFFF"
   ],
   "frases": {
+    "pacoteGanho": [
+      "Pacote conquistado, Davi. Sangue azul.",
+      "Caiu pacote novo — abre na hora que der.",
+      "Sua campanha ganhou mais uma página.",
+      "Pacote no bolso, copeiro.",
+      "Isso valeu pacote, Davi.",
+      "Tem figurinha tricolor te esperando.",
+      "Pacote garantido. Sem pressa nenhuma.",
+      "O Álbum mexeu, Davi.",
+      "Trabalho feito, pacote na conta.",
+      "Mais um pacote pra campanha."
+    ],
+    "pacoteAberto": [
+      "Pacote aberto, Davi.",
+      "Olha o que veio aí.",
+      "Duas novas pra campanha tricolor.",
+      "Chegaram, copeiro.",
+      "Página nova no Álbum.",
+      "Direto pro papel.",
+      "Colou bonito, Davi.",
+      "Essas duas são tuas.",
+      "Álbum mais cheio.",
+      "Boa. Mais duas na coleção."
+    ],
+    "figurinhaColada": [
+      "{fig} colada em {pagina}.",
+      "{fig} entrou pra {pagina}, Davi.",
+      "{pagina} ganhou a {fig}.",
+      "{fig} no lugar dela.",
+      "Colada: {fig}.",
+      "{fig} agora é tua, copeiro.",
+      "Mais uma em {pagina}.",
+      "{fig} fechou o espaço dela."
+    ],
+    "especialGanha": [
+      "{fig} conquistada, Davi.",
+      "Especial na conta: {fig}.",
+      "Isso é {fig}, puro tricolor.",
+      "{fig} — dessas não caem toda hora.",
+      "Bateu {fig}, copeiro.",
+      "{fig} garantida no papel.",
+      "Especial no Álbum: {fig}.",
+      "{fig}. Merecida."
+    ],
+    "copaFechada": [
+      "Capítulo fechado: {nome}.",
+      "{nome} virou página do Álbum.",
+      "Fim de Copa. {nome} fica guardada, Davi.",
+      "{nome} entrou pro Álbum pra sempre.",
+      "A taça de {nome} já está colada.",
+      "Capítulo {nome} encerrado. Foi copeiro.",
+      "{nome} fechou. Ninguém tira isso de ti.",
+      "Mais um capítulo no Álbum: {nome}."
+    ],
+    "albumCheio": [
+      "Capítulo completo, Davi. {pct}%.",
+      "Álbum cheio: nenhum espaço vazio.",
+      "{pct}% — campanha inteira, copeiro.",
+      "Fechou o capítulo todo.",
+      "Tudo colado. Sangue azul.",
+      "Capítulo redondo: {pct}%.",
+      "Coleção completa. Poucos chegam aí, Davi.",
+      "Não sobrou espaço. {pct}% de campanha."
+    ],
+    "prorrogacao": [
+      "Prorrogação em campo. Tempo extra vale.",
+      "Tempo extra: cada dia ativo ainda traz pacote.",
+      "A Copa deu prorrogação, copeiro.",
+      "Ainda dá pra somar, Davi.",
+      "Prorrogação: jogo aberto do mesmo jeito.",
+      "Tempo extra rolando, sem pressa.",
+      "A bola ainda está em jogo.",
+      "Prorrogação — daqui pra frente é lucro."
+    ],
+    "temporadaNova": [
+      "Temporada aberta: {nome}.",
+      "{nome} começando. Álbum limpo, Davi.",
+      "Bola no centro: {nome}.",
+      "{nome} no ar. Os capítulos esperam.",
+      "Álbum novo pra {nome}, copeiro.",
+      "Temporada {nome} escalada.",
+      "Começa {nome}. Página um.",
+      "{nome} entrou em campo."
+    ],
     "manha": [
       "Bom dia, Davi. Dia de copar.",
       "Levanta que a bola vai rolar, Davi.",
