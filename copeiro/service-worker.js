@@ -6,10 +6,12 @@
    só é consultada quando o arquivo não está no cache.
 
    Para publicar uma versão nova, basta trocar o número em VERSAO: o
-   service worker novo instala, limpa os caches antigos e assume o controle.
+   service worker novo instala e guarda tudo. Assumir o controle é outra
+   história — quem escolhe a hora é a página, e o porquê está em
+   esperaAVezOuAssume(), mais abaixo.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v13';
+const VERSAO = 'copeiro-v14';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */
@@ -32,9 +34,52 @@ self.addEventListener('install', (evento) => {
       // Se um arquivo falhar (offline na primeira visita, por exemplo),
       // a instalação não é abortada: o que der certo já fica guardado.
       .catch((erro) => console.warn('[copeiro] cache parcial na instalação:', erro))
-      .then(() => self.skipWaiting())
+      .then(esperaAVezOuAssume)
   );
+  // Sem skipWaiting de propósito. Assumir aqui apagaria o cache antigo debaixo
+  // de uma tela que ainda está rodando o código velho, e daí em diante cada
+  // busca traria arquivo de outra versão — frase com {nome} cru, arte que a
+  // função antiga não sabe desenhar. Quem manda assumir é a página, quando
+  // recarregar não custa nada. Na primeira visita não existe worker no ar, e
+  // aí a ativação é imediata de qualquer jeito.
 });
+
+/* ---- Conversa com a página ---- */
+let paginaCuidaDaTroca = false;
+let paginaFalou;
+const esperaAPagina = new Promise((avisa) => { paginaFalou = avisa; });
+
+self.addEventListener('message', (evento) => {
+  const dado = evento.data || {};
+  // "Eu sei escolher a hora de trocar" — só telas desta versão em diante.
+  if (dado.tipo === 'euCuido' || dado.tipo === 'assumir') {
+    paginaCuidaDaTroca = true;
+    paginaFalou();          // solta a espera na hora: o aviso não pode atrasar
+  }
+  if (dado.tipo === 'assumir') self.skipWaiting();
+});
+
+/**
+ * Esperar a página pedir é o certo, mas só funciona com uma página que saiba
+ * pedir. Toda tela publicada antes desta versão não sabe: o worker ficaria
+ * esperando até o app fechar por inteiro, e uma aba esquecida aberta seguraria
+ * a atualização por tempo indeterminado. Então são dez segundos de cortesia —
+ * se ninguém se apresentou, assume do mesmo jeito.
+ *
+ * Sem janela nenhuma aberta não há o que combinar: a ativação já é imediata.
+ */
+function esperaAVezOuAssume() {
+  return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    .then((janelas) => {
+      if (!janelas.length) return;
+      // Corrida: quem chegar primeiro decide. Uma tela que se apresenta encerra
+      // a espera no mesmo instante — senão a instalação ficaria dez segundos
+      // pendurada e o aviso de versão nova só apareceria depois deles.
+      return Promise.race([esperaAPagina, new Promise((pronto) => setTimeout(pronto, 10000))])
+        .then(() => { if (!paginaCuidaDaTroca) return self.skipWaiting(); });
+    })
+    .catch(() => self.skipWaiting());
+}
 
 /* ---- Ativação: remove caches de versões anteriores ---- */
 self.addEventListener('activate', (evento) => {

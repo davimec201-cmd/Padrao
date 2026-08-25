@@ -498,6 +498,38 @@ Pages (passo a passo abaixo).
 O service worker exige HTTPS — o GitHub Pages já serve em HTTPS, então nada a
 configurar. Todos os caminhos são relativos: funciona em qualquer subpasta.
 
+Publicar é só mesclar na `main` e trocar o número em `VERSAO`, no
+`service-worker.js`. Sem isso o app instalado continua servindo o cache antigo,
+por mais que o repositório esteja atualizado.
+
+#### Como a versão nova chega no aparelho
+
+O cache é *offline-first*: o app abre do disco e só olha a rede quando falta
+arquivo. Isso é o que faz ele funcionar no ônibus, e é também o que faria uma
+publicação nova demorar a aparecer. O caminho é este:
+
+1. Ao voltar pro app — no máximo uma vez a cada 15 minutos — a tela pergunta se
+   tem versão nova. Sem isso, um PWA que vive em segundo plano poderia passar
+   semanas na versão de antes.
+2. Achando, o worker novo **baixa tudo e espera**. Ele não assume na hora de
+   propósito: a ativação apaga o cache antigo, e uma tela ainda rodando o
+   código velho passaria a receber arquivo da versão nova — frase com `{nome}`
+   cru, arte que a função antiga não sabe desenhar.
+3. Quem escolhe a hora é a tela. Com o app em segundo plano e nada em
+   andamento, a troca acontece sozinha e a próxima abertura já é a nova. Com o
+   app na frente, aparece o ponto na aba **Mais** e a linha *Atualizar o
+   Copeiro*, que troca no toque.
+4. **Bloco rodando não troca**, nem sozinho nem no toque: o alarme depende de
+   um áudio que já está tocando, e depois de recarregar o navegador só libera
+   som com um toque — o fim do bloco chegaria mudo. A linha aparece assim que o
+   bloco acaba. Camada aberta também segura, pra não sumir com o que o Davi
+   está fazendo.
+
+Telas publicadas **antes** desta versão não sabem conversar com o worker novo.
+Para elas existem dez segundos de cortesia: se ninguém se apresentar, o worker
+assume mesmo assim, e a atualização aparece na abertura seguinte. É o preço de
+uma única troca — a partir desta versão, a conversa acontece.
+
 #### Instalar no tablet Android
 
 1. Abrir o endereço acima no **Chrome** do tablet.

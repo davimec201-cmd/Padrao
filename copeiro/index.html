@@ -6986,7 +6986,9 @@ function desenhaSelosDaBarra() {
     const selo = bt.querySelector('.selo-aba');
     if (!selo) return;
     if (bt.dataset.tela === 'mais') {
-      const quantos = pendenciasEmMais().length;
+      // Versão nova esperando é pendência de Mais como qualquer outra: o
+      // ponto é a única coisa que o Davi vê enquanto estuda.
+      const quantos = pendenciasEmMais().length + (temVersaoNovaPronta() ? 1 : 0);
       selo.textContent = '';
       selo.classList.toggle('oculto', quantos === 0);
       selo.classList.add('selo-ponto');
@@ -7043,6 +7045,15 @@ function desenhaMais() {
     .filter((m) => m.grupo === grupo && naBarra.indexOf(m.id) === -1);
 
   let html = '';
+  // Versão nova é o único item passageiro desta página, e por isso abre a
+  // lista: enfiada no meio das ferramentas fixas, o ponto da aba mandaria o
+  // Davi pra uma tela onde a novidade está abaixo da dobra.
+  if (temVersaoNovaPronta()) {
+    html += '<div class="cartao"><div class="lista-mais">' +
+      linhaDeMais('versao', 'Atualizar o Copeiro',
+        'Versão nova já baixada, pronta pra entrar.', true) +
+      '</div></div>';
+  }
   [['Estudos', 'estudos'], ['Campanha', 'campanha']].forEach(([titulo, grupo]) => {
     const itens = fora(grupo);
     if (!itens.length) return;      // grupo vazio não vira cartão vazio
@@ -7580,6 +7591,7 @@ document.addEventListener('click', (ev) => {
   const ir = ev.target.closest('[data-ir]');
   if (!ir) return;
   const destino = ir.dataset.ir;
+  if (destino === 'versao') { aplicaVersaoNova(); return; }
   if (destino.indexOf('cat:') === 0) { vaiPara('config', destino.slice(4)); return; }
   if (destino.indexOf('config:') === 0) { vaiPara('config', destino.slice(7)); return; }
   vaiPara(destino);
@@ -7781,6 +7793,132 @@ window.addEventListener('popstate', (ev) => {
   vaiPara(alvo || 'foco', (ev.state && ev.state.extra) || null, true);
 });
 
+/* ---- Service worker: é ele que faz o app abrir sem internet ---- */
+
+/**
+ * Publicar versão nova não pode depender do Davi lembrar de fechar o app.
+ *
+ * O worker novo baixa tudo e espera. Quem manda ele assumir é esta tela: no
+ * toque da linha "Atualizar o Copeiro", em Mais, ou sozinha quando o app sai
+ * da frente. Depois que ele assume, o navegador avisa por controllerchange e
+ * a página recarrega.
+ */
+const BUSCA_VERSAO_MS = 15 * 60 * 1000;   // procura publicação nova, no máximo
+let trabalhadorEsperando = null;
+let vigiaDaVersao = null;
+let trocaPedida = false;
+let jaRecarregou = false;
+let versaoAnunciada = false;
+
+/**
+ * Recarregar no meio de um bloco é o único caso que custa caro: o alarme
+ * depende de um áudio que já está tocando, e depois do recarregamento o
+ * navegador só libera som com um toque — o fim do bloco chegaria mudo. Com
+ * camada aberta também não, que o Davi perderia o que estava fazendo.
+ */
+function podeTrocarDeVersao() {
+  if (estado.timer) return false;
+  if (folha) return false;
+  if (typeof revelacao !== 'undefined' && revelacao) return false;
+  if (!$('#modal').classList.contains('oculto')) return false;
+  if (!$('#modalTemporada').classList.contains('oculto')) return false;
+  return true;
+}
+
+/** Versão nova baixada e em hora boa de entrar. */
+function temVersaoNovaPronta() {
+  return !!trabalhadorEsperando && podeTrocarDeVersao();
+}
+
+function anunciaVersaoNova(trabalhador) {
+  if (trabalhadorEsperando) return;
+  trabalhadorEsperando = trabalhador;
+  avaliaVersaoNova();
+  // O bloco pode acabar a qualquer momento; a vigia mostra a linha na hora
+  // certa sem pendurar nada no desenho do app.
+  if (!vigiaDaVersao) vigiaDaVersao = setInterval(avaliaVersaoNova, 5000);
+}
+
+function avaliaVersaoNova() {
+  if (!trabalhadorEsperando) return;
+  const pronta = temVersaoNovaPronta();
+  if (pronta !== versaoAnunciada) {
+    versaoAnunciada = pronta;
+    desenhaSelosDaBarra();
+    if (telaAtual === 'mais') desenhaMais();
+    if (pronta) anuncia('Tem uma versão nova do Copeiro pronta, em Mais.');
+  }
+  // Fora da frente e sem nada em andamento: troca sozinha, ninguém perde nada.
+  if (pronta && document.visibilityState !== 'visible') aplicaVersaoNova();
+}
+
+function aplicaVersaoNova() {
+  if (!trabalhadorEsperando || trocaPedida) return;
+  trocaPedida = true;
+  if (vigiaDaVersao) { clearInterval(vigiaDaVersao); vigiaDaVersao = null; }
+  trabalhadorEsperando.postMessage({ tipo: 'assumir' });
+  // Reserva: se o worker não responder, recarregar resolve na mesma — no pior
+  // caso o cache velho volta e a linha reaparece.
+  setTimeout(() => { if (!jaRecarregou) { jaRecarregou = true; location.reload(); } }, 3000);
+}
+
+function cuidaDaAtualizacao(reg) {
+  if (!reg) return;
+
+  /**
+   * Acompanha um worker novo do começo ao fim.
+   *
+   * O "euCuido" vai já: sem ele o worker assume sozinho depois de dez segundos
+   * — o certo pra uma tela publicada antes desta versão, errado pra esta.
+   *
+   * 'installed' com controlador no ar é atualização; sem controlador é a
+   * primeira visita, e aí não há versão velha pra avisar que trocou.
+   */
+  const acompanha = (novo) => {
+    if (!novo) return;
+    try { novo.postMessage({ tipo: 'euCuido' }); } catch (erro) { /* segue */ }
+    const confere = () => {
+      if (novo.state === 'installed' && navigator.serviceWorker.controller) anunciaVersaoNova(novo);
+    };
+    confere();
+    novo.addEventListener('statechange', confere);
+  };
+
+  // O navegador procura versão nova durante a navegação, antes desta linha
+  // rodar: quando a tela é pesada, 'updatefound' já passou e o worker novo está
+  // aqui esperando. Por isso os dois estados são olhados na entrada.
+  acompanha(reg.waiting);
+  acompanha(reg.installing);
+  reg.addEventListener('updatefound', () => acompanha(reg.installing));
+
+  // Sem isto o app só descobriria a publicação numa abertura fria: um PWA que
+  // vive em segundo plano poderia passar semanas na versão de antes.
+  let ultimaBusca = Date.now();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (Date.now() - ultimaBusca < BUSCA_VERSAO_MS) return;
+    ultimaBusca = Date.now();
+    reg.update().catch(() => { /* sem rede: fica pra próxima */ });
+  });
+}
+
+if ('serviceWorker' in navigator) {
+  // Guardado antes de qualquer troca: numa primeira visita não há controlador,
+  // e o claim() do worker recém-instalado não pode virar recarregamento à toa.
+  const jaTinhaControlador = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!jaTinhaControlador || jaRecarregou) return;
+    jaRecarregou = true;
+    location.reload();
+  });
+  document.addEventListener('visibilitychange', avaliaVersaoNova);
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(cuidaDaAtualizacao)
+      .catch((erro) => console.warn('[copeiro] service worker não registrou:', erro));
+  });
+}
+
 /* ---- Início ---- */
 function inicia() {
   carregaEstado();
@@ -7809,13 +7947,6 @@ function garanteAudioUmaVez() { garanteAudio(); agendaAlarmeDoTimer(); }
 
 inicia();
 
-/* ---- Service worker: é ele que faz o app abrir sem internet ---- */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .catch((erro) => console.warn('[copeiro] service worker não registrou:', erro));
-  });
-}
 </script>
 </body>
 </html>
