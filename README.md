@@ -134,6 +134,85 @@ arquivos, nenhuma dependência: `index.html` (HTML + CSS + JS embutidos),
 `manifest.webmanifest`, `service-worker.js` e os dois ícones PNG. Depois de
 instalado, funciona 100% offline.
 
+#### Como se navega
+
+Cinco posições fixas na barra, sem rolagem lateral:
+
+```
+Foco | Cartas | Progresso | Álbum | Mais
+```
+
+**Foco** e **Mais** nunca saem e nunca se movem. As três do meio são do Davi:
+`Mais → Organizar abas` troca e reordena (arrastando pelo punho, ou com as
+setas, que também respondem ao teclado), salva na hora e nunca aceita duas abas
+iguais. As candidatas são Cartas, Progresso, Álbum, Histórico, Campeonato e
+Estante.
+
+**Mais** é aba de verdade, não menu escondido: lista vertical com nome,
+descrição de uma linha e a linha inteira clicável, agrupada em Estudos,
+Campanha e Aplicativo. Nada fica inacessível por sair da barra — o que sai,
+aparece ali. Na barra, "Campeonato" vira **Tabela**: cinco fatias iguais a
+320 px não comportam a palavra inteira, e cortar rótulo está fora de questão.
+
+Quem já usava o app vê uma vez, ancorada na aba Mais, a dica de onde as coisas
+foram. Instalação nova nasce sem ela — não há nada pra migrar.
+
+Um ponto discreto sobre um módulo avisa que ele tem algo pedindo ação: pacote
+fechado no Álbum (com o número), fila de cartas do dia, capítulo esperando a
+taça. Se o módulo está na barra o ponto fica nele; se está em Mais, sobe pra
+Mais e se repete na linha de dentro. Ele some quando a **função** é visitada,
+não quando Mais é aberto — e a assinatura é monotônica ou datada de propósito:
+contagem de saldo voltaria ao valor antigo e o aviso sumiria pra sempre no caso
+mais comum.
+
+#### A tela de Foco
+
+Cinco elementos e mais nada: relógio, assunto, duração, ação e o resumo do dia.
+
+```
+              PRONTO
+              30:00
+           Estudo livre
+
+   [Estudo livre]   [30 min]
+
+            Começar
+
+       Hoje: 45 min · 2 blocos
+```
+
+Assunto e duração ficam atrás de um toque, cada um abrindo uma folha que fecha
+na escolha. O assunto nunca é obrigatório e o padrão é "Estudo livre". A duração
+escolhida vira o novo padrão. Sem estudo no dia: "Seu primeiro bloco abre o
+jogo." **Sequência de dias seguidos saiu da tela principal** — ela vive no
+Progresso, sem ameaça de perda.
+
+Os botões dizem o que fazem e só existem quando fazem alguma coisa:
+
+| Estado | Principal | Secundário |
+|---|---|---|
+| Pronto | Começar | — |
+| Foco rodando | Pausar | Encerrar bloco |
+| Foco pausado | Retomar | Encerrar bloco |
+| Pausa rodando | Voltar ao foco | Encerrar descanso |
+| Pausa parada | Retomar descanso | Voltar ao foco |
+
+Nada de "Zerar" e "Pular" apagados ocupando lugar. **Encerrar bloco** registra
+o tempo realmente estudado e diz o número: "Bloco encerrado com 18 minutos
+registrados." Bloco de menos de um minuto sai sem cerimônia e sem registro —
+é o toque acidental. Apagar registro segue no Histórico.
+
+O cabeçalho é compacto: `Copa 1 — Cardio · dia 8 de 40`. Sem campanha, ele diz
+"Estudo livre" — ausência de Copa não é pendência nem erro.
+
+#### Configurações
+
+Tudo que é permanente saiu da tela de Foco e virou `Mais → Configurações`, em
+cinco categorias que abrem uma por vez: **Foco e pausas**, **Avisos e
+concentração**, **Aparência e identidade** (inclusive como o app te chama — as
+frases dos temas usam `{nome}`), **Navegação** e **Dados** (backup, que saiu do
+Histórico).
+
 #### O que ele faz
 
 | Parte | Como funciona |
@@ -152,6 +231,21 @@ instalado, funciona 100% offline.
 
 Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
 murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
+
+#### Acessibilidade e tela
+
+A barra cabe sem rolagem lateral a partir de 320 px (cinco fatias iguais, fonte
+que encolhe antes de qualquer corte) e a primeira dobra da tela de Foco entrega
+relógio, assunto, duração e o botão Começar sem rolar num 320×568. A aba ativa
+tem `aria-current="page"`, cápsula preenchida, peso de fonte e uma barra em
+`currentColor` — que sobrevive ao contraste forçado do sistema. Foco de teclado
+visível em todo controle, com halo claro pra o anel nunca cair contra o próprio
+fundo. Esc e o Voltar do Android fecham a camada de cima em vez de sair do app,
+e a navegação empilha história: `Configurações → Mais → Foco`. `inert` tira o
+fundo da ordem de tabulação enquanto uma folha está aberta. A cor primária
+ganhou duas derivadas (`--primaria-texto`, `--primaria-forte`) porque a pura dá
+4,32:1 sobre branco no tema tricolor: passa em texto grande e reprova em texto
+normal.
 
 #### O Álbum da Copa
 
