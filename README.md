@@ -167,62 +167,140 @@ mais comum.
 
 #### A tela de Foco
 
-Cinco elementos e mais nada: relógio, assunto, duração, ação e o resumo do dia.
+Uma partida vista do meio-campo. O cronômetro **é** o círculo central, e todo o
+resto do painel é atmosfera: linha do meio, laterais do gramado, arcos de
+escanteio, silhueta de arquibancada no rodapé e dois refletores apagados nos
+cantos. Tudo em CSS, tudo com `aria-hidden`, e **nada se mexe** — a única
+animação da tela são os refletores acendendo por 1 segundo quando o bloco fecha.
 
 ```
-              PRONTO
-              30:00
-           Estudo livre
+ faixa fina com as cores do time
+          PARTIDA DE FOCO
 
-   [Estudo livre]   [30 min]
+   [Estudo livre]      [30 min]
 
-            Começar
+        ───────────┼───────────
+                 30:00
+        ───────────┼───────────
 
-       Hoje: 45 min · 2 blocos
+          [Entrar em campo]
+        [Aquecimento · 10 min]
+
+        O próximo bloco já conta.
+─────────────────────────────────────
+ Pausas e intervalo          Ajustar
+ Pausa 5 min · Intervalo 15 min ·
+ após 3 blocos
 ```
 
-Assunto e duração ficam atrás de um toque, cada um abrindo uma folha que fecha
-na escolha. O assunto nunca é obrigatório e o padrão é "Estudo livre". A duração
-escolhida vira o novo padrão. Sem estudo no dia: "Seu primeiro bloco abre o
-jogo." **Sequência de dias seguidos saiu da tela principal** — ela vive no
-Progresso, sem ameaça de perda.
+O painel ocupa de 60% a 75% da primeira dobra: o vazio se resolve por
+composição e escala, não por mais números. Assunto e duração ficam atrás de um
+toque, cada um abrindo uma folha que fecha na escolha. O assunto nunca é
+obrigatório e o padrão é "Estudo livre". A duração escolhida vira o novo padrão,
+e **Aquecimento · 10 min** é uma entrada curta que não mexe nesse padrão.
+**Sequência de dias seguidos saiu da tela principal** — ela vive no Progresso,
+sem ameaça de perda.
 
 Os botões dizem o que fazem e só existem quando fazem alguma coisa:
 
-| Estado | Principal | Secundário |
-|---|---|---|
-| Pronto | Começar | — |
-| Foco rodando | Pausar | Encerrar bloco |
-| Foco pausado | Retomar | Encerrar bloco |
-| Pausa rodando | Voltar ao foco | Encerrar descanso |
-| Pausa parada | Retomar descanso | Voltar ao foco |
+| Estado | Título | Principal | Secundário |
+|---|---|---|---|
+| Pronto | Partida de foco | Entrar em campo | — |
+| Foco rodando | Em campo | Pausar | Encerrar bloco |
+| Foco pausado | Foco pausado | Retomar | Encerrar bloco |
+| Pausa rodando | Pausa / Intervalo | Voltar ao foco | Pausar descanso / intervalo |
+| Pausa parada | Pausa parada / Intervalo parado | Retomar descanso / intervalo | Voltar ao foco |
 
 Nada de "Zerar" e "Pular" apagados ocupando lugar. **Encerrar bloco** registra
-o tempo realmente estudado e diz o número: "Bloco encerrado com 18 minutos
-registrados." Bloco de menos de um minuto sai sem cerimônia e sem registro —
-é o toque acidental. Apagar registro segue no Histórico.
+o tempo realmente estudado: "Bloco encerrado: 0h18". Bloco de menos de um minuto
+sai sem cerimônia e sem registro — é o toque acidental. Apagar registro segue no
+Histórico. Bloco cumprido fecha em "Bloco concluído: 0h40", com três saídas:
+iniciar a pausa, começar outro bloco ou ver o progresso.
 
 O cabeçalho é compacto: `Copa 1 — Cardio · dia 8 de 40`. Sem campanha, ele diz
 "Estudo livre" — ausência de Copa não é pendência nem erro.
 
+##### Pausas e intervalo, na própria tela
+
+Pausa curta, intervalo e blocos até o intervalo são ajuste de todo dia, então
+moram embaixo do painel — não dentro de Configurações. O cartão nasce compacto,
+com o resumo numa linha, e **Ajustar** abre os três controles ali mesmo. No
+tablet deitado eles ficam lado a lado; em pé e no celular, empilhados.
+
+| Ajuste | Faixa | Passo |
+|---|---|---|
+| Pausa curta | 1 a 30 min | 1 |
+| Intervalo | 5 a 60 min | 5 |
+| Blocos até o intervalo | 2 a 8 | 1 |
+
+Salva no toque, sem botão "Salvar". O botão que não muda nada fica desligado, e
+o resumo se atualiza na hora. Começar um bloco recolhe o cartão sem alterar
+valor nenhum, e o resumo continua visível durante o foco. **Mudança não mexe em
+pausa já iniciada**: o timer guarda a própria duração ao começar, então o ajuste
+vale da próxima em diante — e o app diz isso numa confirmação discreta. Os
+mesmos valores continuam espelhados em Configurações.
+
+##### Progresso do dia: discreto por padrão
+
+A tela de ação não cobra nada antes do estudo. Em `Mais → Configurações → Foco e
+pausas`:
+
+| Modo | O que a tela de Foco mostra |
+|---|---|
+| **Discreto** (padrão) | "O próximo bloco já conta." — e, depois do primeiro bloco, "Você já entrou em campo hoje." Nenhum número. |
+| Oculto | Nada sobre o dia. |
+| Completo | `Hoje: 3h40 · 5 blocos`. |
+
+Em nenhum modo aparece comparação com recorde, meta ou com ontem.
+
+#### Todo tempo acumulado é hora
+
+Uma função só formata **todo** tempo que representa acúmulo, estatística ou
+resultado — total do dia, da semana, vitalício, recordes, mapa anual, figurinhas
+de registro, Estante, Campeonato e relatórios:
+
+```javascript
+formataTempoAcumulado(0)     // "0h"
+formataTempoAcumulado(40)    // "0h40"
+formataTempoAcumulado(60)    // "1h"
+formataTempoAcumulado(185)   // "3h05"
+formataTempoAcumulado(7580)  // "126h20"
+```
+
+A hora vem sempre na frente, inclusive abaixo de uma hora: "0h40" diz de cara
+que é pouco tempo, enquanto "40min" obriga a converter de cabeça toda vez que
+aparece ao lado de "3h40". Hora cheia sai sem os minutos. Nada de `220 min` nem
+de `3,7h`. `descreveTempoAcumulado` devolve o mesmo tempo por extenso — "3 horas
+e 40 minutos" — para o leitor de tela.
+
+Ficam de fora, porque são **configuração ou contagem regressiva**, não acúmulo:
+o cronômetro (`30:00`), a duração escolhida do bloco (`30 min`), a entrada curta
+(`10 min`), a pausa (`5 min`), o intervalo (`15 min`) e os controles que somam ou
+subtraem esses valores.
+
+O armazenamento não mudou: continua em minutos inteiros, e só a camada de
+apresentação foi trocada. `testesDeFormatacao()` roda na abertura e reclama no
+console se zero, menos de uma hora, hora exata, minuto de um dígito ou total
+grande sair do combinado.
+
 #### Configurações
 
 Tudo que é permanente saiu da tela de Foco e virou `Mais → Configurações`, em
-cinco categorias que abrem uma por vez: **Foco e pausas**, **Avisos e
-concentração**, **Aparência e identidade** (inclusive como o app te chama — as
-frases dos temas usam `{nome}`), **Navegação** e **Dados** (backup, que saiu do
-Histórico).
+cinco categorias que abrem uma por vez: **Foco e pausas** (duração padrão, o
+espelho das pausas e o progresso na tela de Foco), **Avisos e concentração**,
+**Aparência e identidade** (inclusive como o app te chama — as frases dos temas
+usam `{nome}`), **Navegação** e **Dados** (backup, que saiu do Histórico).
 
 #### O que ele faz
 
 | Parte | Como funciona |
 |---|---|
-| **Timer** | Foco de 15, 25, 30 ou 50 min (padrão 30). Pausa curta e intervalo com duração editável, e um contador de focos que decide qual das duas entra — por padrão 5 min de pausa, 15 min de intervalo a cada 3 focos. Toda pausa é livre. Iniciar, pausar, retomar, zerar, pular. |
+| **Timer** | Foco de 15, 25, 30 ou 50 min (padrão 30), mais a entrada curta de 10 min. Pausa curta e intervalo com duração editável **na própria tela de Foco**, e um contador de blocos que decide qual das duas entra — por padrão 5 min de pausa, 15 min de intervalo a cada 3 blocos. Toda pausa é livre. Iniciar, pausar, retomar, zerar, pular. |
 | **Relógio real** | O tempo vem de `Date.now()`, nunca de contagem de ticks: com a tela apagada ou o app em segundo plano o bloco não atrasa, e um bloco que terminou com o app fechado é fechado na volta com o horário certo. |
 | **Alarme** | Gerado sem arquivo de som: toque de gol no fim do foco, apito de árbitro começando o jogo no fim da pausa. Para avisar com o app fora da tela, o toque vai **gravado dentro de uma trilha silenciosa**, que o tocador de mídia leva até o fim mesmo com a página congelada. Três modos: desligado (música intacta), só nos 2 minutos finais (padrão) ou o bloco inteiro. O bloco aparece na barra de notificação, uma notificação avisa no fim, vibra quando o aparelho tem vibração, e o Wake Lock mantém a tela acesa durante o bloco, onde houver suporte. |
 | **Bloquear o que distrai** | Antes de cada bloco o app pergunta se o Modo Foco do Android está ligado — bloquear aplicativo é coisa que só o sistema faz, e nenhuma página da web consegue. O lembrete tem três saídas: começar, sair pra ligar, ou nunca mais perguntar. |
 | **Temporadas e Copas** | Uma Temporada é o álbum inteiro; cada **Copa** dentro dela é um capítulo. Nome, início e fim previsto são os únicos dados obrigatórios. Todo bloco entra automaticamente na Copa de hoje. Ao encerrar, as estatísticas congelam e a Copa vai para a Estante. |
-| **Álbum da Copa** | A coleção da temporada: 18 figurinhas na Mini Copa, 30 na Copa padrão, todas visíveis com nome e critério desde o primeiro dia. Pacotes de 2, sem repetidas, liberados por estudo **e** por passagem do tempo. Ver abaixo. |
+| **Álbum da Copa** | Um caderno de figurinhas folheado página a página, duas por vez no tablet deitado: 18 figurinhas na Mini Copa, 30 na Copa padrão, todas visíveis com número, nome e critério desde o primeiro dia. Pacotes de 2, sem repetidas, liberados por estudo **e** por passagem do tempo. Ver abaixo. |
 | **Assunto** | Campo com autocompletar pelos assuntos do ciclo atual e atalho para os 5 últimos. Fica visível durante o bloco. |
 | **Histórico** | Hoje, últimos 7 dias em barras, lista completa com opção de corrigir o assunto ou apagar o registro, exportar e importar tudo em JSON. |
 | **Cartas** | Flashcards com prazo: escada de 1, 2, 4, 8 e 16 dias, teto pela data da prova e reta final nos últimos 3 dias. Travei / Quase / Mandei bem, lacunas com `{{chaves}}`, revisão livre fora da fila e edição de qualquer campo, inclusive degrau e data. Ao encerrar o ciclo, o baralho é guardado junto com ele. |
@@ -236,7 +314,13 @@ murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
 
 A barra cabe sem rolagem lateral a partir de 320 px (cinco fatias iguais, fonte
 que encolhe antes de qualquer corte) e a primeira dobra da tela de Foco entrega
-relógio, assunto, duração e o botão Começar sem rolar num 320×568. A aba ativa
+relógio, assunto, duração e o botão **Entrar em campo** sem rolar num 320×568.
+Campo, estádio e refletores são decoração declarada (`aria-hidden`) e nenhum
+dado depende deles. Cada figurinha anuncia número, nome, estado e condição; a
+página aberta do caderno é anunciada ao virar; as setas dizem "Página anterior"
+e "Próxima página"; os controles de pausa têm rótulo completo com o passo ("em
+5 minutos"); e todo tempo compacto carrega a leitura por extenso ("3 horas e 40
+minutos"). A aba ativa
 tem `aria-current="page"`, cápsula preenchida, peso de fonte e uma barra em
 `currentColor` — que sobrevive ao contraste forçado do sistema. Foco de teclado
 visível em todo controle, com halo claro pra o anel nunca cair contra o próprio
@@ -256,6 +340,77 @@ O laço é: começar o bloco → estudar com o app no bolso → o bloco fecha �
 ganhar progresso ou pacote → voltar quando quiser → abrir → ver o próximo
 marco.
 
+##### É um caderno, não um painel
+
+A temporada inteira é **um caderno de figurinhas**, folheado página a página.
+No tablet deitado abre em duas páginas com a dobra no meio; no tablet em pé e
+no celular, uma página de cada vez.
+
+```
+┌────────────────────────┬────────────────────────┐
+│      PALCO DA COPA     │     NOSSA TORCIDA      │
+│                        │                        │
+│    [1]   [2]   [3]     │    [6]   [7]   [8]     │
+│    [4]   [5]           │    [9]   [10]          │
+│                        │                        │
+│ página 4               │              página 5  │
+└────────────────────────┴────────────────────────┘
+                         ↑
+                   dobra central
+```
+
+A ordem das folhas é a de um álbum de banca:
+
+| # | Folha | Guarda figurinha? |
+|---|---|---|
+| 1 | Capa da Temporada | não |
+| 2 | Índice das Copas | não |
+| 3 | Divisória da Copa | não |
+| 4–9 | as seis páginas do capítulo | sim |
+| 10 | Encerramento da Copa (a taça) | sim |
+| … | divisória e páginas da Copa seguinte | |
+| fim | Retrospectiva da Temporada | não |
+
+A **capa** traz nome da temporada, apelido do Davi, período, número da edição,
+o selo do Copeiro e o preenchimento do álbum inteiro — mas ninguém é obrigado a
+passar por ela: o caderno **abre na última página visitada**, guardada por
+temporada. Capa e Índice estão a um toque na barra de navegação.
+
+O **índice** lista as Copas com estado, período e a contagem no positivo —
+`24 de 30`, nunca "6 perdidas" —, e um toque cai direto na divisória do
+capítulo. A **divisória** abre o capítulo com o número, o período, a fase, a
+barra de preenchimento e o próximo marco. O **encerramento** guarda a taça com
+os números do capítulo, e a **retrospectiva** fecha a temporada somando todas as
+Copas.
+
+Vira-se a página por gesto horizontal, pelas setas (alvo de 56 px), pelas setas
+do teclado ou pelo índice. A virada dura 220 ms e é uma folha leve, sem
+simulação 3D; com `prefers-reduced-motion` ou animações desligadas, a folha só
+troca. Só a folha aberta é montada — nada de trinta páginas no DOM.
+
+O papel é marfim, nunca branco estourado, com textura de 2% a 4% de contraste;
+a dobra é sombra interna, não faixa preta; as cores do time aparecem em
+títulos, filetes, números e bordas, e o interior fica em torno de 80% de
+superfície neutra. Nenhuma informação depende de enxergar papel, dobra ou
+sombra.
+
+##### O estado de cada espaço
+
+- **Vazio** parece **impresso na folha**: contorno fino tracejado, número da
+  figurinha, silhueta em baixa opacidade, nome curto e o critério em letra
+  miúda. Sem cadeado, sem cinza de punição, sem "perdida" e sem vermelho.
+- **No pacote** mantém o espaço impresso e diz que a figurinha já é do Davi,
+  esperando abertura — a arte continua escondida até abrir.
+- **Colada** tem arte cheia, borda de papel impresso, sombra curta e uma
+  inclinação mínima em parte das figurinhas: colada na mão nunca sai reta, mas
+  o caderno não pode virar bagunça.
+- **Em jogo** e **Resultado final** são os registros, com o valor grande.
+
+Um toque em qualquer espaço abre a figurinha ampliada sem sair da página, com o
+número, a página onde mora, a data da conquista ou a condição por extenso. Nos
+especiais e na taça o brilho holográfico acontece **na revelação**, e acaba
+nela: nada fica piscando no álbum.
+
 ##### A coleção é fixa e visível desde o primeiro dia
 
 Cada Copa é um capítulo com seis páginas, sempre as mesmas — dá pra comparar
@@ -270,6 +425,9 @@ uma Copa com a outra:
 | Números da Copa | 6 registros | 4 |
 | Momentos Decisivos | 3 especiais + a taça | idem |
 | **total** | **30 figurinhas** | **18** |
+
+A taça é contada nas seis páginas, mas **mora na folha de Encerramento** — é o
+lugar dela na estrutura do caderno.
 
 Todo espaço aparece desde o dia 1 com silhueta, nome e o critério de como se
 preenche. Nada é surpresa; a única coisa que varia é a **ordem** em que as
@@ -373,8 +531,10 @@ selo discreto na aba Álbum e uma linha no aviso de bloco concluído. Abrir é
 quando o Davi quiser.
 
 A abertura dura no máximo 5 segundos, tem "Pular" sempre à mão, revela as duas
-figurinhas com nome e página, oferece "Colar todas" num toque e fecha
-mostrando o progresso e o requisito exato do próximo pacote. As figurinhas são
+figurinhas com número, nome e página, oferece "Colar todas" num toque e fecha
+mostrando o progresso e o requisito exato do próximo pacote. **Ver no Álbum**
+abre o caderno já na página da primeira figurinha do pacote, pra não ter que
+procurar onde ela foi parar. As figurinhas são
 coladas e salvas **antes** de qualquer animação: sair no meio, o app morrer, o
 tablet dormir — nada custa pacote. Som, vibração e animação são desligáveis na
 tela Foco, e a tela respeita `prefers-reduced-motion`. Esc e o botão Voltar do

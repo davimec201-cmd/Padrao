@@ -186,6 +186,8 @@ input:focus,select:focus{border-color:var(--primaria)}
 
 /* ---------- Timer ---------- */
 .anel svg{width:100%;height:100%;transform:rotate(-90deg)}
+/* O miolo dá volume ao círculo central sem roubar leitura do número. */
+.anel .miolo{fill:var(--card);opacity:.86}
 .anel .trilho{fill:none;stroke:var(--trilho);stroke-width:11}
 .anel .progresso{
   fill:none;stroke:var(--primaria);stroke-width:11;stroke-linecap:round;
@@ -463,31 +465,155 @@ input:focus,select:focus{border-color:var(--primaria)}
 .fig svg .t4{fill:var(--fig-4)}
 .fig svg .linha{fill:none;stroke:var(--fig-linha);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 
-/* ---------- Páginas do álbum ---------- */
-.album-paginas{display:grid;gap:16px}
-.album-pagina{
-  background:var(--card);border:1px solid var(--linha);border-radius:var(--raio);
-  box-shadow:var(--sombra);padding:16px;overflow:hidden;
+/* ---------- O caderno aberto ----------
+   Marfim, nunca branco estourado. A textura fica entre 2% e 4% de contraste,
+   então some quando o Davi não presta atenção nela — que é o ponto. Nenhuma
+   informação depende de enxergar papel, dobra ou sombra. */
+.caderno{
+  --papel-album:color-mix(in srgb,var(--clara) 94%,var(--ouro-clara));
+  position:relative;
 }
-.album-pagina-topo{
+@supports not (color:color-mix(in srgb,red,blue)){ .caderno{--papel-album:#FDFCF7} }
+
+.caderno-folhas{display:grid;gap:0;position:relative}
+
+.folha-album{
+  position:relative;display:flex;flex-direction:column;min-width:0;
+  background:var(--papel-album);
+  background-image:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.022) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.016) 0 1px,transparent 1px 4px);
+  border:1px solid var(--linha);border-radius:var(--raio);
+  box-shadow:var(--sombra);
+  padding:clamp(14px,3.4vw,26px);
+  min-height:clamp(360px,58vh,720px);
+}
+.folha-album h3{font-size:1.05rem;min-width:0;color:var(--tinta)}
+
+/* Cabeçalho e rodapé de página: filete e número na cor do time. */
+.folha-topo{
   display:flex;align-items:baseline;justify-content:space-between;gap:12px;
-  padding-bottom:11px;margin-bottom:14px;border-bottom:1px solid var(--linha);
+  padding-bottom:10px;margin-bottom:14px;border-bottom:2px solid var(--primaria-borda);
 }
-.album-pagina-topo h3{font-size:1rem;min-width:0}
-.album-pagina-topo span{
+.folha-topo .folha-conta{
   font-size:.76rem;font-weight:800;color:var(--suave);white-space:nowrap;
   text-transform:uppercase;letter-spacing:.6px;font-variant-numeric:tabular-nums;
 }
-.album-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}
+.folha-pe{
+  margin-top:auto;padding-top:12px;font-size:.72rem;font-weight:800;
+  letter-spacing:1.2px;text-transform:uppercase;color:var(--suave);
+  font-variant-numeric:tabular-nums;
+}
+.folha-album.par .folha-pe{text-align:left}
+.folha-album.impar .folha-pe{text-align:right}
+
+/* Caderno aberto: duas folhas coladas, com a dobra por sombra interna. */
+@media (orientation:landscape) and (min-width:900px){
+  .caderno-folhas.aberto{grid-template-columns:1fr 1fr}
+  .caderno-folhas.aberto .folha-album{min-height:clamp(420px,64vh,760px)}
+  .caderno-folhas.aberto .folha-album.par{
+    border-right:0;border-radius:var(--raio) 0 0 var(--raio);
+    padding-right:clamp(26px,4vw,44px);
+    box-shadow:var(--sombra),inset -14px 0 18px -14px rgba(0,0,0,.28);
+  }
+  .caderno-folhas.aberto .folha-album.impar{
+    border-left:0;border-radius:0 var(--raio) var(--raio) 0;
+    padding-left:clamp(26px,4vw,44px);
+    box-shadow:var(--sombra),inset 14px 0 18px -14px rgba(0,0,0,.28);
+  }
+}
+
+/* Virar a folha: leve, entre 180 e 260 ms, e nada de simulação 3D. */
+@keyframes folha-vira-frente{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes folha-vira-tras{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+.caderno-folhas.virando-frente .folha-album{animation:folha-vira-frente .22s ease-out}
+.caderno-folhas.virando-tras .folha-album{animation:folha-vira-tras .22s ease-out}
+
+/* ---------- Navegação do caderno ---------- */
+.caderno-nav{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-top:14px;
+}
+.seta-pagina{
+  flex:0 0 auto;min-width:var(--toque);min-height:var(--toque);
+  border:1px solid var(--linha);border-radius:14px;background:var(--card);
+  color:var(--primaria-texto);font-size:1.7rem;line-height:1;cursor:pointer;
+}
+.seta-pagina:disabled{opacity:.4;cursor:default;color:var(--suave)}
+.caderno-nav .bt{min-height:var(--toque)}
+.caderno-conta{
+  margin-left:auto;font-size:.9rem;font-weight:800;color:var(--suave);
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- Capa ---------- */
+.folha-capa{align-items:center;justify-content:center;text-align:center;gap:6px}
+.folha-capa .capa-faixas{
+  position:absolute;top:0;left:0;right:0;border-radius:var(--raio) var(--raio) 0 0;
+}
+.folha-capa{padding-top:clamp(34px,7vw,58px)}
+.capa-edicao{
+  font-size:.72rem;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--primaria);
+}
+.folha-capa h3{font-size:clamp(1.5rem,5.4vw,2.3rem);line-height:1.1;margin:8px 0}
+.capa-dono{font-size:1.02rem;font-weight:700;color:var(--tinta);margin:0}
+.capa-periodo{font-size:.9rem;color:var(--suave);margin:2px 0 0}
+.capa-selo{
+  display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:7px 15px;
+  border:2px solid var(--primaria-borda);border-radius:999px;
+  font-size:.78rem;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--primaria-texto);
+}
+.capa-selo .losango{width:20px;height:20px}
+.capa-progresso{margin-top:20px;width:min(280px,100%)}
+.capa-progresso .album-barra{margin-top:8px}
+.capa-progresso p{margin:0;font-size:.82rem;font-weight:700;color:var(--suave)}
+
+/* ---------- Índice ---------- */
+.indice-lista{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.indice-lista li{border-bottom:1px dotted var(--linha)}
+.indice-lista li:last-child{border-bottom:0}
+.indice-item{
+  display:flex;align-items:center;gap:12px;width:100%;min-height:var(--toque);
+  padding:10px 6px;border:0;background:none;text-align:left;cursor:pointer;color:var(--tinta);
+}
+.indice-num{
+  flex:0 0 auto;min-width:30px;font-size:.86rem;font-weight:800;
+  color:var(--primaria);font-variant-numeric:tabular-nums;
+}
+.indice-nome{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.indice-nome small{display:block;font-weight:600;font-size:.76rem;color:var(--suave)}
+.indice-conta{flex:0 0 auto;font-size:.86rem;font-weight:800;color:var(--suave);font-variant-numeric:tabular-nums}
+
+/* ---------- Divisória e encerramento ---------- */
+.folha-divisoria{justify-content:center;gap:4px}
+.divisoria-cap{
+  font-size:.74rem;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--primaria);
+}
+.folha-divisoria h3{font-size:clamp(1.35rem,4.6vw,2rem);line-height:1.15;margin:6px 0 2px}
+.divisoria-periodo{margin:0;font-size:.92rem;color:var(--suave)}
+.divisoria-selos{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.divisoria-marco{
+  margin:18px 0 0;padding:12px 14px;border-radius:12px;font-size:.9rem;
+  border:1px solid var(--linha);background:var(--card);color:var(--tinta);
+}
+.divisoria-marco b{display:block;font-size:.72rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--suave);margin-bottom:3px}
+.folha-encerramento .taca-dados{margin-top:16px}
+
+/* ---------- Páginas de figurinha ---------- */
+.album-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+@media (max-width:420px){ .album-grade{grid-template-columns:repeat(2,1fr)} }
 
 /* ---------- O espaço da figurinha ---------- */
 /* padding, color e font-size vêm escritos de propósito: .vazio (usado como
    estado do espaço) também é a classe do texto de lista vazia lá em cima. */
 .fig{
+  position:relative;
   display:flex;flex-direction:column;gap:6px;min-width:0;min-height:var(--toque);
   padding:8px;border:1px solid var(--linha);border-radius:14px;
   background:var(--papel);color:var(--tinta);font-size:.9rem;text-align:center;
+  cursor:pointer;
 }
+.fig:focus-visible{outline:3px solid var(--primaria);outline-offset:2px}
 .fig-quadro{
   position:relative;flex:0 0 auto;aspect-ratio:100/128;border-radius:10px;overflow:hidden;
   background:var(--card);border:1px solid var(--linha);
@@ -516,10 +642,43 @@ input:focus,select:focus{border-color:var(--primaria)}
 
 /* Estados. Selo discreto e acabamento sóbrio: nada de brilho permanente,
    nada de contagem regressiva, nada de vermelho. */
+
+/* Vazio: o espaço parece IMPRESSO na folha — contorno fino, número, silhueta
+   e a condição em letra miúda. Nada de cadeado, cinza de punição ou "perdida". */
+.fig.vazio{background:transparent;border-style:dashed;border-color:var(--primaria-borda)}
+.fig.vazio .fig-quadro{background:transparent;border-style:dashed}
+
 .fig.no-pacote{border-color:var(--primaria-borda);background:var(--primaria-fundo)}
 .fig.no-pacote .fig-selo{color:var(--primaria);border-color:var(--primaria-borda)}
-.fig.colada{background:var(--card)}
+
+/* Colada: papel impresso por cima da folha — borda clara, sombra curta e uma
+   inclinação mínima, só nas figurinhas de número ímpar, pra não virar bagunça. */
+.fig.colada{
+  background:var(--card);border-color:var(--linha);
+  box-shadow:0 2px 5px rgba(0,0,0,.13);
+}
 .fig.colada .fig-quadro{background:var(--papel)}
+.fig.colada.torta{transform:rotate(-.55deg)}
+.fig.colada.torta:nth-of-type(even){transform:rotate(.5deg)}
+
+/* Número impresso no canto do espaço: existe cheio ou vazio. */
+.fig-num{
+  position:absolute;top:5px;left:6px;z-index:1;
+  font-size:.66rem;font-weight:800;color:var(--primaria);
+  font-variant-numeric:tabular-nums;opacity:.8;
+}
+
+/* Especial: o brilho acontece ao revelar ou ao tocar, nunca em laço. */
+@keyframes fig-brilho{
+  from{transform:translateX(-120%) rotate(12deg)}
+  to{transform:translateX(220%) rotate(12deg)}
+}
+.fig.brilha .fig-quadro{position:relative;overflow:hidden}
+.fig.brilha::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:14px;
+  background:linear-gradient(100deg,transparent 42%,var(--clara) 50%,transparent 58%);
+  opacity:.75;animation:fig-brilho .85s ease-out;
+}
 .fig.em-jogo,.fig.final{background:var(--card)}
 .fig.em-jogo .fig-selo{color:var(--primaria);border-color:var(--primaria-borda);background:var(--primaria-fundo)}
 .fig.final .fig-selo{background:var(--tinta);border-color:var(--tinta);color:var(--clara)}
@@ -533,17 +692,9 @@ input:focus,select:focus{border-color:var(--primaria)}
 .fig.taca .fig-quadro{border-color:var(--ouro-clara)}
 .fig.taca .fig-data{color:var(--ouro)}
 
-/* ---------- Cabeçalho do capítulo ---------- */
-.album-topo{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
-.album-titulo{flex:1 1 200px;min-width:0}
-.album-temporada{
-  margin:0 0 2px;font-size:.74rem;font-weight:800;letter-spacing:1.4px;
-  text-transform:uppercase;color:var(--primaria);
-}
-.album-pct{display:flex;flex-direction:column;align-items:flex-end;gap:3px;margin-left:auto;text-align:right}
-.album-pct b{font-size:1.85rem;line-height:1;color:var(--tinta);font-variant-numeric:tabular-nums}
-/* só a contagem: o irmão span anterior é o selo de fase */
-.album-pct b+span{font-size:.78rem;color:var(--suave);white-space:nowrap}
+/* ---------- Divisória: selo, contagem e barra ---------- */
+.divisoria-selos b{font-size:1.5rem;line-height:1;color:var(--tinta);font-variant-numeric:tabular-nums}
+.divisoria-selos .sub{margin:0;font-size:.82rem;white-space:nowrap}
 /* Barra fina de coleção — quanto do capítulo está preenchido. Não é meta de horas. */
 .album-barra{height:7px;border-radius:999px;background:var(--trilho);overflow:hidden;margin-top:13px}
 .album-barra i{
@@ -555,10 +706,6 @@ input:focus,select:focus{border-color:var(--primaria)}
   margin:13px 0 0;padding:11px 14px;border-radius:12px;font-size:.92rem;font-weight:600;
   background:var(--primaria-fundo);border:1px solid var(--primaria-borda);color:var(--tinta);
 }
-/* Seletor de capítulo: fichas roláveis, uma linha só (é o .fichas depois da barra) */
-.album-barra ~ .fichas{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.album-barra ~ .fichas::-webkit-scrollbar{display:none}
-.album-barra ~ .fichas .ficha{flex:0 0 auto}
 .ficha small{margin-left:6px;font-weight:800;color:var(--suave);font-variant-numeric:tabular-nums}
 .ficha.ativa small{color:var(--clara)}
 
@@ -666,10 +813,8 @@ input:focus,select:focus{border-color:var(--primaria)}
 
 @media (min-width:600px){
   .album-grade{grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:12px}
-  .album-pct b{font-size:2.1rem}
 }
 @media (min-width:760px){
-  .album-pagina{padding:18px}
   .album-grade{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
   .fig{padding:10px;gap:7px}
   .revelacao-figs{gap:16px}
@@ -679,14 +824,16 @@ input:focus,select:focus{border-color:var(--primaria)}
 @media (prefers-reduced-motion:reduce){
   .revelacao,.revelacao-pacote,.revelacao-fig,.revelacao-progresso{animation:none}
   .album-barra i{transition:none}
+  /* Movimento reduzido tira a virada de página: a folha só troca. */
+  .caderno-folhas.virando-frente .folha-album,
+  .caderno-folhas.virando-tras .folha-album{animation:none}
+  .fig.brilha::after{animation:none}
 }
 /* ---------- Notas de escopo e cartão da taça ---------- */
 .album-pe-nota{
   margin:14px 0 0;padding-top:11px;border-top:1px solid var(--linha);
   font-size:.76rem;line-height:1.4;color:var(--suave);
 }
-.album-rodape .sub{font-size:.95rem;font-weight:600;color:var(--tinta)}
-.fig[data-taca]{cursor:pointer}
 /* Os seis dados da figurinha final, no cartão que se mostra pra alguém. */
 .taca-dados{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px 14px;
@@ -858,16 +1005,80 @@ body.sem-animacao .tela{animation:none}
   main{padding-top:12px}
 }
 
-/* ---------- Tela de Foco enxuta ---------- */
-/* Cinco elementos e mais nada: relógio, escolhas, ação e o resumo do dia.
-   O anel usa vh junto de vw pra primeira dobra caber num 320x568 sem rolagem. */
-.painel-foco{display:grid;gap:14px;justify-items:center}
-.foco-palco{display:flex;justify-content:center;width:100%}
-.anel{position:relative;width:min(58vw,39vh,320px);aspect-ratio:1}
-@supports (height:1svh){ .anel{width:min(58vw,39svh,320px)} }
+/* ---------- Tela de Foco: a partida vista do meio-campo ----------
+   O vazio se resolve por composição — campo, estádio e escala —, nunca por
+   mais números. O cronômetro segue sendo o maior elemento tipográfico da
+   tela, e nada aqui se mexe sozinho enquanto o bloco roda. */
+.painel-foco{
+  position:relative;overflow:hidden;
+  border:1px solid var(--linha);border-radius:var(--raio);box-shadow:var(--sombra);
+  background:linear-gradient(180deg,var(--card) 0%,var(--primaria-fundo) 100%);
+  min-height:clamp(300px,60vh,620px);
+  display:flex;flex-direction:column;
+}
+@supports (height:1svh){ .painel-foco{min-height:clamp(300px,60svh,620px)} }
+.painel-faixa{flex:0 0 auto}
 
-.foco-controles{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:440px}
-.foco-escolhas{display:flex;gap:10px;width:100%}
+/* O campo é decoração pura: nenhuma informação depende de enxergar isto. */
+.campo{position:absolute;inset:6px 0 0;pointer-events:none}
+/* Linha central atravessando o painel e as duas laterais do gramado.
+   A linha passa ATRÁS do cronômetro: o miolo do anel a cobre no meio, que é
+   exatamente o que acontece no círculo central de um campo de verdade. */
+.campo-linhas{
+  position:absolute;left:0;right:0;top:0;bottom:0;opacity:.11;
+  background:
+    /* linha do meio-campo */
+    linear-gradient(to bottom,transparent calc(50% - 1px),var(--tinta) calc(50% - 1px),var(--tinta) calc(50% + 1px),transparent calc(50% + 1px)),
+    /* laterais do gramado */
+    linear-gradient(to right,transparent calc(5% - 1px),var(--tinta) calc(5% - 1px),var(--tinta) calc(5% + 1px),transparent calc(5% + 1px)),
+    linear-gradient(to right,transparent calc(95% - 1px),var(--tinta) calc(95% - 1px),var(--tinta) calc(95% + 1px),transparent calc(95% + 1px));
+}
+/* Arcos de escanteio: dois quartos de círculo nos cantos de baixo. */
+.campo-linhas::before,.campo-linhas::after{
+  content:"";position:absolute;bottom:12%;width:34px;height:34px;
+  border:2px solid var(--tinta);opacity:.55;
+}
+.campo-linhas::before{left:5%;border-top:0;border-left:0;border-radius:0 0 34px 0;transform:translateX(-2px)}
+.campo-linhas::after{right:5%;border-top:0;border-right:0;border-radius:0 0 0 34px;transform:translateX(2px)}
+
+/* Silhueta de arquibancada no limite inferior: faixas paradas, sem torcida. */
+.arquibancada{
+  position:absolute;left:0;right:0;bottom:0;height:clamp(34px,9%,64px);
+  background:
+    repeating-linear-gradient(90deg,var(--tinta) 0 5px,transparent 5px 11px),
+    linear-gradient(180deg,transparent,var(--tinta));
+  opacity:.09;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 60%);
+          mask-image:linear-gradient(180deg,transparent,#000 60%);
+}
+
+/* Refletores apagados. Acendem por 1 s quando o bloco fecha, e só então. */
+.refletor{
+  position:absolute;top:10px;width:clamp(38px,11%,72px);height:clamp(38px,11%,72px);
+  border-radius:50%;opacity:.18;
+  background:radial-gradient(circle at 50% 40%,var(--primaria) 0%,transparent 68%);
+  transition:opacity .45s ease;
+}
+.refletor-esq{left:2%}
+.refletor-dir{right:2%}
+.painel-foco.acesos .refletor{opacity:.55}
+
+.foco-conteudo{
+  position:relative;z-index:1;flex:1;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:16px clamp(12px,4vw,22px) clamp(18px,5%,28px);
+}
+.foco-titulo{
+  margin:0;font-size:.8rem;font-weight:800;letter-spacing:2.6px;
+  text-transform:uppercase;color:var(--primaria-texto);text-align:center;
+}
+.painel-foco.em-pausa .foco-titulo{color:var(--tinta)}
+
+.foco-palco{display:flex;justify-content:center;width:100%;margin:auto 0}
+.anel{position:relative;width:min(58vw,36vh,320px);aspect-ratio:1}
+@supports (height:1svh){ .anel{width:min(58vw,36svh,320px)} }
+
+.foco-escolhas{display:flex;gap:10px;width:100%;max-width:440px}
 .escolha{
   display:flex;flex-direction:column;gap:2px;min-height:var(--toque);
   padding:8px 14px;border:1px solid var(--linha);border-radius:14px;
@@ -879,15 +1090,35 @@ body.sem-animacao .tela{animation:none}
 .escolha-rot{font-size:.68rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--suave)}
 .escolha-val{font-size:1rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.foco-acoes{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
-.foco-acoes .bt-grande{width:100%;max-width:320px}
+.foco-acoes{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:440px}
+.foco-acoes .bt-grande{width:100%;max-width:340px}
 .foco-acoes .bt-fantasma{min-height:44px;color:var(--suave)}
-.resumo-dia{margin:0;font-size:.95rem;font-weight:600;color:var(--suave);text-align:center}
+.resumo-dia{margin:0;font-size:.95rem;font-weight:600;color:var(--suave);text-align:center;min-height:1px}
+
+/* ---------- Cartão de pausas e intervalo ---------- */
+/* Compacto por padrão. O resumo nunca some — nem durante o bloco. */
+.cartao-pausas{margin-top:14px}
+.pausas-topo{display:flex;align-items:center;gap:12px}
+.pausas-topo h2{flex:1;min-width:0;font-size:1rem}
+.bt-ajustar{min-height:44px;padding:0 14px;color:var(--primaria-texto);font-weight:800}
+.pausas-resumo{margin:4px 0 0;font-size:.94rem;font-weight:600;color:var(--suave)}
+.ajustes-pausas{margin-top:14px}
+@media (orientation:landscape) and (min-width:900px){
+  .ajustes-pausas{grid-template-columns:repeat(3,1fr)}
+}
 
 @media (orientation:landscape) and (min-width:900px){
-  .painel-foco{grid-template-columns:auto minmax(320px,420px);align-items:center;justify-items:stretch;gap:32px}
-  .anel{width:min(38vw,52vh,360px)}
-  .foco-controles{max-width:none}
+  .foco-conteudo{
+    display:grid;grid-template-columns:auto minmax(300px,400px);
+    align-items:center;gap:0 32px;
+    grid-template-areas:"palco titulo" "palco escolhas" "palco acoes" "palco resumo";
+  }
+  .foco-titulo{grid-area:titulo;text-align:left}
+  .foco-escolhas{grid-area:escolhas}
+  .foco-palco{grid-area:palco;margin:0}
+  .foco-acoes{grid-area:acoes}
+  .resumo-dia{grid-area:resumo;text-align:left}
+  .anel{width:min(38vw,50vh,360px)}
 }
 
 /* ---------- Folha de escolha rápida ---------- */
@@ -917,6 +1148,10 @@ body.sem-animacao .tela{animation:none}
   .folha-caixa{animation:none}
 }
 body.sem-animacao .piscando{animation:none}
+body.sem-animacao .caderno-folhas.virando-frente .folha-album,
+body.sem-animacao .caderno-folhas.virando-tras .folha-album{animation:none}
+body.sem-animacao .fig.brilha::after{animation:none}
+body.sem-animacao .refletor{transition:none}
 body.sem-animacao .abas button,
 body.sem-animacao .vaga{transition:none}
 body.sem-animacao .folha-caixa{animation:none}
@@ -952,25 +1187,25 @@ body.sem-animacao .folha-caixa{animation:none}
 <main>
 
   <!-- ================= TELA: FOCO ================= -->
+  <!-- Uma partida vista do meio-campo: o cronômetro É o círculo central.
+       Tudo que decora leva aria-hidden e nada se mexe durante o bloco. -->
   <section class="tela" id="tela-foco">
-    <div class="painel-foco">
+    <div class="painel-foco" id="painelFoco">
 
-      <div class="foco-palco">
-        <div class="anel" id="anel">
-          <svg viewBox="0 0 200 200" aria-hidden="true">
-            <circle class="trilho" cx="100" cy="100" r="88"></circle>
-            <circle class="progresso" id="arcoProgresso" cx="100" cy="100" r="88"
-                    stroke-dasharray="552.92" stroke-dashoffset="0"></circle>
-          </svg>
-          <div class="anel-centro">
-            <div class="modo-rot" id="modoRotulo">Pronto</div>
-            <div class="tempo" id="tempoTexto" aria-live="off">30:00</div>
-            <div class="assunto-atual" id="assuntoAtual">Estudo livre</div>
-          </div>
-        </div>
+      <div class="faixas faixas-fina painel-faixa" aria-hidden="true"></div>
+
+      <!-- Campo e estádio: CSS puro, sem imagem e sem animação em laço -->
+      <div class="campo" aria-hidden="true">
+        <i class="refletor refletor-esq"></i>
+        <i class="refletor refletor-dir"></i>
+        <i class="campo-linhas"></i>
+        <i class="arquibancada"></i>
       </div>
 
-      <div class="foco-controles">
+      <div class="foco-conteudo">
+
+        <p class="foco-titulo" id="modoRotulo">Partida de foco</p>
+
         <div class="foco-escolhas">
           <button class="escolha escolha-assunto" id="btAssunto" aria-haspopup="dialog">
             <span class="escolha-rot">Assunto</span>
@@ -982,14 +1217,67 @@ body.sem-animacao .folha-caixa{animation:none}
           </button>
         </div>
 
+        <div class="foco-palco">
+          <div class="anel" id="anel">
+            <svg viewBox="0 0 200 200" aria-hidden="true">
+              <circle class="miolo" cx="100" cy="100" r="82"></circle>
+              <circle class="trilho" cx="100" cy="100" r="88"></circle>
+              <circle class="progresso" id="arcoProgresso" cx="100" cy="100" r="88"
+                      stroke-dasharray="552.92" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="anel-centro">
+              <div class="tempo" id="tempoTexto" aria-live="off">30:00</div>
+              <div class="assunto-atual" id="assuntoAtual">Estudo livre</div>
+            </div>
+          </div>
+        </div>
+
         <div class="foco-acoes">
-          <button class="bt bt-azul bt-grande" id="btPrincipal">Começar</button>
+          <button class="bt bt-azul bt-grande" id="btPrincipal">Entrar em campo</button>
           <button class="bt bt-fantasma oculto" id="btSecundario">Encerrar bloco</button>
+          <button class="bt bt-fantasma" id="btAquecimento">Aquecimento &middot; 10 min</button>
         </div>
 
         <p class="resumo-dia" id="resumoDia"></p>
-      </div>
 
+      </div>
+    </div>
+
+    <!-- Pausa curta, intervalo e blocos até o intervalo: ajuste de todo dia,
+         então mora aqui e não lá dentro de Configurações. -->
+    <div class="cartao cartao-pausas" id="cartaoPausas">
+      <div class="pausas-topo">
+        <h2>Pausas e intervalo</h2>
+        <button class="bt bt-fantasma bt-ajustar" id="btAjustarPausas"
+                aria-expanded="false" aria-controls="pausasExpandido">Ajustar</button>
+      </div>
+      <p class="pausas-resumo" id="resumoPausas"></p>
+      <div class="ajustes ajustes-pausas oculto" id="pausasExpandido">
+        <div class="ajuste">
+          <div class="ajuste-rot">Pausa curta</div>
+          <div class="passo">
+            <button class="bt-passo" data-ajuste="pausaCurta" data-delta="-1" aria-label="Diminuir a pausa curta em 1 minuto">&minus;</button>
+            <b id="valPausaCurtaFoco">5 min</b>
+            <button class="bt-passo" data-ajuste="pausaCurta" data-delta="1" aria-label="Aumentar a pausa curta em 1 minuto">+</button>
+          </div>
+        </div>
+        <div class="ajuste">
+          <div class="ajuste-rot">Intervalo</div>
+          <div class="passo">
+            <button class="bt-passo" data-ajuste="pausaLonga" data-delta="-5" aria-label="Diminuir o intervalo em 5 minutos">&minus;</button>
+            <b id="valPausaLongaFoco">15 min</b>
+            <button class="bt-passo" data-ajuste="pausaLonga" data-delta="5" aria-label="Aumentar o intervalo em 5 minutos">+</button>
+          </div>
+        </div>
+        <div class="ajuste">
+          <div class="ajuste-rot">Blocos até o intervalo</div>
+          <div class="passo">
+            <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="-1" aria-label="Diminuir os blocos até o intervalo">&minus;</button>
+            <b id="valFocosAteLongaFoco">3</b>
+            <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="1" aria-label="Aumentar os blocos até o intervalo">+</button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1007,25 +1295,22 @@ body.sem-animacao .folha-caixa{animation:none}
 
     <div id="albumConteudo">
 
-      <div class="cartao">
-        <div class="faixas faixas-fina" style="margin:-18px -18px 16px"></div>
-        <div class="fichas oculto" id="albumTemporadas" style="margin-bottom:14px"></div>
-        <div class="album-topo">
-          <div class="album-titulo">
-            <p class="album-temporada" id="albumTemporada"></p>
-            <h2 id="albumCopa"></h2>
-            <p class="sub" id="albumPeriodo"></p>
-          </div>
-          <div class="album-pct">
-            <span class="selo-fase" id="albumSelo"></span>
-            <b id="albumContagem">0 de 30</b>
-            <span id="albumPct">0%</span>
-          </div>
-        </div>
-        <div class="album-barra"><i id="albumBarra" style="width:0%"></i></div>
-        <p class="album-chamado oculto" id="albumChamado"></p>
-        <div class="fichas" id="albumCapitulos" style="margin-top:14px"></div>
+      <!-- Um caderno de figurinhas aberto: no tablet deitado são duas páginas
+           com a dobra no meio; no celular e no tablet em pé, uma de cada vez. -->
+      <div class="fichas oculto" id="albumTemporadas" style="margin-bottom:12px"></div>
+
+      <div class="caderno" id="caderno">
+        <div class="caderno-folhas" id="cadernoFolhas"></div>
       </div>
+
+      <nav class="caderno-nav" aria-label="Navegação do álbum">
+        <button class="seta-pagina" id="btPaginaAnterior" aria-label="Página anterior">&lsaquo;</button>
+        <button class="bt bt-fantasma" id="btIndiceAlbum">Índice</button>
+        <button class="bt bt-fantasma" id="btCapaAlbum">Capa</button>
+        <span class="caderno-conta" id="cadernoConta" aria-hidden="true"></span>
+        <button class="seta-pagina" id="btProximaPagina" aria-label="Próxima página">&rsaquo;</button>
+      </nav>
+      <p class="so-leitor" id="cadernoAnuncio" role="status" aria-live="polite"></p>
 
       <div class="cartao pacote-cartao" id="pacoteCartao">
         <div class="pacote-corpo">
@@ -1034,13 +1319,6 @@ body.sem-animacao .folha-caixa{animation:none}
           <p class="pacote-recado" id="pacoteRecado"></p>
         </div>
         <button class="bt bt-azul bt-grande oculto" id="btAbrirPacote">Abrir pacote</button>
-      </div>
-
-      <div class="album-paginas" id="albumPaginas"></div>
-
-      <div class="cartao album-rodape">
-        <h2>Próximo marco</h2>
-        <p class="sub" id="albumMarco"></p>
       </div>
 
     </div>
@@ -1443,14 +1721,22 @@ body.sem-animacao .folha-caixa{animation:none}
           </div>
         </div>
         <div class="ajuste">
-          <div class="ajuste-rot">Focos até o intervalo</div>
+          <div class="ajuste-rot">Blocos até o intervalo</div>
           <div class="passo">
-            <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="-1" aria-label="Diminuir os focos até o intervalo">&minus;</button>
+            <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="-1" aria-label="Diminuir os blocos até o intervalo">&minus;</button>
             <b id="valFocosAteLonga">3</b>
-            <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="1" aria-label="Aumentar os focos até o intervalo">+</button>
+            <button class="bt-passo" data-ajuste="focosAteLonga" data-delta="1" aria-label="Aumentar os blocos até o intervalo">+</button>
           </div>
         </div>
       </div>
+      <hr class="divisor">
+      <p class="sub" style="margin-top:18px;font-weight:700;color:var(--tinta)">Progresso na tela de Foco</p>
+      <div class="fichas" role="group" aria-label="Progresso na tela de Foco" id="fichasProgressoFoco" style="margin-top:8px">
+        <button class="ficha" data-progresso="discreto">Discreto</button>
+        <button class="ficha" data-progresso="oculto">Oculto</button>
+        <button class="ficha" data-progresso="completo">Completo</button>
+      </div>
+      <p class="sub" id="subProgressoFoco" style="margin-top:10px"></p>
     </div>
 
     <div class="cartao config-painel oculto" data-cat="avisos">
@@ -1681,18 +1967,56 @@ function dataCurta(chave) {
 }
 
 /** Minutos -> '1h20' ou '45min' */
-function fmtDuracao(min) {
-  min = Math.round(min);
-  if (min < 60) return min + 'min';
-  const h = Math.floor(min / 60), m = min % 60;
+/* ---------- O formato do tempo acumulado ----------
+   Uma função só para TODO tempo que representa acúmulo, estatística ou
+   resultado: total do dia, da semana, vitalício, recordes, mapa anual,
+   figurinhas de registro, Estante, Campeonato e relatórios.
+
+   A hora vem sempre na frente, inclusive abaixo de uma hora — "0h40" diz de
+   cara que é pouco tempo, enquanto "40min" obriga a converter de cabeça toda
+   vez que aparece ao lado de "3h40". Hora cheia sai sem os minutos: "3h", não
+   "3h00".
+
+   Contagem regressiva e duração escolhida NÃO passam por aqui: o cronômetro é
+   'mm:ss' e a configuração curta é '5 min'. Aquilo é ajuste, não acúmulo.
+
+   O armazenamento continua em minutos inteiros: isto é só a apresentação. */
+function formataTempoAcumulado(min) {
+  const total = Math.max(0, Math.round(Number(min) || 0));
+  const h = Math.floor(total / 60), m = total % 60;
   return m ? h + 'h' + doisDig(m) : h + 'h';
 }
 
-/** Minutos -> horas com uma casa ('12,5h') */
-function fmtHoras(min) {
-  const h = min / 60;
-  const txt = (h >= 100 ? Math.round(h) : Math.round(h * 10) / 10);
-  return String(txt).replace('.', ',') + 'h';
+/** O mesmo tempo por extenso, para leitor de tela: "3 horas e 40 minutos". */
+function descreveTempoAcumulado(min) {
+  const total = Math.max(0, Math.round(Number(min) || 0));
+  const h = Math.floor(total / 60), m = total % 60;
+  const partes = [];
+  if (h) partes.push(h + (h === 1 ? ' hora' : ' horas'));
+  if (m) partes.push(m + (m === 1 ? ' minuto' : ' minutos'));
+  if (!partes.length) return 'nenhum tempo';
+  return partes.join(' e ');
+}
+
+/** Troca todo "3h40" de um texto pela leitura por extenso, pro leitor de tela. */
+function tempoPorExtenso(txt) {
+  return String(txt).replace(/(\d+)h(\d{2})?/g, (todo, h, m) =>
+    descreveTempoAcumulado(Number(h) * 60 + Number(m || 0)));
+}
+
+/**
+ * Conferência do formato. Roda no início e só fala se algo sair do combinado:
+ * zero, menos de uma hora, hora exata, minutos de um dígito e total grande.
+ */
+function testesDeFormatacao() {
+  const casos = [
+    [0, '0h'], [5, '0h05'], [40, '0h40'], [59, '0h59'], [60, '1h'],
+    [65, '1h05'], [185, '3h05'], [220, '3h40'], [7580, '126h20']
+  ];
+  const falhas = casos.filter((c) => formataTempoAcumulado(c[0]) !== c[1])
+    .map((c) => c[0] + ' devia ser ' + c[1] + ' e saiu ' + formataTempoAcumulado(c[0]));
+  if (falhas.length && window.console) console.error('formataTempoAcumulado:', falhas.join('; '));
+  return falhas;
 }
 
 function horaDoDia(ts) {
@@ -1779,6 +2103,7 @@ function estadoNovo() {
       pausaCurta: 5,        // pausa entre blocos
       pausaLonga: 15,       // pausa maior, no fim do ciclo de focos
       focosAteLonga: 3,     // quantos focos até a pausa maior
+      progressoNoFoco: 'discreto',  // 'discreto' | 'oculto' | 'completo' (§ tela de Foco)
       tetoCartas: 20,       // sugestão de fila por dia — nunca trava nada
       somAlbum: true,       // som curto na abertura do pacote
       vibracao: true,       // vibração do app inteiro
@@ -2267,7 +2592,7 @@ const FRASES_BASE = {
     'Voltar é o mais difícil, e tu já fez, {nome}.',
     'A arquibancada tava te esperando, {nome}.',
     'De volta ao gramado, {nome}. Devagar e firme.',
-    'Jogo novo, {nome}. Placar zerado pra todo mundo.'
+    'Jogo novo, {nome}. O próximo bloco já conta.'
   ],
   lembreteFoco: [
     'Tranca o que te tira do jogo antes de entrar em campo.',
@@ -2923,15 +3248,17 @@ function comecaBloco(modo, minutos, assunto, longa) {
     cicloNome: ciclo ? ciclo.nome : null
   };
   salvaEstado();
+  pausasAbertas = false;              // recolher não altera nenhum ajuste
   garanteAudio();                     // aproveita o toque do usuário
   agendaAlarmeDoTimer();
   pedeTravaTela();
   ligaDesenho();
   desenhaTimer();
+  desenhaFoco();
 
   if (modo === 'foco') {
     avisa('Em campo', fala('iniciaBloco', {
-      assunto: estado.timer.assunto, min: fmtDuracao(minutos)
+      assunto: estado.timer.assunto, min: minutos + ' min'
     }));
   } else if (longa) {
     avisa('Intervalo', fala('pausaLonga'));
@@ -3052,7 +3379,7 @@ function terminaBloco(silencioso) {
     abreModal({
       titulo: t.longa ? 'Fim do intervalo' : 'Fim da pausa',
       frase: fala('fimPausa'),
-      detalhe: fmtDuracao(Math.round(t.duracaoMs / 60000)) + ' de descanso pagos. ' +
+      detalhe: Math.round(t.duracaoMs / 60000) + ' min de descanso pagos. ' +
                'Escolhe o próximo assunto e volta pro jogo.',
       botoes: [{ texto: 'Bora', tipo: 'bt-azul', acao: fechaModal }]
     });
@@ -3081,7 +3408,7 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
   tocaAlarmeDoFim('foco', silencioso);
   if (!silencioso) {
     vibra([300, 120, 300, 120, 500]);
-    notifica('Bloco copado — ' + fmtDuracao(minutos),
+    notifica('Bloco copado — ' + formataTempoAcumulado(minutos),
              assunto + '. Terminou às ' + horaDoDia(fim) + '.');
   }
 
@@ -3095,24 +3422,47 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
   desenhaTimer();
   atualizaTudo();
 
+  acendeOsRefletores();
+
+  // O total do dia só entra quando o Davi pediu o modo completo: no discreto
+  // e no oculto o fim do bloco festeja o bloco, e mais nada.
+  const doDia = modoDoProgressoNoFoco() === 'completo'
+    ? ' Hoje: ' + formataTempoAcumulado(minutosDoDia(chaveHoje())) + '.'
+    : '';
+
   abreModal({
     titulo: parcial
-      ? 'Bloco encerrado com ' + minutos + (minutos === 1 ? ' minuto registrado' : ' minutos registrados')
-      : fmtDuracao(minutos) + ' de foco',
-    frase: fala('concluiBloco', { min: fmtDuracao(minutos), assunto: assunto }),
-    detalhe: fmtDuracao(minutos) + ' em ' + escapaHTML(assunto) +
-             (cicloNome ? ' — ' + escapaHTML(cicloNome) : '') +
-             '. Hoje: ' + fmtDuracao(minutosDoDia(chaveHoje())) + '. ' + textoDoCicloDeFocos() +
+      ? 'Bloco encerrado: ' + formataTempoAcumulado(minutos)
+      : 'Bloco concluído: ' + formataTempoAcumulado(minutos),
+    frase: fala('concluiBloco', { min: formataTempoAcumulado(minutos), assunto: assunto }),
+    detalhe: formataTempoAcumulado(minutos) + ' em ' + escapaHTML(assunto) +
+             (cicloNome ? ' — ' + escapaHTML(cicloNome) : '') + '.' + doDia + ' ' + textoDoCicloDeFocos() +
              (doAlbum.pacotes ? ' <b>' + (doAlbum.pacotes === 1 ? 'Um pacote novo espera' : doAlbum.pacotes + ' pacotes novos esperam') + ' no Álbum.</b>' : ''),
     botoes: [
-      { texto: (pausaLongaAgora() ? 'Pausa longa de ' + estado.prefs.pausaLonga : 'Pausa de ' + estado.prefs.pausaCurta) + ' min',
+      { texto: 'Iniciar ' + (pausaLongaAgora() ? 'intervalo de ' + estado.prefs.pausaLonga : 'pausa de ' + estado.prefs.pausaCurta) + ' min',
         tipo: 'bt-azul', acao: () => { fechaModal(); comecaPausa(); } },
-      { texto: 'Direto pro próximo', tipo: '', acao: () => { fechaModal(); vaiPara('foco'); $('#campoAssunto').focus(); } }
+      { texto: 'Começar outro bloco', tipo: '', acao: () => { fechaModal(); vaiPara('foco'); abreFolhaDeAssunto(); } },
+      { texto: 'Ver progresso', tipo: 'bt-fantasma', acao: () => { fechaModal(); vaiPara('progresso'); } }
     ]
   });
 
   quebrados.forEach((texto) => avisa('Recorde', fala('recorde') + ' ' + texto, true));
   marcosNovos.forEach((h) => avisa('Marco', fala('marco', { h: h }), true));
+}
+
+/**
+ * Fim de bloco: os refletores do estádio acendem por cerca de 1 s.
+ * É o único movimento da tela de Foco, e ele não acontece durante o foco.
+ */
+let apagaRefletores = null;
+
+function acendeOsRefletores() {
+  if (!animacoesLigadas()) return;
+  const painel = $('#painelFoco');
+  if (!painel) return;
+  clearTimeout(apagaRefletores);
+  painel.classList.add('acesos');
+  apagaRefletores = setTimeout(() => painel.classList.remove('acesos'), 1000);
 }
 
 let vigiaDoFim = null;
@@ -3261,10 +3611,10 @@ function atualizaRecordes(antes) {
   };
   const quebrados = [];
   if (antes.dia > 0 && novos.dia > antes.dia) {
-    quebrados.push('Melhor dia agora é ' + fmtDuracao(novos.dia) + '.');
+    quebrados.push('Melhor dia agora é ' + formataTempoAcumulado(novos.dia) + '.');
   }
   if (antes.semana > 0 && novos.semana > antes.semana) {
-    quebrados.push('Melhor semana agora é ' + fmtDuracao(novos.semana) + '.');
+    quebrados.push('Melhor semana agora é ' + formataTempoAcumulado(novos.semana) + '.');
   }
   if (antes.sequencia > 0 && novos.sequencia > antes.sequencia) {
     quebrados.push('Sequência de ' + novos.sequencia + ' dias seguidos.');
@@ -3427,12 +3777,14 @@ function desenhaTimer() {
   arco.style.strokeDasharray = CIRCUNFERENCIA;
   arco.style.strokeDashoffset = CIRCUNFERENCIA * (1 - (total ? restante / total : 0));
 
-  $('#anel').classList.toggle('pausa', !!t && t.modo === 'pausa');
+  const emPausa = !!t && t.modo === 'pausa';
+  $('#anel').classList.toggle('pausa', emPausa);
+  $('#painelFoco').classList.toggle('em-pausa', emPausa);
 
   const rotulo = $('#modoRotulo');
-  if (!t) rotulo.textContent = 'Pronto';
-  else if (t.pausadoEm) rotulo.textContent = t.modo === 'foco' ? 'Foco parado' : (t.longa ? 'Intervalo parado' : 'Pausa parada');
-  else rotulo.textContent = t.modo === 'foco' ? 'Foco' : (t.longa ? 'Intervalo' : 'Pausa');
+  if (!t) rotulo.textContent = 'Partida de foco';
+  else if (t.pausadoEm) rotulo.textContent = t.modo === 'foco' ? 'Foco pausado' : (t.longa ? 'Intervalo parado' : 'Pausa parada');
+  else rotulo.textContent = t.modo === 'foco' ? 'Em campo' : (t.longa ? 'Intervalo' : 'Pausa');
   rotulo.classList.toggle('piscando', !!(t && t.pausadoEm));
 
   const assunto = $('#assuntoAtual');
@@ -3466,18 +3818,17 @@ function desenhaBotoesDoTimer() {
   let rotuloPrincipal, rotuloSegundo;
 
   if (!t) {
-    rotuloPrincipal = 'Começar';
+    rotuloPrincipal = 'Entrar em campo';
     rotuloSegundo = '';
   } else if (t.modo === 'foco') {
     rotuloPrincipal = t.pausadoEm ? 'Retomar' : 'Pausar';
     rotuloSegundo = 'Encerrar bloco';
   } else {
-    // "Pular" não dizia o que seria pulado. Agora "Voltar ao foco" faz o que
-    // promete — encerra o descanso e já começa o bloco — e o secundário é a
-    // saída pra simplesmente parar tudo, que senão não existiria.
+    // "Voltar ao foco" encerra o descanso e já começa o bloco. Parado, o
+    // primeiro botão retoma o próprio descanso e o segundo é a saída.
     const nome = t.longa ? 'intervalo' : 'descanso';
     rotuloPrincipal = t.pausadoEm ? 'Retomar ' + nome : 'Voltar ao foco';
-    rotuloSegundo = t.pausadoEm ? 'Voltar ao foco' : 'Encerrar ' + nome;
+    rotuloSegundo = t.pausadoEm ? 'Voltar ao foco' : 'Pausar ' + nome;
   }
 
   principal.textContent = rotuloPrincipal;
@@ -3505,7 +3856,7 @@ function desenhaSaudacao() {
   const dias = diasComEstudo(mapa);
   let texto;
   if (hoje > 0) {
-    texto = fala('jaEstudouHoje', { min: fmtDuracao(hoje) });
+    texto = fala('jaEstudouHoje', { min: formataTempoAcumulado(hoje) });
   } else if (dias.length && diasEntre(dias[dias.length - 1], chaveHoje()) >= 3) {
     texto = fala('retomada');          // volta depois de dias parados: nunca cobrança
   } else {
@@ -3537,7 +3888,7 @@ function textoDoCicloDeFocos() {
   const feitos = focosNoContador();
   const alvo = estado.prefs.focosAteLonga;
   if (feitos >= alvo) return 'A próxima pausa é o intervalo de ' + estado.prefs.pausaLonga + ' min.';
-  return 'Foco ' + (feitos + 1) + ' de ' + alvo + ' até o intervalo.';
+  return 'Bloco ' + (feitos + 1) + ' de ' + alvo + ' até o intervalo.';
 }
 
 /** Autocompletar do ciclo atual + atalhos para os 5 últimos assuntos. */
@@ -3550,12 +3901,12 @@ function desenhaHistorico() {
   const doDia = blocosDoDia(chaveHoje());
   const minHoje = doDia.reduce((s, b) => s + b.minutos, 0);
   $('#resumoHoje').textContent = doDia.length
-    ? fmtDuracao(minHoje) + ' em ' + doDia.length + (doDia.length === 1 ? ' bloco' : ' blocos')
+    ? formataTempoAcumulado(minHoje) + ' em ' + doDia.length + (doDia.length === 1 ? ' bloco' : ' blocos')
     : 'Nenhum bloco hoje ainda.';
   $('#listaHoje').innerHTML = doDia.length ? doDia.map((b) => (
     '<li><span class="hora">' + horaDoDia(b.fim || b.inicio) + '</span>' +
     '<span class="assunto">' + escapaHTML(b.assunto) + '</span>' +
-    '<span class="dur">' + fmtDuracao(b.minutos) + '</span>' +
+    '<span class="dur">' + formataTempoAcumulado(b.minutos) + '</span>' +
     '<button class="bt-editar" data-editar="' + b.id + '" title="Trocar o assunto">&#9998;</button></li>'
   )).join('') : '<li class="vazio">A lista de hoje começa no próximo bloco.</li>';
 
@@ -3575,7 +3926,7 @@ function desenhaSemana() {
   const nomes = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
   $('#resumoSemana').textContent = soma
-    ? fmtDuracao(soma) + ' nos últimos 7 dias — média de ' + fmtDuracao(soma / 7) + ' por dia.'
+    ? formataTempoAcumulado(soma) + ' nos últimos 7 dias — média de ' + formataTempoAcumulado(soma / 7) + ' por dia.'
     : 'Semana ainda em branco. Um bloco já muda isso.';
 
   $('#graficoSemana').innerHTML = dias.map((d) => {
@@ -3595,7 +3946,7 @@ function desenhaListaTudo() {
   const mostrados = todos.slice(0, quantosMostrar);
 
   $('#resumoTudo').textContent = todos.length
-    ? todos.length + (todos.length === 1 ? ' bloco registrado — ' : ' blocos registrados — ') + fmtHoras(totalMinutos()) + ' no total.'
+    ? todos.length + (todos.length === 1 ? ' bloco registrado — ' : ' blocos registrados — ') + formataTempoAcumulado(totalMinutos()) + ' no total.'
     : 'Nada registrado ainda.';
 
   let ultimoDia = null;
@@ -3605,13 +3956,13 @@ function desenhaListaTudo() {
     if (chave !== ultimoDia) {
       ultimoDia = chave;
       cabeca = '<li style="border-bottom:0;padding-bottom:2px"><b style="font-size:.82rem;letter-spacing:1px;text-transform:uppercase;color:var(--suave)">' +
-               dataCurta(chave) + ' · ' + fmtDuracao(minutosDoDia(chave)) + '</b></li>';
+               dataCurta(chave) + ' · ' + formataTempoAcumulado(minutosDoDia(chave)) + '</b></li>';
     }
     return cabeca +
       '<li><span class="hora">' + horaDoDia(b.fim || b.inicio) + '</span>' +
       '<span class="assunto">' + escapaHTML(b.assunto) +
       (b.cicloNome ? '<br><span class="ciclo">' + escapaHTML(b.cicloNome) + '</span>' : '') +
-      '</span><span class="dur">' + fmtDuracao(b.minutos) + '</span>' +
+      '</span><span class="dur">' + formataTempoAcumulado(b.minutos) + '</span>' +
       '<button class="bt-editar" data-editar="' + b.id + '" title="Trocar o assunto">&#9998;</button>' +
       '<button class="bt-apagar" data-apagar="' + b.id + '" title="Apagar registro">✕</button></li>';
   }).join('') : '<li class="vazio">O histórico completo aparece aqui.</li>';
@@ -3629,7 +3980,7 @@ function editaAssunto(id) {
   const quando = bloco.fim || bloco.inicio;
   abreModal({
     titulo: 'Trocar o assunto',
-    frase: fmtDuracao(bloco.minutos) + ' em ' + dataCurta(chaveDia(quando)) + ', às ' + horaDoDia(quando),
+    frase: formataTempoAcumulado(bloco.minutos) + ' em ' + dataCurta(chaveDia(quando)) + ', às ' + horaDoDia(quando),
     detalhe: '<label class="rot" for="modalEntrada">Assunto</label>' +
              '<input type="text" id="modalEntrada" list="listaAssuntos" maxlength="60" value="' +
              escapaHTML(bloco.assunto) + '">',
@@ -3659,7 +4010,7 @@ function desenhaProgresso() {
   const total = totalMinutos();
 
   // Contador vitalício
-  $('#vitalicioHoras').textContent = fmtHoras(total);
+  $('#vitalicioHoras').textContent = formataTempoAcumulado(total);
   $('#vitalicioBlocos').textContent = estado.blocos.length;
   $('#vitalicioDias').textContent = Object.keys(mapa).length;
 
@@ -3669,7 +4020,7 @@ function desenhaProgresso() {
 
   const proximo = MARCOS.find((m) => total / 60 < m);
   $('#proximoMarco').textContent = proximo
-    ? 'Faltam ' + fmtHoras(proximo * 60 - total) + ' pro marco de ' + proximo + 'h.'
+    ? 'Faltam ' + formataTempoAcumulado(proximo * 60 - total) + ' pro marco de ' + proximo + 'h.'
     : 'Todos os marcos batidos, ' + nomeDoDavi() + '. O contador segue somando.';
 
   desenhaComparacao();
@@ -3682,8 +4033,8 @@ function desenhaProgresso() {
   $('#recSemana').textContent = ms.minutos;
   $('#recSeq').textContent = maiorSequencia(mapa);
   const partes = [];
-  if (md.chave) partes.push('Melhor dia: ' + fmtDuracao(md.minutos) + ' em ' + dataCurta(md.chave) + '.');
-  if (ms.fim) partes.push('Melhor semana: ' + fmtDuracao(ms.minutos) + ', até ' + dataCurta(ms.fim) + '.');
+  if (md.chave) partes.push('Melhor dia: ' + formataTempoAcumulado(md.minutos) + ' em ' + dataCurta(md.chave) + '.');
+  if (ms.fim) partes.push('Melhor semana: ' + formataTempoAcumulado(ms.minutos) + ', até ' + dataCurta(ms.fim) + '.');
   const seqViva = sequenciaAtual(mapa);
   if (seqViva) partes.push('Sequência viva: ' + seqViva + (seqViva === 1 ? ' dia.' : ' dias.'));
   $('#recDetalhe').textContent = partes.join(' ') || 'As marcas aparecem depois do primeiro bloco.';
@@ -3720,7 +4071,7 @@ function desenhaMapaCalor(mapa) {
       else if (min >= 25) nivel = 'n2';
       else if (min > 0) nivel = 'n1';
       celulas.push('<i class="' + nivel + '" title="' + dataCurta(chave) + ' — ' +
-                   (min ? fmtDuracao(min) : 'nada') + '"></i>');
+                   (min ? formataTempoAcumulado(min) : 'nada') + '"></i>');
     }
   }
 
@@ -3732,7 +4083,7 @@ function desenhaMapaCalor(mapa) {
   mesesEl.style.gridTemplateColumns = 'repeat(53, 14px)';
   mesesEl.innerHTML = rotulos.join('');
 
-  $('#resumoCalor').textContent = fmtHoras(minutosAno) + ' nos últimos 12 meses.';
+  $('#resumoCalor').textContent = formataTempoAcumulado(minutosAno) + ' nos últimos 12 meses.';
 }
 
 /**
@@ -3769,13 +4120,13 @@ function desenhaComparacao() {
   const diasPrevistos = Math.max(diaAtual, diasEntre(atual.inicio, atual.fimPrevisto) + 1);
   const horasAtual = serieAtual[serieAtual.length - 1] || 0;
 
-  let texto = 'Dia ' + diaAtual + ' de ' + diasPrevistos + ' — ' + fmtHoras(horasAtual) + ' estudadas';
+  let texto = 'Dia ' + diaAtual + ' de ' + diasPrevistos + ' — ' + formataTempoAcumulado(horasAtual) + ' estudadas';
   if (anterior && serieAnterior.length) {
     const alturaAnterior = serieAnterior[Math.min(diaAtual, serieAnterior.length) - 1] || 0;
     const dif = horasAtual - alturaAnterior;
     texto += dif >= 0
-      ? ', ' + fmtHoras(Math.abs(dif)) + ' à frente do ciclo anterior nesta altura.'
-      : ', ' + fmtHoras(Math.abs(dif)) + ' atrás do ciclo anterior nesta altura.';
+      ? ', ' + formataTempoAcumulado(Math.abs(dif)) + ' à frente do ciclo anterior nesta altura.'
+      : ', ' + formataTempoAcumulado(Math.abs(dif)) + ' atrás do ciclo anterior nesta altura.';
   } else {
     texto += '. O primeiro ciclo é a régua: o próximo compara com este.';
   }
@@ -3799,7 +4150,7 @@ function desenhaComparacao() {
   for (let i = 0; i <= 4; i++) {
     const y = mT + (altura / 4) * i;
     ctx.beginPath(); ctx.moveTo(mE, y); ctx.lineTo(L - mD, y); ctx.stroke();
-    ctx.fillText(fmtHoras(maxMin * (1 - i / 4)), 4, y + 4);
+    ctx.fillText(formataTempoAcumulado(maxMin * (1 - i / 4)), 4, y + 4);
   }
   ctx.fillText('dia 1', mE, A - 8);
   ctx.fillText('dia ' + maxDias, L - mD - 40, A - 8);
@@ -3867,7 +4218,7 @@ function desenhaEstante() {
     numeros.classList.remove('oculto');
     const p = preenchimentoDoAlbum(ciclo);
     numeros.innerHTML =
-      '<div class="numero destaque"><b>' + fmtHoras(est.minutos) + '</b><span>horas na Copa</span></div>' +
+      '<div class="numero destaque"><b>' + formataTempoAcumulado(est.minutos) + '</b><span>horas na Copa</span></div>' +
       '<div class="numero"><b>' + est.blocos + '</b><span>blocos</span></div>' +
       '<div class="numero"><b>' + est.diasAtivos + '</b><span>dias ativos</span></div>' +
       '<div class="numero"><b>' + p.pct + '%</b><span>do álbum</span></div>';
@@ -3915,7 +4266,7 @@ function desenhaEstante() {
       '<p class="periodo">' + dataCurta(c.inicio) + ' → ' + dataCurta(c.fimReal) +
       ' · ' + (diasEntre(c.inicio, c.fimReal) + 1) + ' dias</p>' +
       '<div class="num-linha">' +
-        '<div><b>' + fmtHoras(e.minutos) + '</b><span>horas</span></div>' +
+        '<div><b>' + formataTempoAcumulado(e.minutos) + '</b><span>horas</span></div>' +
         '<div><b>' + e.diasAtivos + '</b><span>dias ativos</span></div>' +
         '<div><b>' + e.maiorSequencia + '</b><span>sequência</span></div>' +
         '<div><b>' + e.blocos + '</b><span>blocos</span></div>' +
@@ -4094,7 +4445,7 @@ $('#btEncerrarCiclo').addEventListener('click', () => {
   abreModal({
     titulo: 'Encerrar ' + ciclo.nome + '?',
     frase: 'As estatísticas congelam e a campanha vai pra estante.',
-    detalhe: fmtHoras(est.minutos) + ' · ' + est.diasAtivos + ' dias ativos · maior sequência de ' +
+    detalhe: formataTempoAcumulado(est.minutos) + ' · ' + est.diasAtivos + ' dias ativos · maior sequência de ' +
              est.maiorSequencia + '. Depois de encerrado, o ciclo não volta a receber blocos.',
     botoes: [
       { texto: 'Levantar a taça', tipo: 'bt-azul', acao: () => { fechaModal(); encerraCiclo(ciclo); } },
@@ -4144,7 +4495,7 @@ function encerraCiclo(ciclo) {
   abreModal({
     titulo: 'Taça na estante',
     frase: fala('encerraCiclo', { nome: ciclo.nome }),
-    detalhe: fmtHoras(est.minutos) + ' em ' + est.diasAtivos + ' dias ativos. ' +
+    detalhe: formataTempoAcumulado(est.minutos) + ' em ' + est.diasAtivos + ' dias ativos. ' +
              'O capítulo do Álbum fechou com ' + album.cheios + ' de ' + album.total +
              ' figurinhas (' + album.pct + '%) e a taça da Copa já está colada. ' +
              'Fica guardado pra sempre.',
@@ -4178,7 +4529,7 @@ $('#listaTudo').addEventListener('click', (ev) => {
   if (!bloco) return;
   abreModal({
     titulo: 'Apagar registro?',
-    frase: fmtDuracao(bloco.minutos) + ' em ' + bloco.assunto,
+    frase: formataTempoAcumulado(bloco.minutos) + ' em ' + bloco.assunto,
     detalhe: 'Some do histórico, das estatísticas e do mapa do ano. O álbum não devolve nada: pacote, figurinha e especial que já são teus ficam onde estão.',
     botoes: [
       { texto: 'Apagar', tipo: 'bt-perigo', acao: () => {
@@ -4559,7 +4910,8 @@ function abreEditor(carta) {
   $('#tituloEditor').textContent = carta ? 'Editar carta' : 'Nova carta';
   $('#campoFrente').value = carta ? carta.frente : '';
   $('#campoVerso').value = carta ? carta.verso : '';
-  $('#campoAssuntoCarta').value = carta ? carta.assunto : ($('#campoAssunto').value.trim() || ultimoAssuntoUsado());
+  const herdado = assuntoEscolhido() === 'Estudo livre' ? '' : assuntoEscolhido();
+  $('#campoAssuntoCarta').value = carta ? carta.assunto : (herdado || ultimoAssuntoUsado());
 
   const degrau = $('#campoDegrau');
   degrau.innerHTML = ESCADA_CARTAS.map((dias, i) =>
@@ -5000,7 +5352,7 @@ async function fechaRodada() {
 
   abreModal({
     titulo: 'Fechar o ciclo do campeonato?',
-    frase: campeao.nome + ' leva a taça com ' + fmtHoras(campeao.min || 0) + '.',
+    frase: campeao.nome + ' leva a taça com ' + formataTempoAcumulado(campeao.min || 0) + '.',
     detalhe: 'A tabela vira título pra todo mundo do grupo e os boletins zeram pro próximo ciclo. ' +
              'Só faz isso quando o ciclo tiver acabado de verdade.',
     botoes: [
@@ -5097,7 +5449,7 @@ function desenhaTabela() {
         return '<tr class="' + classes.join(' ') + '">' +
           '<td class="pos">' + (i + 1) + 'º</td>' +
           '<td class="nome">' + escapaHTML(j.nome || 'Sem nome') +
-            '<small>' + fmtHoras(j.min || 0) + (j.ciclo ? ' · ' + escapaHTML(j.ciclo) : '') + '</small></td>' +
+            '<small>' + formataTempoAcumulado(j.min || 0) + (j.ciclo ? ' · ' + escapaHTML(j.ciclo) : '') + '</small></td>' +
           '<td class="num">' + (j.dias || 0) + '</td>' +
           '<td class="num">' + (j.blocos || 0) + '</td>' +
           '<td class="pts">' + Math.floor((j.min || 0) / 60) + '</td>' +
@@ -5793,7 +6145,7 @@ function registroEmJogo(ciclo) {
 /** Valor de um registro, já formatado, e o detalhe de apoio. */
 function valorDoRegistro(id, reg) {
   if (id === 'reg-melhor-dia') {
-    return { valor: reg.melhorDia.minutos ? fmtDuracao(reg.melhorDia.minutos) : '—',
+    return { valor: reg.melhorDia.minutos ? formataTempoAcumulado(reg.melhorDia.minutos) : '—',
              detalhe: reg.melhorDia.dia ? dataCurta(reg.melhorDia.dia) : 'sem dia ativo ainda' };
   }
   if (id === 'reg-dias-ativos') {
@@ -5803,15 +6155,15 @@ function valorDoRegistro(id, reg) {
     return { valor: String(reg.blocos), detalhe: reg.blocos === 1 ? 'bloco' : 'blocos' };
   }
   if (id === 'reg-tempo') {
-    return { valor: reg.minutos ? fmtHoras(reg.minutos) : '—', detalhe: 'na Copa' };
+    return { valor: reg.minutos ? formataTempoAcumulado(reg.minutos) : '—', detalhe: 'na Copa' };
   }
   if (id === 'reg-melhor-semana') {
-    return { valor: reg.melhorSemana.minutos ? fmtHoras(reg.melhorSemana.minutos) : '—',
+    return { valor: reg.melhorSemana.minutos ? formataTempoAcumulado(reg.melhorSemana.minutos) : '—',
              detalhe: reg.melhorSemana.fim ? 'até ' + dataCurta(reg.melhorSemana.fim) : 'sem rodada fechada' };
   }
   if (id === 'reg-materia') {
     return { valor: reg.materia.nome,
-             detalhe: reg.materia.minutos ? fmtDuracao(reg.materia.minutos) : 'nada registrado ainda' };
+             detalhe: reg.materia.minutos ? formataTempoAcumulado(reg.materia.minutos) : 'nada registrado ainda' };
   }
   return { valor: '—', detalhe: '' };
 }
@@ -6168,6 +6520,107 @@ function copaDoAlbum() {
   return copas[0] || null;
 }
 
+/* ---------- O caderno: folhas, ordem e página aberta ---------- */
+
+/**
+ * A ordem das folhas da temporada, na mesma sequência de um álbum de banca:
+ * capa, índice e, para cada Copa, a divisória, as páginas de figurinha e o
+ * encerramento. A retrospectiva fecha a temporada inteira.
+ *
+ * Capa, índice e divisórias não guardam figurinha nenhuma — são páginas de
+ * papel, e por isso não entram na contagem da coleção.
+ */
+function folhasDoAlbum(temporada) {
+  const folhas = [{ tipo: 'capa' }, { tipo: 'indice' }];
+  copasDaTemporada(temporada).forEach((copa, c) => {
+    folhas.push({ tipo: 'divisoria', copa: copa, cap: c + 1 });
+    PAGINAS_ALBUM.forEach((pag, i) => {
+      folhas.push({ tipo: 'pagina', copa: copa, cap: c + 1, pagina: i });
+    });
+    folhas.push({ tipo: 'encerramento', copa: copa, cap: c + 1 });
+  });
+  folhas.push({ tipo: 'retrospectiva' });
+  return folhas;
+}
+
+/**
+ * A taça sai da página de Momentos Decisivos e vai para o Encerramento, que é
+ * o lugar dela na estrutura do caderno. A contagem do capítulo não muda: quem
+ * conta espaços é totalDeEspacos, que continua olhando as seis páginas.
+ */
+function itensVisiveisDaPagina(ciclo, indice) {
+  return itensDaPagina(ciclo, indice).filter((id) => id !== 'fim-copa');
+}
+
+/** O número impresso de cada figurinha do capítulo, na ordem das páginas. */
+function numerosDoCapitulo(ciclo) {
+  const mapa = {};
+  let n = 0;
+  PAGINAS_ALBUM.forEach((pag, i) => {
+    itensDaPagina(ciclo, i).forEach((id) => { mapa[id] = ++n; });
+  });
+  return mapa;
+}
+
+/** Tablet deitado mostra as duas páginas do caderno aberto. */
+function cadernoAberto() {
+  try {
+    return window.matchMedia('(orientation:landscape) and (min-width:900px)').matches;
+  } catch (erro) {
+    return false;
+  }
+}
+
+let folhaAtual = 0;
+let ultimaVirada = 0;      // -1 voltou, 1 avançou, 0 sem virada
+let folhaRestaurada = false;   // a página guardada só é recuperada uma vez
+
+/** A última página visitada volta a abrir na próxima vez. */
+function guardaFolha(temporada) {
+  if (!temporada) return;
+  const g = estado.prefs.albumFolha;
+  if (g && g.t === temporada.id && g.i === folhaAtual) return;   // nada mudou
+  estado.prefs.albumFolha = { t: temporada.id, i: folhaAtual };
+  salvaEstado();
+}
+
+function recuperaFolha(temporada, total) {
+  const g = estado.prefs.albumFolha;
+  if (g && temporada && g.t === temporada.id && g.i >= 0 && g.i < total) return g.i;
+  return 0;
+}
+
+/** Vai para a folha n, com a virada de página. */
+function vaiParaFolha(n, direcao) {
+  folhaAtual = n;
+  ultimaVirada = direcao || 0;
+  desenhaAlbum();
+  const caixa = $('#caderno');
+  if (caixa) caixa.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+/** A primeira folha de uma Copa: a divisória do capítulo. */
+function folhaDaCopa(folhas, id) {
+  for (let i = 0; i < folhas.length; i++) {
+    if (folhas[i].tipo === 'divisoria' && folhas[i].copa.id === id) return i;
+  }
+  return 0;
+}
+
+/** A folha onde uma figurinha mora, pra "Ver no Álbum" cair no lugar certo. */
+function folhaDaFigurinha(folhas, ciclo, id) {
+  for (let i = 0; i < folhas.length; i++) {
+    const f = folhas[i];
+    if (f.copa && f.copa.id === ciclo.id) {
+      if (f.tipo === 'encerramento' && id === 'fim-copa') return i;
+      if (f.tipo === 'pagina' && itensVisiveisDaPagina(ciclo, f.pagina).indexOf(id) !== -1) return i;
+    }
+  }
+  return folhaDaCopa(folhas, ciclo.id);
+}
+
+/* ---------- Desenho do caderno ---------- */
+
 function desenhaAlbum() {
   const temporada = temporadaDoAlbum();
   const ciclo = copaDoAlbum();
@@ -6182,31 +6635,19 @@ function desenhaAlbum() {
     return;
   }
 
-  garanteAlbum(ciclo);
-  const cfg = configDaCopa(ciclo);
-  const fase = faseDaCopa(ciclo);
-  const p = preenchimentoDoAlbum(ciclo);
-  const D = diasDaCopa(ciclo);
+  const folhas = folhasDoAlbum(temporada);
 
-  $('#albumTemporada').textContent = temporada ? temporada.nome : 'Temporada';
-  $('#albumCopa').textContent = ciclo.nome;
-  // A contagem é a informação principal e o percentual é apoio: figurinha se
-  // conta, não se mede.
-  $('#albumContagem').textContent = p.cheios + ' de ' + p.total;
-  $('#albumPct').textContent = 'figurinhas · ' + p.pct + '%';
-  $('#albumBarra').style.width = p.pct + '%';
-  $('#albumSelo').textContent = NOME_DA_FASE[fase];
-  $('#albumSelo').className = 'selo-fase fase-' + fase;
-
-  let linha = cfg.nome + ' · ' + D + ' dias · ' + dataCurta(ciclo.inicio) + ' → ' + dataCurta(ciclo.fimPrevisto);
-  if (fase === 'emJogo') {
-    linha += ' · dia ' + decorridosDaCopa(ciclo) + ' de ' + D;
-  } else if (fase === 'prorrogacao') {
-    linha += ' · prorrogação até ' + dataCurta(fimDaProrrogacao(ciclo));
-  } else if (fase === 'fechada' && ciclo.album.fechado) {
-    linha += ' · capítulo fechado em ' + dataCurta(ciclo.album.fechado.em);
+  // Um capítulo pedido de fora (Estante, "Ver no Álbum") abre na divisória
+  // dele; fora isso, o caderno volta na página onde parou.
+  if (capituloAberto) {
+    folhaAtual = folhaDaCopa(folhas, capituloAberto);
+    capituloAberto = null;
+    folhaRestaurada = true;
+  } else if (!folhaRestaurada || folhaAtual >= folhas.length) {
+    folhaAtual = recuperaFolha(temporada, folhas.length);
+    folhaRestaurada = true;
   }
-  $('#albumPeriodo').textContent = linha;
+  folhaAtual = Math.min(Math.max(0, folhaAtual), folhas.length - 1);
 
   // Seletor de temporada — só aparece quando há mais de uma
   const seletorT = $('#albumTemporadas');
@@ -6221,22 +6662,235 @@ function desenhaAlbum() {
     seletorT.innerHTML = '';
   }
 
-  // Seletor de capítulo
+  // Caderno aberto pareia folha par com folha ímpar; em pé, uma de cada vez.
+  const aberto = cadernoAberto();
+  const primeira = aberto ? folhaAtual - (folhaAtual % 2) : folhaAtual;
+  const mostradas = aberto ? [primeira, primeira + 1] : [primeira];
+
+  const caixa = $('#cadernoFolhas');
+  caixa.className = 'caderno-folhas' + (aberto ? ' aberto' : '') +
+    (ultimaVirada === 1 ? ' virando-frente' : (ultimaVirada === -1 ? ' virando-tras' : ''));
+  caixa.innerHTML = mostradas
+    .filter((i) => i >= 0 && i < folhas.length)
+    .map((i) => htmlDaFolha(folhas, i, temporada))
+    .join('');
+  ultimaVirada = 0;
+
+  // Setas, contador e o anúncio pro leitor de tela
+  const passo = aberto ? 2 : 1;
+  $('#btPaginaAnterior').disabled = primeira <= 0;
+  $('#btProximaPagina').disabled = primeira + passo >= folhas.length;
+  $('#cadernoConta').textContent = (folhaAtual + 1) + '/' + folhas.length;
+  $('#cadernoAnuncio').textContent = nomeDaFolha(folhas[folhaAtual]) +
+    ' — página ' + (folhaAtual + 1) + ' de ' + folhas.length + '.';
+
+  desenhaCartaoDoPacote(ciclo);
+  guardaFolha(temporada);
+}
+
+/** Nome legível de uma folha, pro índice e pro leitor de tela. */
+function nomeDaFolha(f) {
+  if (!f) return 'Página';
+  if (f.tipo === 'capa') return 'Capa da temporada';
+  if (f.tipo === 'indice') return 'Índice das Copas';
+  if (f.tipo === 'divisoria') return f.copa.nome;
+  if (f.tipo === 'encerramento') return 'Encerramento da ' + f.copa.nome;
+  if (f.tipo === 'retrospectiva') return 'Retrospectiva da Temporada';
+  return PAGINAS_ALBUM[f.pagina].nome;
+}
+
+function htmlDaFolha(folhas, i, temporada) {
+  const f = folhas[i];
+  const lado = (i % 2 === 0) ? 'par' : 'impar';
+  const pe = f.tipo === 'capa' ? '' : '<p class="folha-pe">página ' + (i + 1) + '</p>';
+  let corpo;
+
+  if (f.tipo === 'capa') corpo = htmlDaCapa(temporada, folhas);
+  else if (f.tipo === 'indice') corpo = htmlDoIndice(temporada, folhas);
+  else if (f.tipo === 'divisoria') corpo = htmlDaDivisoria(f);
+  else if (f.tipo === 'encerramento') corpo = htmlDoEncerramento(f);
+  else if (f.tipo === 'retrospectiva') corpo = htmlDaRetrospectiva(temporada);
+  else corpo = htmlDaPaginaDeFigurinhas(f);
+
+  const extra = (f.tipo === 'capa' ? ' folha-capa'
+    : (f.tipo === 'divisoria' ? ' folha-divisoria'
+    : (f.tipo === 'encerramento' ? ' folha-divisoria folha-encerramento'
+    : (f.tipo === 'retrospectiva' ? ' folha-divisoria' : ''))));
+
+  return '<section class="folha-album ' + lado + extra + '" aria-label="' +
+    escapaHTML(nomeDaFolha(f)) + ', página ' + (i + 1) + '">' + corpo + pe + '</section>';
+}
+
+/* ---------- Capa ---------- */
+
+function htmlDaCapa(temporada, folhas) {
   const copas = copasDaTemporada(temporada);
-  $('#albumCapitulos').innerHTML = copas.map((c, i) => {
+  const cheios = copas.reduce((soma, c) => { garanteAlbum(c); return soma + preenchimentoDoAlbum(c).cheios; }, 0);
+  const total = copas.reduce((soma, c) => soma + totalDeEspacos(c), 0);
+  const pct = total ? Math.round((cheios / total) * 100) : 0;
+  const edicao = estado.temporadas.indexOf(temporada) + 1;
+  const de = copas.length ? copas[0].inicio : null;
+  const ate = copas.length ? copas[copas.length - 1].fimPrevisto : null;
+
+  return '<div class="faixas faixas-larga capa-faixas" aria-hidden="true"></div>' +
+    '<p class="capa-edicao">Edição ' + (edicao > 0 ? edicao : 1) + '</p>' +
+    '<h3>' + escapaHTML(temporada ? temporada.nome : 'Temporada') + '</h3>' +
+    '<p class="capa-dono">' + escapaHTML(nomeDoDavi()) + '</p>' +
+    (de ? '<p class="capa-periodo">' + dataCurta(de) + ' → ' + dataCurta(ate) + '</p>' : '') +
+    '<span class="capa-selo"><i class="losango" aria-hidden="true"></i>Copeiro</span>' +
+    '<div class="capa-progresso">' +
+      '<p>' + cheios + ' de ' + total + ' figurinhas no álbum</p>' +
+      '<div class="album-barra"><i style="width:' + pct + '%"></i></div>' +
+    '</div>';
+}
+
+/* ---------- Índice ---------- */
+
+function htmlDoIndice(temporada, folhas) {
+  const copas = copasDaTemporada(temporada);
+  const linhas = copas.map((c, i) => {
     garanteAlbum(c);
-    const pc = preenchimentoDoAlbum(c);
-    return '<button class="ficha' + (c.id === ciclo.id ? ' ativa' : '') +
-      '" data-capitulo="' + escapaHTML(c.id) + '">Cap. ' + (i + 1) + ' · ' +
-      escapaHTML(c.nome) + ' <small>' + pc.pct + '%</small></button>';
+    const p = preenchimentoDoAlbum(c);
+    const fase = faseDaCopa(c);
+    return '<li><button class="indice-item" data-folha="' + folhaDaCopa(folhas, c.id) + '">' +
+      '<span class="indice-num">' + (i + 1) + '</span>' +
+      '<span class="indice-nome">' + escapaHTML(c.nome) +
+        '<small>' + NOME_DA_FASE[fase] + ' · ' + dataCurta(c.inicio) + ' → ' + dataCurta(c.fimPrevisto) + '</small>' +
+      '</span>' +
+      '<span class="indice-conta">' + p.cheios + ' de ' + p.total + '</span>' +
+      '</button></li>';
   }).join('');
 
-  // Cartão do pacote
+  return '<div class="folha-topo"><h3>Índice das Copas</h3>' +
+    '<span class="folha-conta">' + copas.length + (copas.length === 1 ? ' capítulo' : ' capítulos') + '</span></div>' +
+    '<ul class="indice-lista">' + (linhas || '<li class="vazio">Nenhuma Copa nesta temporada ainda.</li>') + '</ul>';
+}
+
+/* ---------- Divisória do capítulo ---------- */
+
+function htmlDaDivisoria(f) {
+  const ciclo = f.copa;
+  garanteAlbum(ciclo);
+  const cfg = configDaCopa(ciclo);
+  const fase = faseDaCopa(ciclo);
+  const p = preenchimentoDoAlbum(ciclo);
+  const D = diasDaCopa(ciclo);
+
+  let linha = cfg.nome + ' · ' + D + ' dias · ' + dataCurta(ciclo.inicio) + ' → ' + dataCurta(ciclo.fimPrevisto);
+  if (fase === 'emJogo') linha += ' · dia ' + decorridosDaCopa(ciclo) + ' de ' + D;
+  else if (fase === 'prorrogacao') linha += ' · prorrogação até ' + dataCurta(fimDaProrrogacao(ciclo));
+  else if (fase === 'fechada' && ciclo.album.fechado) linha += ' · fechado em ' + dataCurta(ciclo.album.fechado.em);
+
+  let chamado = '';
+  if (fase === 'fechada' && !ciclo.fimReal) {
+    chamado = '<p class="album-chamado">Este capítulo está fechado e guardado. Quando quiser, levanta a taça na Estante e abre a próxima Copa.</p>';
+  } else if (fase === 'prorrogacao') {
+    chamado = '<p class="album-chamado">' + escapaHTML(fala('prorrogacao')) + '</p>';
+  }
+
+  return '<p class="divisoria-cap">Capítulo ' + f.cap + '</p>' +
+    '<h3>' + escapaHTML(ciclo.nome) + '</h3>' +
+    '<p class="divisoria-periodo">' + escapaHTML(linha) + '</p>' +
+    '<div class="divisoria-selos">' +
+      '<span class="selo-fase fase-' + fase + '">' + NOME_DA_FASE[fase] + '</span>' +
+      '<b>' + p.cheios + ' de ' + p.total + '</b><span class="sub">figurinhas · ' + p.pct + '%</span>' +
+    '</div>' +
+    '<div class="album-barra"><i style="width:' + p.pct + '%"></i></div>' +
+    chamado +
+    '<p class="divisoria-marco"><b>Próximo marco</b>' + escapaHTML(proximoMarcoDaCopa(ciclo)) + '</p>';
+}
+
+/* ---------- Página de figurinhas ---------- */
+
+function htmlDaPaginaDeFigurinhas(f) {
+  const ciclo = f.copa;
+  const pag = PAGINAS_ALBUM[f.pagina];
+  const estados = estadosDoAlbum(ciclo);
+  const nums = numerosDoCapitulo(ciclo);
+  const itens = itensVisiveisDaPagina(ciclo, f.pagina);
+  const cheios = itens.filter((id) => {
+    const e = estados[id] && estados[id].estado;
+    return e === 'colada' || e === 'em-jogo' || e === 'final';
+  }).length;
+
+  return '<div class="folha-topo">' +
+      '<h3>' + escapaHTML(pag.nome) + '</h3>' +
+      '<span class="folha-conta">' + cheios + ' de ' + itens.length + '</span>' +
+    '</div>' +
+    '<div class="album-grade">' +
+      itens.map((id) => htmlDoEspaco(ciclo, id, estados[id] || { estado: 'vazio' }, nums[id])).join('') +
+    '</div>' +
+    (pag.tipo === 'reg'
+      ? '<p class="album-pe-nota">Estes números contam o período desta Copa. Os da Estante e do Progresso têm escopo próprio.</p>'
+      : '');
+}
+
+/* ---------- Encerramento da Copa ---------- */
+
+function htmlDoEncerramento(f) {
+  const ciclo = f.copa;
+  garanteAlbum(ciclo);
+  const estados = estadosDoAlbum(ciclo);
+  const nums = numerosDoCapitulo(ciclo);
+  const fim = ciclo.album.fechado && ciclo.album.fechado.final;
+  const p = preenchimentoDoAlbum(ciclo);
+
+  const dados = fim
+    ? '<span class="taca-dados">' +
+        '<b aria-label="' + escapaHTML(descreveTempoAcumulado(fim.minutos)) + '">' +
+          formataTempoAcumulado(fim.minutos) + '</b><span>estudadas</span>' +
+        '<b>' + fim.diasAtivos + '</b><span>dias ativos</span>' +
+        '<b>' + fim.blocos + '</b><span>blocos</span>' +
+        '<b>' + p.cheios + ' de ' + p.total + '</b><span>figurinhas</span>' +
+      '</span>'
+    : '<p class="divisoria-periodo">A taça é colada quando o capítulo fecha. Tudo o que ela vai mostrar já está sendo somado.</p>';
+
+  return '<div class="folha-topo"><h3>Encerramento da Copa</h3>' +
+      '<span class="folha-conta">Capítulo ' + f.cap + '</span></div>' +
+    '<div class="album-grade" style="max-width:180px">' +
+      htmlDoEspaco(ciclo, 'fim-copa', estados['fim-copa'] || { estado: 'vazio' }, nums['fim-copa']) +
+    '</div>' + dados;
+}
+
+/* ---------- Retrospectiva da Temporada ---------- */
+
+function htmlDaRetrospectiva(temporada) {
+  const copas = copasDaTemporada(temporada);
+  const mapa = mapaMinutos();
+  let minutos = 0, blocos = 0, ativos = 0, cheios = 0, total = 0;
+  copas.forEach((c) => {
+    garanteAlbum(c);
+    const e = estatCiclo(c);
+    minutos += e.minutos;
+    blocos += e.blocos;
+    ativos += diasAtivosDaCopa(c, mapa);
+    cheios += preenchimentoDoAlbum(c).cheios;
+    total += totalDeEspacos(c);
+  });
+  const pct = total ? Math.round((cheios / total) * 100) : 0;
+
+  return '<div class="folha-topo"><h3>Retrospectiva da Temporada</h3>' +
+      '<span class="folha-conta">' + copas.length + (copas.length === 1 ? ' Copa' : ' Copas') + '</span></div>' +
+    '<p class="divisoria-periodo">' + escapaHTML(temporada ? temporada.nome : 'Temporada') + '</p>' +
+    '<span class="taca-dados">' +
+      '<b aria-label="' + escapaHTML(descreveTempoAcumulado(minutos)) + '">' + formataTempoAcumulado(minutos) + '</b><span>na temporada</span>' +
+      '<b>' + ativos + '</b><span>dias ativos</span>' +
+      '<b>' + blocos + '</b><span>blocos</span>' +
+      '<b>' + cheios + ' de ' + total + '</b><span>figurinhas</span>' +
+    '</span>' +
+    '<div class="album-barra" style="margin-top:16px"><i style="width:' + pct + '%"></i></div>' +
+    '<p class="album-pe-nota">O álbum da temporada guarda cada capítulo do jeito que ele terminou. Nada aqui é recalculado depois.</p>';
+}
+
+/* ---------- O cartão do pacote ---------- */
+
+function desenhaCartaoDoPacote(ciclo) {
+  const cfg = configDaCopa(ciclo);
   const fechados = pacotesParaAbrir(ciclo);
   const disponiveis = pacotesDisponiveis(ciclo);
   $('#pacoteTitulo').textContent = fechados
     ? (fechados === 1 ? '1 pacote pra abrir' : fechados + ' pacotes pra abrir')
-    : 'Pacotes da Copa';
+    : 'Pacotes da ' + ciclo.nome;
   $('#pacoteContagem').textContent = disponiveis + ' de ' + cfg.pacotes + ' pacotes conquistados · ' +
     (cfg.pacotes * 2) + ' colecionáveis no capítulo';
   $('#pacoteRecado').textContent = recadoDoProximoPacote(ciclo);
@@ -6244,42 +6898,6 @@ function desenhaAlbum() {
   bt.classList.toggle('oculto', fechados <= 0);
   bt.textContent = fechados > 1 ? 'Abrir pacote (' + fechados + ')' : 'Abrir pacote';
   $('#pacoteCartao').classList.toggle('tem-pacote', fechados > 0);
-
-  // Chamado caloroso quando a Copa fechou e a taça não foi levantada
-  const chamado = $('#albumChamado');
-  if (fase === 'fechada' && !ciclo.fimReal) {
-    chamado.classList.remove('oculto');
-    chamado.textContent = 'Este capítulo está fechado e guardado. Quando quiser, levanta a taça na Estante e abre a próxima Copa.';
-  } else if (fase === 'prorrogacao') {
-    chamado.classList.remove('oculto');
-    chamado.textContent = fala('prorrogacao');
-  } else {
-    chamado.classList.add('oculto');
-  }
-
-  // As páginas
-  const estados = estadosDoAlbum(ciclo);
-  $('#albumPaginas').innerHTML = PAGINAS_ALBUM.map((pag, i) => {
-    const itens = itensDaPagina(ciclo, i);
-    const cheios = itens.filter((id) => {
-      const e = estados[id] && estados[id].estado;
-      return e === 'colada' || e === 'em-jogo' || e === 'final';
-    }).length;
-    return '<section class="album-pagina">' +
-      '<div class="album-pagina-topo">' +
-        '<h3>' + escapaHTML(pag.nome) + '</h3>' +
-        '<span>' + cheios + ' de ' + itens.length + '</span>' +
-      '</div>' +
-      '<div class="album-grade">' +
-        itens.map((id) => htmlDoEspaco(ciclo, id, estados[id] || { estado: 'vazio' })).join('') +
-      '</div>' +
-      (pag.tipo === 'reg'
-        ? '<p class="album-pe-nota">Estes números contam o período desta Copa. Os da Estante e do Progresso têm escopo próprio.</p>'
-        : '') +
-    '</section>';
-  }).join('');
-
-  $('#albumMarco').textContent = proximoMarcoDaCopa(ciclo);
 }
 
 /**
@@ -6321,7 +6939,8 @@ function abreCartaoDaTaca(ciclo) {
     titulo: 'Taça da ' + f.nome,
     frase: dataCurta(f.inicio) + ' → ' + dataCurta(f.fim),
     detalhe: '<span class="taca-dados">' +
-      '<b>' + fmtHoras(f.minutos) + '</b><span>estudadas</span>' +
+      '<b aria-label="' + escapaHTML(descreveTempoAcumulado(f.minutos)) + '">' +
+        formataTempoAcumulado(f.minutos) + '</b><span>estudadas</span>' +
       '<b>' + f.diasAtivos + '</b><span>dias ativos</span>' +
       '<b>' + f.blocos + '</b><span>blocos</span>' +
       '<b>' + p.cheios + ' de ' + p.total + '</b><span>figurinhas</span>' +
@@ -6332,12 +6951,15 @@ function abreCartaoDaTaca(ciclo) {
 }
 
 /** Um espaço do álbum: silhueta e critério, arte cheia, ou registro. */
-function htmlDoEspaco(ciclo, id, est) {
+function htmlDoEspaco(ciclo, id, est, numero) {
   const fig = FIGURINHAS[id] || { nome: id, pagina: '' };
   const classes = ['fig', est.estado];
   if (id.indexOf('esp-') === 0) classes.push('especial');
   if (id.indexOf('reg-') === 0) classes.push('registro');
   if (id === 'fim-copa') classes.push('taca');
+  // Inclinação mínima, e só em parte das coladas: figurinha colada na mão
+  // nunca sai perfeitamente reta, mas o caderno não pode virar bagunça.
+  if (est.estado === 'colada' && numero && numero % 3 === 0) classes.push('torta');
 
   const arte = '<div class="fig-arte">' + (ARTE_FIGURINHAS[id] || '') + '</div>';
   // Registro numerico usa numero grande; registro de texto quebra e diminui.
@@ -6360,14 +6982,71 @@ function htmlDoEspaco(ciclo, id, est) {
     pe = '<span class="fig-pe fig-criterio">' + escapaHTML(criterioDoEspaco(ciclo, id, est)) + '</span>';
   }
 
-  const abridor = (id === 'fim-copa' && est.estado === 'colada')
-    ? ' data-taca="' + escapaHTML(ciclo.id) + '" role="button" tabindex="0"'
-    : '';
+  const num = numero ? '<span class="fig-num" aria-hidden="true">' + numero + '</span>' : '';
 
-  return '<article class="' + classes.join(' ') + '"' + abridor + '>' +
-    '<div class="fig-quadro">' + arte + valor + '</div>' +
+  // Todo espaço abre ampliado no toque, cheio ou vazio: é onde mora a data da
+  // conquista e a condição por extenso, sem sair da página.
+  return '<article class="' + classes.join(' ') + '" role="button" tabindex="0"' +
+    ' data-espaco="' + escapaHTML(id) + '" data-copa="' + escapaHTML(ciclo.id) + '"' +
+    ' aria-label="' + escapaHTML(rotuloDoEspaco(ciclo, id, est, numero)) + '">' +
+    num + '<div class="fig-quadro">' + arte + valor + '</div>' +
     '<h4>' + escapaHTML(fig.nome) + '</h4>' + pe +
     '</article>';
+}
+
+const ESTADO_DO_ESPACO = {
+  vazio: 'espaço vazio',
+  'no-pacote': 'conquistada, esperando a abertura do pacote',
+  colada: 'colada',
+  'em-jogo': 'registro em jogo',
+  final: 'resultado final'
+};
+
+/** Nome, número, estado e condição — tudo que o leitor de tela precisa ouvir. */
+function rotuloDoEspaco(ciclo, id, est, numero) {
+  const fig = FIGURINHAS[id] || { nome: id };
+  const partes = [];
+  if (numero) partes.push('Figurinha ' + numero);
+  partes.push(fig.nome);
+  partes.push(ESTADO_DO_ESPACO[est.estado] || est.estado);
+  if (est.estado === 'colada' && est.em) partes.push('conquistada em ' + dataCurta(est.em));
+  if (est.estado === 'em-jogo' || est.estado === 'final') {
+    partes.push(tempoPorExtenso(String(est.valor)) + (est.detalhe ? ', ' + est.detalhe : ''));
+  }
+  if (est.estado === 'vazio') partes.push(criterioDoEspaco(ciclo, id, est));
+  return partes.join('. ');
+}
+
+/** A figurinha ampliada, sem sair da página do caderno. */
+function abreEspacoAmpliado(ciclo, id) {
+  const est = estadosDoAlbum(ciclo)[id] || { estado: 'vazio' };
+  const nums = numerosDoCapitulo(ciclo);
+  const fig = FIGURINHAS[id] || { nome: id, pagina: '' };
+
+  // A taça colada tem um cartão próprio, com os números da Copa inteira.
+  if (id === 'fim-copa' && est.estado === 'colada') { abreCartaoDaTaca(ciclo); return; }
+
+  let detalhe;
+  if (est.estado === 'colada') {
+    detalhe = 'Colada em ' + dataCurta(est.em) + '. Página: ' + fig.pagina + '.';
+  } else if (est.estado === 'no-pacote') {
+    detalhe = 'Já é tua: está num pacote conquistado, esperando abertura. Sem prazo nenhum.';
+  } else if (est.estado === 'em-jogo') {
+    detalhe = '<b>' + escapaHTML(String(est.valor)) + '</b> ' + escapaHTML(est.detalhe || '') +
+              '. O número acompanha a Copa e muda quando o recorde muda.';
+  } else if (est.estado === 'final') {
+    detalhe = '<b>' + escapaHTML(String(est.valor)) + '</b> ' + escapaHTML(est.detalhe || '') +
+              '. Resultado final: este número está congelado e não é mais recalculado.';
+  } else {
+    detalhe = escapaHTML(criterioDoEspaco(ciclo, id, est));
+  }
+
+  abreModal({
+    titulo: (nums[id] ? nums[id] + ' · ' : '') + fig.nome,
+    frase: fig.pagina + ' · ' + ciclo.nome,
+    detalhe: detalhe,
+    botoes: [{ texto: 'Fechar', tipo: 'bt-azul', acao: fechaModal }]
+  });
 }
 
 /** O critério visível no espaço vazio — sempre concreto, nunca misterioso. */
@@ -6466,11 +7145,16 @@ function mostraPassoDaRevelacao(passo) {
 
   if (passo === 'figs') {
     const estados = estadosDoAlbum(ciclo);
+    const nums = numerosDoCapitulo(ciclo);
     $('#revelacaoFigs').innerHTML = revelacao.itens.map((id, i) => (
       '<div class="revelacao-fig" style="animation-delay:' + (i * 0.35) + 's">' +
-      htmlDoEspaco(ciclo, id, estados[id] || { estado: 'colada', em: chaveHoje() }) +
+      htmlDoEspaco(ciclo, id, estados[id] || { estado: 'colada', em: chaveHoje() }, nums[id]) +
       '<p class="revelacao-pagina">' + escapaHTML(FIGURINHAS[id].pagina) + '</p></div>'
     )).join('');
+    // O brilho é da revelação, e acaba nela: nada fica piscando no álbum.
+    if (animacoesLigadas()) {
+      $$('#revelacaoFigs .fig.especial, #revelacaoFigs .fig.taca').forEach((f) => f.classList.add('brilha'));
+    }
     $('#revelacaoFrase').textContent = fala('figurinhaColada', {
       fig: FIGURINHAS[revelacao.itens[0]].nome,
       pagina: FIGURINHAS[revelacao.itens[0]].pagina
@@ -6481,6 +7165,7 @@ function mostraPassoDaRevelacao(passo) {
       mostraPassoDaRevelacao('fim');
     });
     return;
+
   }
 
   // Passo final: progresso e o requisito exato do próximo pacote
@@ -6495,14 +7180,24 @@ function mostraPassoDaRevelacao(passo) {
     '<p class="sub">' + escapaHTML(recadoDoProximoPacote(ciclo)) + '</p>';
   $('#revelacaoBotoes').innerHTML =
     (faltam > 0 ? '<button class="bt bt-azul" id="btProximoPacote">Abrir o próximo</button>' : '') +
-    '<button class="bt" id="btFecharRevelacao">Ver o álbum</button>';
+    '<button class="bt" id="btFecharRevelacao">Ver no Álbum</button>';
   if (faltam > 0) {
     $('#btProximoPacote').addEventListener('click', () => {
       fechaRevelacao();
       abreRevelacao(ciclo);
     });
   }
-  $('#btFecharRevelacao').addEventListener('click', fechaRevelacao);
+  // Fechar aqui abre a página da primeira figurinha do pacote: o Davi vê onde
+  // ela foi parar sem precisar procurar.
+  $('#btFecharRevelacao').addEventListener('click', () => {
+    const primeira = revelacao && revelacao.itens && revelacao.itens[0];
+    fechaRevelacao();
+    if (!primeira) return;
+    temporadaAberta = ciclo.temporadaId;
+    const folhas = folhasDoAlbum(temporadaDoAlbum());
+    vaiParaFolha(folhaDaFigurinha(folhas, ciclo, primeira), 1);
+    vaiPara('album');
+  });
 }
 
 function fechaRevelacao() {
@@ -6719,15 +7414,8 @@ $('#albumTemporadas').addEventListener('click', (ev) => {
   if (!bt) return;
   temporadaAberta = bt.dataset.temporada;
   capituloAberto = null;
+  folhaRestaurada = false;      // cada temporada lembra da própria página
   desenhaAlbum();
-});
-
-$('#albumCapitulos').addEventListener('click', (ev) => {
-  const bt = ev.target.closest('[data-capitulo]');
-  if (!bt) return;
-  capituloAberto = bt.dataset.capitulo;
-  desenhaAlbum();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 $('#btAbrirPacote').addEventListener('click', () => {
@@ -6737,11 +7425,77 @@ $('#btAbrirPacote').addEventListener('click', () => {
 
 $('#btAlbumComecar').addEventListener('click', abreModelosDeTemporada);
 
-$('#albumPaginas').addEventListener('click', (ev) => {
-  const taca = ev.target.closest('[data-taca]');
-  if (!taca) return;
-  const c = estado.ciclos.find((x) => x.id === taca.dataset.taca);
-  if (c) abreCartaoDaTaca(c);
+/* ---------- Virar a página ---------- */
+
+/** Um passo de leitura: uma folha em pé, o par inteiro no caderno aberto. */
+function viraPagina(dir) {
+  const folhas = folhasDoAlbum(temporadaDoAlbum());
+  if (!folhas.length) return;
+  const passo = cadernoAberto() ? 2 : 1;
+  const primeira = cadernoAberto() ? folhaAtual - (folhaAtual % 2) : folhaAtual;
+  const alvo = primeira + dir * passo;
+  if (alvo < 0 || alvo >= folhas.length) return;
+  vaiParaFolha(alvo, dir);
+}
+
+$('#btPaginaAnterior').addEventListener('click', () => viraPagina(-1));
+$('#btProximaPagina').addEventListener('click', () => viraPagina(1));
+$('#btCapaAlbum').addEventListener('click', () => vaiParaFolha(0, -1));
+$('#btIndiceAlbum').addEventListener('click', () => vaiParaFolha(1, 1));
+
+/* Toque nas folhas: índice, figurinha ampliada — e nada mais. */
+$('#cadernoFolhas').addEventListener('click', (ev) => {
+  const ir = ev.target.closest('[data-folha]');
+  if (ir) { vaiParaFolha(Number(ir.dataset.folha), 1); return; }
+  const espaco = ev.target.closest('[data-espaco]');
+  if (!espaco) return;
+  const copa = estado.ciclos.find((c) => c.id === espaco.dataset.copa);
+  if (copa) abreEspacoAmpliado(copa, espaco.dataset.espaco);
+});
+
+$('#cadernoFolhas').addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const alvo = ev.target.closest('[data-espaco],[data-folha]');
+  if (!alvo) return;
+  ev.preventDefault();
+  alvo.click();
+});
+
+/* Gesto horizontal. Só conta quando é claramente horizontal: rolar a página
+   com o dedo não pode virar folha por acidente. */
+let arrasteCaderno = null;
+
+$('#caderno').addEventListener('pointerdown', (ev) => {
+  if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+  arrasteCaderno = { x: ev.clientX, y: ev.clientY };
+});
+
+$('#caderno').addEventListener('pointerup', (ev) => {
+  if (!arrasteCaderno) return;
+  const dx = ev.clientX - arrasteCaderno.x;
+  const dy = ev.clientY - arrasteCaderno.y;
+  arrasteCaderno = null;
+  if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+  viraPagina(dx < 0 ? 1 : -1);
+});
+
+$('#caderno').addEventListener('pointercancel', () => { arrasteCaderno = null; });
+
+/* Setas do teclado enquanto o Álbum está aberto. */
+document.addEventListener('keydown', (ev) => {
+  if (telaAtual !== 'album' || folha || revelacao) return;
+  if (!$('#modal').classList.contains('oculto')) return;
+  if (ev.target.closest('input, textarea, select')) return;
+  if (ev.key === 'ArrowRight') { ev.preventDefault(); viraPagina(1); }
+  else if (ev.key === 'ArrowLeft') { ev.preventDefault(); viraPagina(-1); }
+});
+
+/* Girar o tablet troca entre caderno aberto e página única. */
+let esperaCaderno = null;
+window.addEventListener('resize', () => {
+  if (telaAtual !== 'album') return;
+  clearTimeout(esperaCaderno);
+  esperaCaderno = setTimeout(desenhaAlbum, 150);
 });
 
 $('#btPularRevelacao').addEventListener('click', () => {
@@ -7505,19 +8259,98 @@ function defineDuracao(min) {
 
 /* ---------- Tela de Foco ---------- */
 
+/**
+ * O progresso do dia na tela de Foco.
+ *
+ * Antes do estudo a tela de ação não pode cobrar nada: nem placar zerado, nem
+ * quanto falta, nem comparação com ontem. Por isso o padrão é discreto — uma
+ * frase que só afirma que o próximo bloco conta. Quem quiser o número pede.
+ */
+const PROGRESSO_NO_FOCO = ['discreto', 'oculto', 'completo'];
+
+function modoDoProgressoNoFoco() {
+  const m = estado.prefs.progressoNoFoco;
+  return PROGRESSO_NO_FOCO.indexOf(m) === -1 ? 'discreto' : m;
+}
+
+function textoDoProgressoNoFoco() {
+  const modo = modoDoProgressoNoFoco();
+  if (modo === 'oculto') return '';
+  const blocos = blocosDoDia(chaveHoje()).length;
+  if (modo === 'completo') {
+    const min = minutosDoDia(chaveHoje());
+    return 'Hoje: ' + formataTempoAcumulado(min) + ' · ' + blocos + (blocos === 1 ? ' bloco' : ' blocos');
+  }
+  return blocos ? 'Você já entrou em campo hoje.' : 'O próximo bloco já conta.';
+}
+
 /** Só o que a tela precisa fora do tique do relógio. */
 function desenhaFoco() {
-  const min = minutosDoDia(chaveHoje());
-  const blocos = blocosDoDia(chaveHoje()).length;
-  $('#resumoDia').textContent = blocos
-    ? 'Hoje: ' + fmtDuracao(min) + ' · ' + blocos + (blocos === 1 ? ' bloco' : ' blocos')
-    : 'Seu primeiro bloco abre o jogo.';
+  const resumo = $('#resumoDia');
+  const texto = textoDoProgressoNoFoco();
+  resumo.textContent = texto;
+  resumo.classList.toggle('oculto', !texto);
+  if (modoDoProgressoNoFoco() === 'completo') {
+    resumo.setAttribute('aria-label', 'Hoje: ' + descreveTempoAcumulado(minutosDoDia(chaveHoje())) +
+      ', ' + blocosDoDia(chaveHoje()).length + ' blocos.');
+  } else {
+    resumo.removeAttribute('aria-label');
+  }
+
   $('#valDuracao').textContent = estado.prefs.duracao + ' min';
   $('#btDuracao').setAttribute('aria-label', 'Bloco de ' + estado.prefs.duracao + ' minutos. Tocar para trocar.');
   const assunto = assuntoEscolhido();
   $('#valAssunto').textContent = assunto;
   $('#btAssunto').title = assunto;
   $('#btAssunto').setAttribute('aria-label', 'Assunto: ' + assunto + '. Tocar para trocar.');
+  $('#btAquecimento').classList.toggle('oculto', !!estado.timer);
+  desenhaPausas();
+}
+
+/* ---------- Pausas e intervalo, na própria tela de Foco ---------- */
+
+let pausasAbertas = false;      // o cartão sempre nasce compacto
+
+/** O resumo compacto e, se estiver aberto, os três controles. */
+function desenhaPausas() {
+  const p = estado.prefs;
+  $('#resumoPausas').textContent = 'Pausa ' + p.pausaCurta + ' min · Intervalo ' + p.pausaLonga +
+    ' min · após ' + p.focosAteLonga + (p.focosAteLonga === 1 ? ' bloco' : ' blocos');
+  $('#valPausaCurtaFoco').textContent = p.pausaCurta + ' min';
+  $('#valPausaLongaFoco').textContent = p.pausaLonga + ' min';
+  $('#valFocosAteLongaFoco').textContent = p.focosAteLonga;
+
+  $('#pausasExpandido').classList.toggle('oculto', !pausasAbertas);
+  $('#btAjustarPausas').setAttribute('aria-expanded', String(pausasAbertas));
+  $('#btAjustarPausas').textContent = pausasAbertas ? 'Pronto' : 'Ajustar';
+
+  // Botão que não muda nada fica desligado: o limite se enxerga sem erro.
+  $$('#pausasExpandido .bt-passo').forEach((bt) => {
+    const chave = bt.dataset.ajuste;
+    bt.disabled = (limita(chave, p[chave] + Number(bt.dataset.delta)) === p[chave]);
+  });
+}
+
+/**
+ * Um passo em qualquer ajuste de pausa, venha da tela de Foco ou de
+ * Configurações. Salva na hora: não existe botão "Salvar".
+ *
+ * O bloco em andamento não é tocado — o timer guarda a própria duração ao
+ * começar, então mudar aqui vale sempre para a PRÓXIMA pausa.
+ */
+function passoDeAjuste(chave, delta) {
+  const antes = estado.prefs[chave];
+  const depois = limita(chave, antes + Number(delta));
+  if (depois === antes) return;
+  estado.prefs[chave] = depois;
+  salvaEstado();
+  desenhaPausas();
+  desenhaAjustes();
+  // Confirmação discreta só quando ela é necessária: uma pausa já rolando não
+  // encolhe nem estica no meio do caminho.
+  if (estado.timer && estado.timer.modo === 'pausa' && (chave === 'pausaCurta' || chave === 'pausaLonga')) {
+    avisa('Pausas', 'Vale a partir da próxima pausa.');
+  }
 }
 
 /** Os ajustes que moram em Configurações. Fora do tique do relógio. */
@@ -7531,12 +8364,25 @@ function desenhaAjustes() {
   $('#valPausaCurta').textContent = estado.prefs.pausaCurta + ' min';
   $('#valPausaLonga').textContent = estado.prefs.pausaLonga + ' min';
   $('#valFocosAteLonga').textContent = estado.prefs.focosAteLonga;
-  $('#subPausas').textContent = 'A pausa é livre: entra se tu quiser. ' + textoDoCicloDeFocos();
+  $('#subPausas').textContent = 'Os mesmos ajustes estão na tela de Foco, que é o acesso do dia a dia. ' +
+    'A pausa é livre: entra se tu quiser. ' + textoDoCicloDeFocos();
   $$('#ajustesPausa .bt-passo').forEach((bt) => {
     const chave = bt.dataset.ajuste;
     const alvo = limita(chave, estado.prefs[chave] + Number(bt.dataset.delta));
     bt.disabled = (alvo === estado.prefs[chave]);
   });
+
+  const modoProg = modoDoProgressoNoFoco();
+  $$('#fichasProgressoFoco .ficha[data-progresso]').forEach((f) => {
+    const ativa = f.dataset.progresso === modoProg;
+    f.classList.toggle('ativa', ativa);
+    f.setAttribute('aria-pressed', String(ativa));
+  });
+  $('#subProgressoFoco').textContent = {
+    discreto: 'A tela de Foco só afirma que o próximo bloco conta. Nenhum número diário aparece antes de tu começar.',
+    oculto: 'Nada sobre o dia aparece na tela de Foco. O total continua na aba Progresso.',
+    completo: 'A tela de Foco mostra o total do dia em horas, como "Hoje: 0h40 · 1 bloco". Sem comparação com recorde, meta ou com ontem.'
+  }[modoProg];
 
   const modo = estado.prefs.modoAviso || 'fim';
   $$('#modosAviso .ficha[data-modo]').forEach((f) => {
@@ -7680,7 +8526,28 @@ $('#btSecundario').addEventListener('click', () => {
   const t = estado.timer;
   if (!t) return;
   if (t.modo === 'foco') { confirmaEncerrarBloco(); return; }
-  if (t.pausadoEm) voltaAoFoco(); else pulaBloco();     // "Voltar ao foco" / "Encerrar descanso"
+  if (t.pausadoEm) voltaAoFoco(); else pausaTimer();   // "Voltar ao foco" / "Pausar intervalo"
+});
+
+/* Entrada curta: dez minutos que não mexem na duração padrão do bloco. */
+$('#btAquecimento').addEventListener('click', () => {
+  if (estado.timer) return;
+  pedeModoFoco(() => comecaBloco('foco', 10, assuntoEscolhido()));
+});
+
+/* Ajustar pausas: o cartão abre e fecha aqui mesmo, sem sair da tela. */
+$('#btAjustarPausas').addEventListener('click', () => {
+  pausasAbertas = !pausasAbertas;
+  desenhaPausas();
+  if (pausasAbertas) {
+    const primeiro = $('#pausasExpandido .bt-passo:not(:disabled)');
+    if (primeiro) primeiro.focus();
+  }
+});
+
+$('#pausasExpandido').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-ajuste]');
+  if (bt) passoDeAjuste(bt.dataset.ajuste, bt.dataset.delta);
 });
 
 /** Encerra o descanso e já entra no bloco seguinte, pelo mesmo caminho do Começar. */
@@ -7718,11 +8585,16 @@ $('#fichasDuracao').addEventListener('click', (ev) => {
 
 $('#ajustesPausa').addEventListener('click', (ev) => {
   const bt = ev.target.closest('[data-ajuste]');
-  if (!bt) return;
-  const chave = bt.dataset.ajuste;
-  estado.prefs[chave] = limita(chave, estado.prefs[chave] + Number(bt.dataset.delta));
+  if (bt) passoDeAjuste(bt.dataset.ajuste, bt.dataset.delta);
+});
+
+$('#fichasProgressoFoco').addEventListener('click', (ev) => {
+  const f = ev.target.closest('.ficha[data-progresso]');
+  if (!f) return;
+  estado.prefs.progressoNoFoco = f.dataset.progresso;
   salvaEstado();
   desenhaAjustes();
+  desenhaFoco();
 });
 
 $('#modosAviso').addEventListener('click', async (ev) => {
@@ -7921,6 +8793,7 @@ if ('serviceWorker' in navigator) {
 
 /* ---- Início ---- */
 function inicia() {
+  testesDeFormatacao();           // o formato de hora é regra: confere e avisa
   carregaEstado();
   pedePersistencia();             // pede ao Android pra não descartar os dados
   sincronizaMarcasEmSilencio();   // acerta recordes/marcos sem comemorar coisa velha
