@@ -1006,9 +1006,9 @@ body.sem-animacao .tela{animation:none}
 }
 
 /* ---------- Tela de Foco: a partida vista do meio-campo ----------
-   O vazio se resolve por composição — campo, estádio e escala —, nunca por
-   mais números. O cronômetro segue sendo o maior elemento tipográfico da
-   tela, e nada aqui se mexe sozinho enquanto o bloco roda. */
+   O vazio se resolve por composição — a foto do estádio, o clarão central e
+   a escala —, nunca por mais números. O cronômetro segue sendo o maior
+   elemento tipográfico da tela, e nada aqui se mexe enquanto o bloco roda. */
 .painel-foco{
   position:relative;overflow:hidden;
   border:1px solid var(--linha);border-radius:var(--raio);box-shadow:var(--sombra);
@@ -1019,49 +1019,58 @@ body.sem-animacao .tela{animation:none}
 @supports (height:1svh){ .painel-foco{min-height:clamp(300px,60svh,620px)} }
 .painel-faixa{flex:0 0 auto}
 
-/* O campo é decoração pura: nenhuma informação depende de enxergar isto. */
-.campo{position:absolute;inset:6px 0 0;pointer-events:none}
-/* Linha central atravessando o painel e as duas laterais do gramado.
-   A linha passa ATRÁS do cronômetro: o miolo do anel a cobre no meio, que é
-   exatamente o que acontece no círculo central de um campo de verdade. */
-.campo-linhas{
-  position:absolute;left:0;right:0;top:0;bottom:0;opacity:.11;
-  background:
-    /* linha do meio-campo */
-    linear-gradient(to bottom,transparent calc(50% - 1px),var(--tinta) calc(50% - 1px),var(--tinta) calc(50% + 1px),transparent calc(50% + 1px)),
-    /* laterais do gramado */
-    linear-gradient(to right,transparent calc(5% - 1px),var(--tinta) calc(5% - 1px),var(--tinta) calc(5% + 1px),transparent calc(5% + 1px)),
-    linear-gradient(to right,transparent calc(95% - 1px),var(--tinta) calc(95% - 1px),var(--tinta) calc(95% + 1px),transparent calc(95% + 1px));
-}
-/* Arcos de escanteio: dois quartos de círculo nos cantos de baixo. */
-.campo-linhas::before,.campo-linhas::after{
-  content:"";position:absolute;bottom:12%;width:34px;height:34px;
-  border:2px solid var(--tinta);opacity:.55;
-}
-.campo-linhas::before{left:5%;border-top:0;border-left:0;border-radius:0 0 34px 0;transform:translateX(-2px)}
-.campo-linhas::after{right:5%;border-top:0;border-right:0;border-radius:0 0 0 34px;transform:translateX(2px)}
-
-/* Silhueta de arquibancada no limite inferior: faixas paradas, sem torcida. */
-.arquibancada{
-  position:absolute;left:0;right:0;bottom:0;height:clamp(34px,9%,64px);
-  background:
-    repeating-linear-gradient(90deg,var(--tinta) 0 5px,transparent 5px 11px),
-    linear-gradient(180deg,transparent,var(--tinta));
-  opacity:.09;
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 60%);
-          mask-image:linear-gradient(180deg,transparent,#000 60%);
+/* ---------- Fundo de estádio atrás do cronômetro ----------
+   Só neste painel: a foto não encosta no body, na tela, nos outros cartões
+   nem no cartão de pausas. Fica estática, não recebe clique e o clarão
+   central preserva o contraste dos números. */
+.cartao-relogio {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--card);
 }
 
-/* Refletores apagados. Acendem por 1 s quando o bloco fecha, e só então. */
-.refletor{
-  position:absolute;top:10px;width:clamp(38px,11%,72px);height:clamp(38px,11%,72px);
-  border-radius:50%;opacity:.18;
-  background:radial-gradient(circle at 50% 40%,var(--primaria) 0%,transparent 68%);
-  transition:opacity .45s ease;
+.cartao-relogio::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    url("./assets/focus/focus-stadium-neutral.webp")
+    center center / cover no-repeat;
+  opacity: .22;
+  pointer-events: none;
+  transition: opacity .45s ease;
 }
-.refletor-esq{left:2%}
-.refletor-dir{right:2%}
-.painel-foco.acesos .refletor{opacity:.55}
+
+.cartao-relogio::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      circle at 50% 46%,
+      rgba(255,255,255,.96) 0 24%,
+      rgba(255,255,255,.62) 42%,
+      rgba(255,255,255,.14) 74%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--primaria) 10%, transparent),
+      transparent 70%
+    );
+  pointer-events: none;
+}
+
+.cartao-relogio > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fim de bloco: a foto clareia por 1 s e os refletores do estádio aparecem.
+   É o único movimento da tela de Foco, e não acontece durante o bloco. */
+.cartao-relogio.acesos::before{opacity:.40}
 
 .foco-conteudo{
   position:relative;z-index:1;flex:1;
@@ -1151,7 +1160,7 @@ body.sem-animacao .piscando{animation:none}
 body.sem-animacao .caderno-folhas.virando-frente .folha-album,
 body.sem-animacao .caderno-folhas.virando-tras .folha-album{animation:none}
 body.sem-animacao .fig.brilha::after{animation:none}
-body.sem-animacao .refletor{transition:none}
+body.sem-animacao .cartao-relogio::before{transition:none}
 body.sem-animacao .abas button,
 body.sem-animacao .vaga{transition:none}
 body.sem-animacao .folha-caixa{animation:none}
@@ -1187,20 +1196,13 @@ body.sem-animacao .folha-caixa{animation:none}
 <main>
 
   <!-- ================= TELA: FOCO ================= -->
-  <!-- Uma partida vista do meio-campo: o cronômetro É o círculo central.
-       Tudo que decora leva aria-hidden e nada se mexe durante o bloco. -->
+  <!-- Uma partida vista do meio-campo: o cronômetro É o círculo central e a
+       foto do estádio fica atrás dele, em pseudo-elemento do painel — fora da
+       árvore de acessibilidade e fora do caminho do toque. -->
   <section class="tela" id="tela-foco">
-    <div class="painel-foco" id="painelFoco">
+    <div class="painel-foco cartao-relogio" id="painelFoco">
 
       <div class="faixas faixas-fina painel-faixa" aria-hidden="true"></div>
-
-      <!-- Campo e estádio: CSS puro, sem imagem e sem animação em laço -->
-      <div class="campo" aria-hidden="true">
-        <i class="refletor refletor-esq"></i>
-        <i class="refletor refletor-dir"></i>
-        <i class="campo-linhas"></i>
-        <i class="arquibancada"></i>
-      </div>
 
       <div class="foco-conteudo">
 
@@ -3451,8 +3453,9 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
 }
 
 /**
- * Fim de bloco: os refletores do estádio acendem por cerca de 1 s.
- * É o único movimento da tela de Foco, e ele não acontece durante o foco.
+ * Fim de bloco: a foto do estádio clareia por cerca de 1 s, e com ela os
+ * refletores da arquibancada. É o único movimento da tela de Foco, e ele não
+ * acontece durante o foco.
  */
 let apagaRefletores = null;
 
