@@ -1038,7 +1038,7 @@ body.sem-animacao .tela{animation:none}
   background:
     url("./assets/focus/focus-stadium-neutral.webp")
     center center / cover no-repeat;
-  opacity: .22;
+  opacity: .50;
   pointer-events: none;
   transition: opacity .45s ease;
 }
@@ -1068,9 +1068,22 @@ body.sem-animacao .tela{animation:none}
   z-index: 1;
 }
 
+/* Com a foto a 50% o fundo do painel deixa de ser branco, e o cinza dos
+   textos de apoio cai a 3:1 — abaixo do mínimo de 4,5:1. Só dentro deste
+   painel eles escurecem: o título mantém a cor do time na variante forte,
+   que passa, e os dois textos de apoio vão pra tinta cheia. */
+/* O título também vai pra tinta: na foto do celular nem a variante forte da
+   cor do time alcançava 4,5:1. A identidade não se perde — ela mora no arco
+   de progresso, no botão e na faixa do topo, que é onde o briefing a pede. */
+.cartao-relogio .foco-titulo,
+.cartao-relogio .foco-acoes .bt-fantasma,
+.cartao-relogio .resumo-dia{color:var(--tinta)}
+
 /* Fim de bloco: a foto clareia por 1 s e os refletores do estádio aparecem.
-   É o único movimento da tela de Foco, e não acontece durante o bloco. */
-.cartao-relogio.acesos::before{opacity:.40}
+   É o único movimento da tela de Foco, e não acontece durante o bloco.
+   O valor acompanha o repouso: se um dia a foto subir ou descer, este sobe
+   ou desce junto, senão o clarão escurece em vez de acender. */
+.cartao-relogio.acesos::before{opacity:.72}
 
 .foco-conteudo{
   position:relative;z-index:1;flex:1;
