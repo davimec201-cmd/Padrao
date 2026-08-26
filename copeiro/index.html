@@ -1019,6 +1019,54 @@ body.sem-animacao .tela{animation:none}
 @supports (height:1svh){ .painel-foco{min-height:clamp(300px,60svh,620px)} }
 .painel-faixa{flex:0 0 auto}
 
+/* ---------- Fundo de estádio atrás do cronômetro ----------
+   Só neste painel: a foto não encosta no body, na tela, nos outros cartões
+   nem no cartão de pausas. Fica estática, não recebe clique e o clarão
+   central preserva o contraste dos números. */
+.cartao-relogio {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.cartao-relogio::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    url("./assets/focus/focus-stadium-neutral.webp")
+    center center / cover no-repeat;
+  opacity: .22;
+  pointer-events: none;
+}
+
+.cartao-relogio::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      circle at 50% 46%,
+      rgba(255,255,255,.96) 0 24%,
+      rgba(255,255,255,.62) 42%,
+      rgba(255,255,255,.14) 74%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--primaria) 10%, transparent),
+      transparent 70%
+    );
+  pointer-events: none;
+}
+
+.cartao-relogio > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* O campo é decoração pura: nenhuma informação depende de enxergar isto. */
 .campo{position:absolute;inset:6px 0 0;pointer-events:none}
 /* Linha central atravessando o painel e as duas laterais do gramado.
@@ -1190,7 +1238,7 @@ body.sem-animacao .folha-caixa{animation:none}
   <!-- Uma partida vista do meio-campo: o cronômetro É o círculo central.
        Tudo que decora leva aria-hidden e nada se mexe durante o bloco. -->
   <section class="tela" id="tela-foco">
-    <div class="painel-foco" id="painelFoco">
+    <div class="painel-foco cartao-relogio" id="painelFoco">
 
       <div class="faixas faixas-fina painel-faixa" aria-hidden="true"></div>
 

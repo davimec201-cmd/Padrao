@@ -11,7 +11,7 @@
    esperaAVezOuAssume(), mais abaixo.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v15';
+const VERSAO = 'copeiro-v16';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */
@@ -23,7 +23,8 @@ const ARQUIVOS = [
   './icone-512.png',
   './temas/indice.json',
   './temas/gremio.json',
-  './temas/neutro.json'
+  './temas/neutro.json',
+  './assets/focus/focus-stadium-neutral.webp'
 ];
 
 /* ---- Instalação: baixa e guarda tudo ---- */
