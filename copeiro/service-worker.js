@@ -11,7 +11,7 @@
    esperaAVezOuAssume(), mais abaixo.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v16';
+const VERSAO = 'copeiro-v17';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */
