@@ -11,13 +11,14 @@
    esperaAVezOuAssume(), mais abaixo.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v17';
+const VERSAO = 'copeiro-v18';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */
 const ARQUIVOS = [
   './',
   './index.html',
+  './performance-protocols.js',
   './manifest.webmanifest',
   './icone-192.png',
   './icone-512.png',

@@ -1177,6 +1177,61 @@ body.sem-animacao .cartao-relogio::before{transition:none}
 body.sem-animacao .abas button,
 body.sem-animacao .vaga{transition:none}
 body.sem-animacao .folha-caixa{animation:none}
+
+/* ---------- Copeiro Performance ---------- */
+.performance-topo{display:flex;align-items:flex-start;gap:16px}
+.performance-topo>div{flex:1;min-width:0}
+.performance-selo{
+  display:inline-flex;align-items:center;min-height:30px;padding:4px 10px;
+  border:1px solid var(--primaria-borda);border-radius:999px;
+  background:var(--primaria-fundo);color:var(--primaria-texto);
+  font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+}
+.performance-contexto{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.performance-contexto .campo-largo{grid-column:1/-1}
+.performance-contexto select,.performance-registro select,.performance-registro input,
+.performance-registro textarea{width:100%}
+.performance-opcoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.performance-opcao{position:relative}
+.performance-opcao input{position:absolute;opacity:0;pointer-events:none}
+.performance-opcao span{
+  display:flex;align-items:center;min-height:44px;padding:8px 13px;
+  border:1px solid var(--linha);border-radius:999px;background:var(--card);
+  color:var(--tinta);font-size:.88rem;font-weight:700;cursor:pointer;
+}
+.performance-opcao input:checked+span{
+  border-color:var(--primaria);background:var(--primaria-fundo);color:var(--primaria-texto);
+  box-shadow:inset 0 0 0 1px var(--primaria);
+}
+.performance-opcao input:focus-visible+span{outline:3px solid var(--foco);outline-offset:2px}
+.performance-escolha{padding:14px 0;border-top:1px solid var(--linha);border-bottom:1px solid var(--linha)}
+.performance-protocolo{margin-top:16px;padding:16px;border-radius:16px;background:var(--papel);border:1px solid var(--linha)}
+.performance-protocolo h3{margin:0 0 4px;font-size:1.08rem}
+.performance-meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.performance-meta span{padding:5px 9px;border-radius:999px;background:var(--card);border:1px solid var(--linha);font-size:.78rem;font-weight:700}
+.performance-aviso{margin-top:12px;color:var(--suave);font-size:.82rem;font-weight:600}
+.performance-passo{margin:14px 0 8px;font-size:1rem;font-weight:700;color:var(--tinta)}
+.performance-progresso{width:100%;height:12px;accent-color:var(--primaria)}
+.performance-registro{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.performance-registro .campo-largo{grid-column:1/-1}
+.performance-lista{display:flex;flex-direction:column;margin-top:14px}
+.performance-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--linha)}
+.performance-item>div{flex:1;min-width:0}
+.performance-item b,.performance-item small{display:block}
+.performance-item small{margin-top:3px;color:var(--suave)}
+.performance-numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.performance-numero{padding:12px 8px;border-radius:14px;background:var(--papel);text-align:center}
+.performance-numero b{display:block;font-size:1.35rem;color:var(--tinta);font-variant-numeric:tabular-nums}
+.performance-numero span{display:block;margin-top:3px;font-size:.72rem;color:var(--suave);line-height:1.25}
+.performance-marcos{margin:12px 0 0;padding-left:20px;color:var(--tinta)}
+.performance-marcos li{margin:7px 0}
+@media (max-width:599px){
+  .performance-topo{flex-direction:column}
+  .performance-contexto,.performance-registro{grid-template-columns:1fr}
+  .performance-contexto .campo-largo,.performance-registro .campo-largo{grid-column:auto}
+  .performance-numeros{grid-template-columns:repeat(2,1fr)}
+}
+@media (prefers-reduced-motion:reduce){.performance-progresso{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -1673,6 +1728,160 @@ body.sem-animacao .folha-caixa{animation:none}
     <div id="maisCorpo"></div>
   </section>
 
+  <!-- ================= TELA: COPEIRO PERFORMANCE ================= -->
+  <section class="tela oculto" id="tela-performance">
+    <div class="cartao" id="performanceConvite">
+      <div class="faixas faixas-fina" style="margin:-18px -18px 16px"></div>
+      <span class="performance-selo">Corpo + foco</span>
+      <h2 id="performanceConviteTitulo" style="margin-top:12px">Copeiro Performance</h2>
+      <p class="sub" id="performanceConviteTexto">Movimento para recuperar o corpo, cuidar da disposição e continuar estudando.</p>
+      <div class="linha-bts" style="margin-top:16px">
+        <button class="bt bt-azul" id="btAtivarPerformance">Ativar Performance</button>
+        <button class="bt" id="btAgoraNaoPerformance">Agora não</button>
+      </div>
+    </div>
+
+    <div id="performancePainel" class="oculto">
+      <div class="cartao">
+        <div class="faixas faixas-fina" style="margin:-18px -18px 16px"></div>
+        <div class="performance-topo">
+          <div>
+            <span class="performance-selo">Ativo</span>
+            <h2 style="margin-top:10px">Copeiro Performance</h2>
+            <p class="sub">Estude, recupere o corpo e volte em melhores condições para continuar.</p>
+          </div>
+          <button class="bt bt-fantasma" id="btDesativarPerformance">Desativar</button>
+        </div>
+      </div>
+
+      <div class="cartao">
+        <h2>Teu contexto</h2>
+        <p class="sub">Tudo é opcional e fica só neste aparelho. Ajuste quando tua rotina mudar.</p>
+        <div class="performance-contexto" style="margin-top:14px">
+          <div>
+            <label class="rot" for="perfAmbiente">Onde costuma estudar</label>
+            <select id="perfAmbiente">
+              <option value="">Não informar</option><option value="casa">Casa</option>
+              <option value="biblioteca">Biblioteca</option><option value="faculdade">Faculdade</option>
+            </select>
+          </div>
+          <div>
+            <label class="rot" for="perfPodeLevantar">Pode levantar</label>
+            <select id="perfPodeLevantar"><option value="">Não informar</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+          </div>
+          <div>
+            <label class="rot" for="perfSilencio">Precisa de silêncio</label>
+            <select id="perfSilencio"><option value="">Não informar</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+          </div>
+          <div>
+            <label class="rot" for="perfSemSuor">Quer evitar suor</label>
+            <select id="perfSemSuor"><option value="">Não informar</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+          </div>
+          <div class="campo-largo">
+            <label class="rot" for="perfAcademia">Estudo e academia</label>
+            <select id="perfAcademia">
+              <option value="">Não informar</option><option value="antes">Costumo estudar antes da academia</option>
+              <option value="depois">Costumo estudar depois da academia</option><option value="varia">Varia conforme o dia</option>
+            </select>
+          </div>
+          <fieldset class="campo-largo">
+            <legend class="rot">Atividades preferidas</legend>
+            <div class="performance-opcoes" id="perfPreferidas">
+              <label class="performance-opcao"><input type="checkbox" name="perfPreferida" value="musculacao"><span>Musculação</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfPreferida" value="corrida"><span>Corrida</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfPreferida" value="caminhada"><span>Caminhada</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfPreferida" value="esporte"><span>Esporte</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfPreferida" value="pausas"><span>Somente pausas</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="campo-largo">
+            <legend class="rot">Dias em que normalmente treina</legend>
+            <div class="performance-opcoes" id="perfDias">
+              <label class="performance-opcao"><input type="checkbox" name="perfDia" value="1"><span>Seg</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfDia" value="2"><span>Ter</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfDia" value="3"><span>Qua</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfDia" value="4"><span>Qui</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfDia" value="5"><span>Sex</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfDia" value="6"><span>Sáb</span></label>
+              <label class="performance-opcao"><input type="checkbox" name="perfDia" value="0"><span>Dom</span></label>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="cartao" id="performanceIntervalo">
+        <h2>Intervalo inteligente</h2>
+        <p class="sub">Escolha o tempo disponível. A sugestão respeita teu contexto e pode ser pulada.</p>
+        <div class="performance-escolha" style="margin-top:14px">
+          <p class="rot">Duração</p>
+          <div class="fichas" id="perfDuracoes" style="margin-top:8px">
+            <button class="ficha" data-perf-duracao="2">2 min</button>
+            <button class="ficha" data-perf-duracao="5">5 min</button>
+            <button class="ficha" data-perf-duracao="10">10 min</button>
+          </div>
+          <p class="rot" style="margin-top:14px">Filtros para agora</p>
+          <div class="performance-opcoes" id="perfFiltros">
+            <label class="performance-opcao"><input type="checkbox" name="perfFiltro" value="silencioso"><span>Silencioso</span></label>
+            <label class="performance-opcao"><input type="checkbox" name="perfFiltro" value="sem-suar"><span>Sem suar</span></label>
+            <label class="performance-opcao"><input type="checkbox" name="perfFiltro" value="pouco-espaco"><span>Pouco espaço</span></label>
+            <label class="performance-opcao"><input type="checkbox" name="perfFiltro" value="posso-caminhar"><span>Posso caminhar</span></label>
+            <label class="performance-opcao"><input type="checkbox" name="perfFiltro" value="antes-treino"><span>Antes do treino</span></label>
+            <label class="performance-opcao"><input type="checkbox" name="perfFiltro" value="depois-treino"><span>Depois do treino</span></label>
+          </div>
+          <div class="linha-bts" style="margin-top:16px">
+            <button class="bt bt-azul" id="btSugerirProtocolo">Ver sugestão</button>
+            <button class="bt bt-fantasma oculto" id="btVoltarPausaNormal">Prefiro pausa normal</button>
+          </div>
+        </div>
+        <div id="perfSugestao"></div>
+        <div id="perfAtivo" class="oculto" aria-live="polite"></div>
+      </div>
+
+      <div class="cartao">
+        <h2>Registrar atividade</h2>
+        <p class="sub">Um registro simples, sem calorias, peso ou comparação.</p>
+        <div class="performance-registro" style="margin-top:14px">
+          <div>
+            <label class="rot" for="perfAtividade">Atividade</label>
+            <select id="perfAtividade"><option value="musculacao">Musculação</option><option value="corrida">Corrida</option><option value="caminhada">Caminhada</option><option value="esporte">Esporte</option></select>
+          </div>
+          <div>
+            <label class="rot" for="perfAtividadeDuracao">Duração em minutos</label>
+            <input type="number" id="perfAtividadeDuracao" min="1" max="1440" inputmode="numeric" value="30">
+          </div>
+          <div>
+            <label class="rot" for="perfAtividadeData">Data</label>
+            <input type="date" id="perfAtividadeData">
+          </div>
+          <div class="campo-largo">
+            <label class="rot" for="perfAtividadeObs">Observação opcional</label>
+            <textarea id="perfAtividadeObs" maxlength="160" rows="2" placeholder="Ex.: treino leve com amigos"></textarea>
+          </div>
+        </div>
+        <div class="linha-bts" style="margin-top:14px">
+          <button class="bt bt-azul" id="btRegistrarAtividade">Registrar atividade</button>
+          <button class="bt bt-fantasma oculto" id="btDesfazerAtividade">Desfazer último registro</button>
+        </div>
+        <div class="performance-lista" id="perfListaAtividades"></div>
+      </div>
+
+      <div class="cartao">
+        <h2>Estudo + movimento</h2>
+        <p class="sub">Progresso cumulativo. Nada zera e nenhum dia vira dívida.</p>
+        <div class="performance-numeros">
+          <div class="performance-numero"><b id="perfMinutosFoco">0h</b><span>de foco</span></div>
+          <div class="performance-numero"><b id="perfBlocos">0</b><span>blocos concluídos</span></div>
+          <div class="performance-numero"><b id="perfIntervalos">0</b><span>intervalos inteligentes</span></div>
+          <div class="performance-numero"><b id="perfAtividades">0</b><span>atividades registradas</span></div>
+          <div class="performance-numero"><b id="perfDiasCombinados">0</b><span>dias com foco e movimento</span></div>
+          <div class="performance-numero"><b id="perfResposta">—</b><span>resposta mais frequente</span></div>
+        </div>
+        <h3 style="margin-top:18px">Marcos</h3>
+        <ul class="performance-marcos" id="perfMarcos"></ul>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= TELA: ORGANIZAR ABAS ================= -->
   <section class="tela oculto" id="tela-abas">
     <div class="cartao">
@@ -1826,7 +2035,7 @@ body.sem-animacao .folha-caixa{animation:none}
         <button class="bt" id="btImportar">Importar JSON</button>
         <input type="file" id="arquivoImportar" accept="application/json,.json" class="oculto">
       </div>
-      <p class="sub" style="margin-top:14px">O backup leva junto o histórico, as Copas, o Álbum, as cartas e a organização das abas. Não há sincronização em nuvem: o arquivo é o teu backup.</p>
+      <p class="sub" style="margin-top:14px">O backup leva junto o histórico, as Copas, o Álbum, as cartas, o Performance e a organização das abas. Não há sincronização em nuvem: o arquivo é o teu backup.</p>
     </div>
 
   </section>
@@ -1913,6 +2122,7 @@ body.sem-animacao .folha-caixa{animation:none}
 
 <div class="toaster" id="toaster"></div>
 
+<script src="./performance-protocols.js"></script>
 <script>
 /* =========================================================================
    COPEIRO — Pomodoro de estudo do Davi
@@ -2100,9 +2310,45 @@ function escondeAvisoArmazem() {
 
 /* ============================== 3. ESTADO ============================== */
 
+function performanceNovo() {
+  return {
+    ativo: false,
+    conviteVistoEm: null,
+    decisaoConvite: null,
+    contexto: {
+      ambiente: '', podeLevantar: '', silencio: '', evitarSuor: '', academia: '',
+      preferidas: [], diasTreino: []
+    },
+    intervalos: [],       // {id, protocoloId, inicio, fim, status, feedback, dia}
+    atividades: [],       // {id, atividade, duracao, data, observacao, criadaEm}
+    eventos: [],          // telemetria local, sem identificadores pessoais
+    diasCombinados: [],   // dias já registrados como foco + movimento
+    marcosVistos: [],
+    protocoloAtivo: null,
+    aguardaRetornoFoco: false
+  };
+}
+
+function normalizaPerformance(salvo) {
+  const base = performanceNovo();
+  const contextoBase = base.contexto;
+  if (!salvo || typeof salvo !== 'object' || Array.isArray(salvo)) return base;
+  const p = Object.assign(base, salvo);
+  p.contexto = Object.assign(contextoBase, salvo.contexto || {});
+  p.contexto.preferidas = Array.isArray(p.contexto.preferidas) ? p.contexto.preferidas : [];
+  p.contexto.diasTreino = Array.isArray(p.contexto.diasTreino) ? p.contexto.diasTreino : [];
+  p.intervalos = Array.isArray(salvo.intervalos) ? salvo.intervalos : [];
+  p.atividades = Array.isArray(salvo.atividades) ? salvo.atividades : [];
+  p.eventos = Array.isArray(salvo.eventos) ? salvo.eventos.slice(-500) : [];
+  p.diasCombinados = Array.isArray(salvo.diasCombinados) ? salvo.diasCombinados : [];
+  p.marcosVistos = Array.isArray(salvo.marcosVistos) ? salvo.marcosVistos : [];
+  if (!p.protocoloAtivo || typeof p.protocoloAtivo !== 'object') p.protocoloAtivo = null;
+  return p;
+}
+
 function estadoNovo() {
   return {
-    versao: 2,
+    versao: 3,
     blocos: [],        // {id, inicio, fim, minutos, assunto, cicloId, cicloNome}
     // Um ciclo É uma Copa: o capítulo do Álbum daquela temporada.
     ciclos: [],        // {id, nome, inicio, fimPrevisto, fimReal|null, congelado|null,
@@ -2144,6 +2390,7 @@ function estadoNovo() {
       titulos: [],      // campeões de cada ciclo já fechado
       em: null          // quando foi a última sincronização
     },
+    performance: performanceNovo(),
     timer: null        // bloco em andamento (sobrevive a fechar o app)
   };
 }
@@ -2176,6 +2423,7 @@ function carregaEstado() {
   estado.campeonato = Object.assign(base.campeonato, salvo.campeonato || {});
   if (!Array.isArray(estado.campeonato.tabela)) estado.campeonato.tabela = [];
   if (!Array.isArray(estado.campeonato.titulos)) estado.campeonato.titulos = [];
+  estado.performance = normalizaPerformance(salvo.performance);
   if (!estado.campeonato.meuId) estado.campeonato.meuId = idNovo();
   if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
   Object.keys(LIMITES).forEach((chave) => { estado.prefs[chave] = limita(chave, estado.prefs[chave]); });
@@ -2224,7 +2472,7 @@ function migraParaAlbum() {
     orfaos.forEach((c) => { c.temporadaId = herdada.id; });
   }
   estado.ciclos.forEach(garanteAlbum);
-  estado.versao = 2;
+  estado.versao = 3;
 }
 
 function salvaEstado() {
@@ -3262,6 +3510,10 @@ function comecaBloco(modo, minutos, assunto, longa) {
     cicloId: ciclo ? ciclo.id : null,
     cicloNome: ciclo ? ciclo.nome : null
   };
+  if (modo === 'foco' && estado.performance && estado.performance.aguardaRetornoFoco) {
+    estado.performance.aguardaRetornoFoco = false;
+    registraEventoPerformance('focus_returned');
+  }
   salvaEstado();
   pausasAbertas = false;              // recolher não altera nenhum ajuste
   garanteAudio();                     // aproveita o toque do usuário
@@ -3418,6 +3670,8 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
     cicloId: cicloId || null,
     cicloNome: cicloNome || null
   });
+  sincronizaDiasComFocoEMovimento();
+  atualizaMarcosPerformance();
   salvaEstado();
 
   tocaAlarmeDoFim('foco', silencioso);
@@ -3445,6 +3699,17 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
     ? ' Hoje: ' + formataTempoAcumulado(minutosDoDia(chaveHoje())) + '.'
     : '';
 
+  const botoesPosBloco = estado.performance && estado.performance.ativo ? [
+    { texto: 'Intervalo inteligente', tipo: 'bt-azul', acao: abrePerformanceDepoisDoBloco },
+    { texto: 'Pausa normal', tipo: '', acao: () => { fechaModal(); comecaPausa(); } },
+    { texto: 'Próximo bloco', tipo: 'bt-fantasma', acao: () => { fechaModal(); vaiPara('foco'); abreFolhaDeAssunto(); } }
+  ] : [
+    { texto: 'Iniciar ' + (pausaLongaAgora() ? 'intervalo de ' + estado.prefs.pausaLonga : 'pausa de ' + estado.prefs.pausaCurta) + ' min',
+      tipo: 'bt-azul', acao: () => { fechaModal(); comecaPausa(); } },
+    { texto: 'Começar outro bloco', tipo: '', acao: () => { fechaModal(); vaiPara('foco'); abreFolhaDeAssunto(); } },
+    { texto: 'Ver progresso', tipo: 'bt-fantasma', acao: () => { fechaModal(); vaiPara('progresso'); } }
+  ];
+
   abreModal({
     titulo: parcial
       ? 'Bloco encerrado: ' + formataTempoAcumulado(minutos)
@@ -3453,12 +3718,7 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
     detalhe: formataTempoAcumulado(minutos) + ' em ' + escapaHTML(assunto) +
              (cicloNome ? ' — ' + escapaHTML(cicloNome) : '') + '.' + doDia + ' ' + textoDoCicloDeFocos() +
              (doAlbum.pacotes ? ' <b>' + (doAlbum.pacotes === 1 ? 'Um pacote novo espera' : doAlbum.pacotes + ' pacotes novos esperam') + ' no Álbum.</b>' : ''),
-    botoes: [
-      { texto: 'Iniciar ' + (pausaLongaAgora() ? 'intervalo de ' + estado.prefs.pausaLonga : 'pausa de ' + estado.prefs.pausaCurta) + ' min',
-        tipo: 'bt-azul', acao: () => { fechaModal(); comecaPausa(); } },
-      { texto: 'Começar outro bloco', tipo: '', acao: () => { fechaModal(); vaiPara('foco'); abreFolhaDeAssunto(); } },
-      { texto: 'Ver progresso', tipo: 'bt-fantasma', acao: () => { fechaModal(); vaiPara('progresso'); } }
-    ]
+    botoes: botoesPosBloco
   });
 
   quebrados.forEach((texto) => avisa('Recorde', fala('recorde') + ' ' + texto, true));
@@ -4338,6 +4598,481 @@ function desenhaDicaDaCopa() {
     ' pacotes de 2, ' + cfg.registros + ' registros, 3 especiais e a taça.';
 }
 
+/* ===================== COPEIRO PERFORMANCE =====================
+   Movimento e foco compartilham o mesmo estado local. Os protocolos são
+   dados em arquivo separado; aqui ficam apenas seleção, execução e registro.
+   =============================================================== */
+
+const PROTOCOLOS_PERFORMANCE = Array.isArray(window.COPEIRO_PROTOCOLOS)
+  ? window.COPEIRO_PROTOCOLOS : [];
+const AVISO_PROTOCOLO = window.COPEIRO_AVISO_PROTOCOLO ||
+  'Protocolo piloto — pendente de revisão pelo profissional de Educação Física.';
+let duracaoPerformance = 5;
+let sugestaoPerformance = null;
+let origemPerformancePosBloco = false;
+let ultimoRegistroDeAtividade = null;
+let desenhoDoProtocolo = null;
+let concluindoProtocolo = false;
+
+const NOMES_ATIVIDADE = {
+  musculacao: 'Musculação', corrida: 'Corrida', caminhada: 'Caminhada', esporte: 'Esporte'
+};
+const NOMES_FEEDBACK = {
+  desperto: 'Mais desperto', igual: 'Igual', nao_ajudou: 'Não ajudou'
+};
+
+function registraEventoPerformance(tipo, dados) {
+  if (!estado.performance) estado.performance = performanceNovo();
+  estado.performance.eventos.push(Object.assign({ tipo: tipo, em: Date.now() }, dados || {}));
+  estado.performance.eventos = estado.performance.eventos.slice(-500);
+}
+
+function marcaConvitePerformanceVisto() {
+  const p = estado.performance;
+  if (p.conviteVistoEm) return;
+  p.conviteVistoEm = Date.now();
+  registraEventoPerformance('performance_invite_viewed');
+  salvaEstado();
+}
+
+function ativaPerformance() {
+  const p = estado.performance;
+  marcaConvitePerformanceVisto();
+  const primeiraDecisao = !p.decisaoConvite;
+  p.ativo = true;
+  p.decisaoConvite = 'aceito';
+  registraEventoPerformance('performance_activated');
+  if (primeiraDecisao) registraEventoPerformance('performance_invite_accepted');
+  salvaEstado();
+  assinaturaDaBarra = null;
+  desenhaBarra();
+  desenhaPerformance();
+  avisa('Performance ativo', 'Os intervalos inteligentes continuam sempre opcionais.');
+}
+
+function recusaPerformance() {
+  const p = estado.performance;
+  marcaConvitePerformanceVisto();
+  p.ativo = false;
+  p.decisaoConvite = 'recusado';
+  registraEventoPerformance('performance_invite_declined');
+  salvaEstado();
+  desenhaPerformance();
+}
+
+function pedeDesativacaoPerformance() {
+  abreModal({
+    titulo: 'Desativar Performance?',
+    frase: 'Os convites depois dos blocos vão parar.',
+    detalhe: 'Contexto, intervalos e atividades continuam guardados neste aparelho e no backup.',
+    botoes: [
+      { texto: 'Desativar', tipo: 'bt-azul', acao: () => {
+          const ativo = estado.performance.protocoloAtivo;
+          if (ativo) {
+            const registro = registroDeIntervalo(ativo.registroId);
+            if (registro) { registro.status = 'pulado'; registro.fim = Date.now(); }
+            registraEventoPerformance('smart_break_skipped', { protocoloId: ativo.protocoloId, motivo: 'desativado' });
+          }
+          estado.performance.ativo = false;
+          estado.performance.protocoloAtivo = null;
+          registraEventoPerformance('performance_deactivated');
+          salvaEstado();
+          fechaModal();
+          limpaDesenhoDoProtocolo();
+          assinaturaDaBarra = null;
+          desenhaBarra();
+          desenhaPerformance();
+        } },
+      { texto: 'Manter ativo', tipo: '', acao: fechaModal }
+    ]
+  });
+}
+
+function salvaContextoPerformance() {
+  const c = estado.performance.contexto;
+  c.ambiente = $('#perfAmbiente').value;
+  c.podeLevantar = $('#perfPodeLevantar').value;
+  c.silencio = $('#perfSilencio').value;
+  c.evitarSuor = $('#perfSemSuor').value;
+  c.academia = $('#perfAcademia').value;
+  c.preferidas = $$('[name="perfPreferida"]:checked').map((el) => el.value);
+  c.diasTreino = $$('[name="perfDia"]:checked').map((el) => Number(el.value));
+  salvaEstado();
+}
+
+function aplicaContextoPerformance() {
+  const c = estado.performance.contexto;
+  $('#perfAmbiente').value = c.ambiente || '';
+  $('#perfPodeLevantar').value = c.podeLevantar || '';
+  $('#perfSilencio').value = c.silencio || '';
+  $('#perfSemSuor').value = c.evitarSuor || '';
+  $('#perfAcademia').value = c.academia || '';
+  $$('[name="perfPreferida"]').forEach((el) => { el.checked = c.preferidas.indexOf(el.value) !== -1; });
+  $$('[name="perfDia"]').forEach((el) => { el.checked = c.diasTreino.indexOf(Number(el.value)) !== -1; });
+}
+
+function filtrosDoContexto() {
+  const c = estado.performance.contexto;
+  const filtros = [];
+  if (c.silencio === 'sim') filtros.push('silencioso');
+  if (c.evitarSuor === 'sim') filtros.push('sem-suar');
+  if (c.podeLevantar === 'nao') filtros.push('sentado', 'pouco-espaco');
+  if (c.academia === 'antes') filtros.push('antes-treino');
+  if (c.academia === 'depois') filtros.push('depois-treino');
+  return filtros;
+}
+
+function filtrosPerformanceSelecionados() {
+  return $$('[name="perfFiltro"]:checked').map((el) => el.value);
+}
+
+function escolheProtocoloPerformance() {
+  const p = estado.performance;
+  const pedidos = filtrosPerformanceSelecionados().concat(filtrosDoContexto());
+  const candidatos = PROTOCOLOS_PERFORMANCE.filter((protocolo) => protocolo.duracao === duracaoPerformance);
+  if (!candidatos.length) return null;
+  return candidatos.slice().sort((a, b) => {
+    const pontos = (protocolo) => {
+      let total = pedidos.reduce((soma, filtro) => soma + (protocolo.filtros.indexOf(filtro) !== -1 ? 3 : -1), 0);
+      if (p.contexto.ambiente) total += protocolo.ambientes.indexOf(p.contexto.ambiente) !== -1 ? 4 : -4;
+      if (p.contexto.podeLevantar === 'nao' && protocolo.filtros.indexOf('sentado') === -1) total -= 12;
+      return total;
+    };
+    return pontos(b) - pontos(a);
+  })[0];
+}
+
+function protocoloPerformance(id) {
+  return PROTOCOLOS_PERFORMANCE.find((p) => p.id === id) || null;
+}
+
+function htmlMetaProtocolo(protocolo) {
+  const ambientes = protocolo.ambientes.map((a) => a === 'casa' ? 'casa' : (a === 'biblioteca' ? 'biblioteca' : 'faculdade')).join(', ');
+  return '<div class="performance-meta"><span>' + protocolo.duracao + ' min</span><span>' +
+    escapaHTML(protocolo.intensidade) + '</span><span>' + escapaHTML(ambientes) + '</span></div>';
+}
+
+function desenhaSugestaoPerformance() {
+  const caixa = $('#perfSugestao');
+  if (!sugestaoPerformance || estado.performance.protocoloAtivo) { caixa.innerHTML = ''; return; }
+  const protocolo = protocoloPerformance(sugestaoPerformance);
+  if (!protocolo) { caixa.innerHTML = ''; return; }
+  caixa.innerHTML = '<div class="performance-protocolo"><h3>' + escapaHTML(protocolo.nome) + '</h3>' +
+    '<p class="sub">' + escapaHTML(protocolo.objetivo) + '</p>' + htmlMetaProtocolo(protocolo) +
+    '<p class="performance-aviso">' + escapaHTML(AVISO_PROTOCOLO) + '</p>' +
+    '<div class="linha-bts" style="margin-top:14px"><button class="bt bt-azul" data-iniciar-protocolo="' +
+    escapaHTML(protocolo.id) + '">Começar intervalo</button>' +
+    '<button class="bt" id="btOutraSugestao">Outra sugestão</button></div></div>';
+}
+
+function limpaDesenhoDoProtocolo() {
+  if (desenhoDoProtocolo) clearInterval(desenhoDoProtocolo);
+  desenhoDoProtocolo = null;
+}
+
+function iniciaProtocoloPerformance(id) {
+  const protocolo = protocoloPerformance(id);
+  if (!protocolo) return;
+  const registro = {
+    id: idNovo(), protocoloId: protocolo.id, inicio: Date.now(), fim: null,
+    status: 'em_andamento', feedback: null, dia: chaveHoje()
+  };
+  estado.performance.intervalos.push(registro);
+  estado.performance.protocoloAtivo = {
+    registroId: registro.id, protocoloId: protocolo.id, inicio: registro.inicio,
+    duracaoSegundos: protocolo.duracao * 60
+  };
+  registraEventoPerformance('smart_break_started', { protocoloId: protocolo.id, duracao: protocolo.duracao });
+  salvaEstado();
+  sugestaoPerformance = null;
+  desenhaSugestaoPerformance();
+  desenhaProtocoloAtivo();
+}
+
+function instrucaoAtual(protocolo, segundos) {
+  let acumulado = 0;
+  for (const passo of protocolo.instrucoes) {
+    acumulado += passo.segundos;
+    if (segundos < acumulado) return passo.texto;
+  }
+  return protocolo.instrucoes[protocolo.instrucoes.length - 1].texto;
+}
+
+function desenhaProtocoloAtivo() {
+  limpaDesenhoDoProtocolo();
+  const ativo = estado.performance.protocoloAtivo;
+  const caixa = $('#perfAtivo');
+  if (!ativo) { caixa.classList.add('oculto'); caixa.innerHTML = ''; desenhaSugestaoPerformance(); return; }
+  const protocolo = protocoloPerformance(ativo.protocoloId);
+  if (!protocolo) { estado.performance.protocoloAtivo = null; salvaEstado(); return; }
+
+  const desenha = () => {
+    const corrente = estado.performance.protocoloAtivo;
+    if (!corrente) { limpaDesenhoDoProtocolo(); return; }
+    const passados = Math.max(0, Math.floor((Date.now() - corrente.inicio) / 1000));
+    const total = corrente.duracaoSegundos;
+    if (passados >= total && !concluindoProtocolo) { concluiProtocoloPerformance(); return; }
+    const faltam = Math.max(0, total - passados);
+    caixa.innerHTML = '<div class="performance-protocolo"><h3>' + escapaHTML(protocolo.nome) + '</h3>' +
+      '<p class="sub">' + escapaHTML(protocolo.objetivo) + '</p>' + htmlMetaProtocolo(protocolo) +
+      '<progress class="performance-progresso" max="' + total + '" value="' + Math.min(passados, total) +
+      '" aria-label="Progresso do intervalo"></progress>' +
+      '<p class="performance-passo">' + escapaHTML(instrucaoAtual(protocolo, passados)) + '</p>' +
+      '<p class="sub">' + Math.floor(faltam / 60) + ':' + doisDig(faltam % 60) + ' restantes</p>' +
+      '<p class="performance-aviso">' + escapaHTML(AVISO_PROTOCOLO) + '</p>' +
+      '<div class="linha-bts" style="margin-top:14px"><button class="bt bt-azul" data-concluir-protocolo="1">Concluir</button>' +
+      '<button class="bt" data-pular-protocolo="1">Pular</button></div></div>';
+    caixa.classList.remove('oculto');
+  };
+  desenha();
+  desenhoDoProtocolo = setInterval(desenha, 1000);
+}
+
+function registroDeIntervalo(id) {
+  return estado.performance.intervalos.find((item) => item.id === id) || null;
+}
+
+function voltaAoFocoDepoisDoPerformance() {
+  origemPerformancePosBloco = false;
+  vaiPara('foco');
+  setTimeout(abreFolhaDeAssunto, 0);
+}
+
+function salvaFeedbackPerformance(registroId, resposta) {
+  const registro = registroDeIntervalo(registroId);
+  if (registro) registro.feedback = resposta;
+  registraEventoPerformance('smart_break_feedback', { resposta: resposta });
+  salvaEstado();
+  fechaModal();
+  desenhaPerformance();
+  voltaAoFocoDepoisDoPerformance();
+}
+
+function perguntaFeedbackPerformance(registroId) {
+  abreModal({
+    titulo: 'Como você voltou?',
+    frase: 'Uma resposta curta ajuda o Copeiro a entender o que funciona.',
+    detalhe: 'Esse dado fica somente neste aparelho.',
+    botoes: [
+      { texto: 'Mais desperto', tipo: 'bt-azul', acao: () => salvaFeedbackPerformance(registroId, 'desperto') },
+      { texto: 'Igual', tipo: '', acao: () => salvaFeedbackPerformance(registroId, 'igual') },
+      { texto: 'Não ajudou', tipo: 'bt-fantasma', acao: () => salvaFeedbackPerformance(registroId, 'nao_ajudou') }
+    ]
+  });
+}
+
+function concluiProtocoloPerformance() {
+  if (concluindoProtocolo) return;
+  concluindoProtocolo = true;
+  const ativo = estado.performance.protocoloAtivo;
+  if (!ativo) { concluindoProtocolo = false; return; }
+  const registro = registroDeIntervalo(ativo.registroId);
+  if (registro) { registro.status = 'concluido'; registro.fim = Date.now(); }
+  estado.performance.protocoloAtivo = null;
+  estado.performance.aguardaRetornoFoco = true;
+  registraEventoPerformance('smart_break_completed', { protocoloId: ativo.protocoloId });
+  sincronizaDiasComFocoEMovimento();
+  atualizaMarcosPerformance();
+  salvaEstado();
+  limpaDesenhoDoProtocolo();
+  desenhaPerformance();
+  const quantos = estado.performance.intervalos.filter((i) => i.status === 'concluido').length;
+  concluindoProtocolo = false;
+  if (registro && (quantos === 1 || quantos % 3 === 0)) perguntaFeedbackPerformance(registro.id);
+  else voltaAoFocoDepoisDoPerformance();
+}
+
+function pulaProtocoloPerformance() {
+  const ativo = estado.performance.protocoloAtivo;
+  if (!ativo) return;
+  const registro = registroDeIntervalo(ativo.registroId);
+  if (registro) { registro.status = 'pulado'; registro.fim = Date.now(); }
+  estado.performance.protocoloAtivo = null;
+  registraEventoPerformance('smart_break_skipped', { protocoloId: ativo.protocoloId });
+  salvaEstado();
+  limpaDesenhoDoProtocolo();
+  desenhaPerformance();
+  voltaAoFocoDepoisDoPerformance();
+}
+
+function abrePerformanceDepoisDoBloco() {
+  fechaModal();
+  origemPerformancePosBloco = true;
+  const pausa = pausaLongaAgora() ? estado.prefs.pausaLonga : estado.prefs.pausaCurta;
+  duracaoPerformance = [2, 5, 10].sort((a, b) => Math.abs(a - pausa) - Math.abs(b - pausa))[0];
+  sugestaoPerformance = null;
+  vaiPara('performance');
+  desenhaPerformance();
+  setTimeout(() => $('#btSugerirProtocolo').focus(), 0);
+}
+
+function iniciaPausaNormalDoPerformance() {
+  origemPerformancePosBloco = false;
+  vaiPara('foco');
+  comecaPausa();
+}
+
+function registraAtividadePerformance() {
+  const atividade = $('#perfAtividade').value;
+  const duracao = Math.round(Number($('#perfAtividadeDuracao').value));
+  const data = $('#perfAtividadeData').value;
+  const observacao = $('#perfAtividadeObs').value.trim().slice(0, 160);
+  if (!NOMES_ATIVIDADE[atividade] || !data || !duracao || duracao < 1 || duracao > 1440) {
+    avisa('Atividade', 'Confere a atividade, a duração e a data.');
+    return;
+  }
+  const anteriores = estado.performance.atividades.slice().sort((a, b) => b.data.localeCompare(a.data));
+  if (anteriores.length && diasEntre(anteriores[0].data, data) >= 14 &&
+      estado.performance.marcosVistos.indexOf('retorno-atividade') === -1) {
+    estado.performance.marcosVistos.push('retorno-atividade');
+  }
+  const registro = { id: idNovo(), atividade: atividade, duracao: duracao, data: data,
+    observacao: observacao, criadaEm: Date.now() };
+  estado.performance.atividades.push(registro);
+  ultimoRegistroDeAtividade = registro.id;
+  registraEventoPerformance('activity_logged', { atividade: atividade, duracao: duracao });
+  sincronizaDiasComFocoEMovimento();
+  atualizaMarcosPerformance();
+  salvaEstado();
+  $('#perfAtividadeObs').value = '';
+  desenhaPerformance();
+  avisa('Atividade registrada', NOMES_ATIVIDADE[atividade] + ' entrou no progresso combinado.');
+}
+
+function removeAtividadePerformance(id) {
+  const antes = estado.performance.atividades.length;
+  estado.performance.atividades = estado.performance.atividades.filter((a) => a.id !== id);
+  if (estado.performance.atividades.length === antes) return;
+  if (ultimoRegistroDeAtividade === id) ultimoRegistroDeAtividade = null;
+  registraEventoPerformance('activity_deleted');
+  salvaEstado();
+  desenhaPerformance();
+}
+
+function pedeExclusaoDeAtividade(id) {
+  const atividade = estado.performance.atividades.find((a) => a.id === id);
+  if (!atividade) return;
+  abreModal({
+    titulo: 'Excluir atividade?',
+    frase: NOMES_ATIVIDADE[atividade.atividade] + ' · ' + atividade.duracao + ' min',
+    detalhe: 'Só este registro será removido. Blocos e outros dados não mudam.',
+    botoes: [
+      { texto: 'Excluir', tipo: 'bt-perigo', acao: () => { fechaModal(); removeAtividadePerformance(id); } },
+      { texto: 'Cancelar', tipo: '', acao: fechaModal }
+    ]
+  });
+}
+
+function diasDeMovimento() {
+  const dias = new Set();
+  estado.performance.atividades.forEach((a) => { if (a.data) dias.add(a.data); });
+  estado.performance.intervalos.forEach((i) => { if (i.status === 'concluido' && i.dia) dias.add(i.dia); });
+  return dias;
+}
+
+function sincronizaDiasComFocoEMovimento() {
+  const foco = new Set(estado.blocos.map((b) => chaveDia(b.fim || b.inicio)));
+  let mudou = false;
+  diasDeMovimento().forEach((dia) => {
+    if (!foco.has(dia) || estado.performance.diasCombinados.indexOf(dia) !== -1) return;
+    estado.performance.diasCombinados.push(dia);
+    registraEventoPerformance('focus_movement_day', { dia: dia });
+    mudou = true;
+  });
+  estado.performance.diasCombinados.sort();
+  return mudou;
+}
+
+function respostaMaisFrequente() {
+  const contagem = {};
+  estado.performance.intervalos.forEach((i) => { if (i.feedback) contagem[i.feedback] = (contagem[i.feedback] || 0) + 1; });
+  const respostas = Object.keys(contagem).sort((a, b) => contagem[b] - contagem[a]);
+  return respostas.length ? NOMES_FEEDBACK[respostas[0]] : '—';
+}
+
+function marcosPerformance() {
+  const p = estado.performance;
+  const concluidos = p.intervalos.filter((i) => i.status === 'concluido').length;
+  const modalidades = new Set(p.atividades.map((a) => a.atividade)).size;
+  return [
+    { id: 'primeiro-intervalo', nome: 'Primeiro intervalo inteligente', ok: concluidos >= 1 },
+    { id: 'primeira-atividade', nome: 'Primeira atividade registrada', ok: p.atividades.length >= 1 },
+    { id: 'cinco-intervalos', nome: 'Cinco intervalos concluídos', ok: concluidos >= 5 },
+    { id: 'primeiro-dia-combinado', nome: 'Primeiro dia com foco e movimento', ok: p.diasCombinados.length >= 1 },
+    { id: 'tres-modalidades', nome: 'Três modalidades diferentes', ok: modalidades >= 3 },
+    { id: 'retorno-atividade', nome: 'Retorno depois de um período sem atividade', ok: p.marcosVistos.indexOf('retorno-atividade') !== -1 }
+  ];
+}
+
+function atualizaMarcosPerformance() {
+  let mudou = false;
+  marcosPerformance().forEach((m) => {
+    if (m.ok && estado.performance.marcosVistos.indexOf(m.id) === -1) {
+      estado.performance.marcosVistos.push(m.id);
+      mudou = true;
+    }
+  });
+  return mudou;
+}
+
+function desenhaAtividadesPerformance() {
+  const lista = estado.performance.atividades.slice().sort((a, b) =>
+    b.data.localeCompare(a.data) || b.criadaEm - a.criadaEm).slice(0, 8);
+  $('#perfListaAtividades').innerHTML = lista.length ? lista.map((a) =>
+    '<div class="performance-item"><div><b>' + escapaHTML(NOMES_ATIVIDADE[a.atividade] || a.atividade) +
+    ' · ' + a.duracao + ' min</b><small>' + escapaHTML(dataCurta(a.data)) +
+    (a.observacao ? ' · ' + escapaHTML(a.observacao) : '') + '</small></div>' +
+    '<button class="bt bt-fantasma" data-excluir-atividade="' + escapaHTML(a.id) + '">Excluir</button></div>'
+  ).join('') : '<p class="vazio">A primeira atividade aparece aqui.</p>';
+  $('#btDesfazerAtividade').classList.toggle('oculto', !ultimoRegistroDeAtividade ||
+    !estado.performance.atividades.some((a) => a.id === ultimoRegistroDeAtividade));
+}
+
+function desenhaProgressoPerformance() {
+  const diasMudaram = sincronizaDiasComFocoEMovimento();
+  const marcosMudaram = atualizaMarcosPerformance();
+  if (diasMudaram || marcosMudaram) salvaEstado();
+  const p = estado.performance;
+  $('#perfMinutosFoco').textContent = formataTempoAcumulado(totalMinutos());
+  $('#perfBlocos').textContent = estado.blocos.length;
+  $('#perfIntervalos').textContent = p.intervalos.filter((i) => i.status === 'concluido').length;
+  $('#perfAtividades').textContent = p.atividades.length;
+  $('#perfDiasCombinados').textContent = p.diasCombinados.length;
+  $('#perfResposta').textContent = respostaMaisFrequente();
+  const liberados = marcosPerformance().filter((m) => m.ok);
+  $('#perfMarcos').innerHTML = liberados.length
+    ? liberados.map((m) => '<li>' + escapaHTML(m.nome) + '</li>').join('')
+    : '<li class="vazio">O primeiro marco vem com movimento ou atividade.</li>';
+}
+
+function desenhaPerformance() {
+  const p = estado.performance;
+  const ativo = !!p.ativo;
+  $('#performanceConvite').classList.toggle('oculto', ativo);
+  $('#performancePainel').classList.toggle('oculto', !ativo);
+  if (!ativo) {
+    const jaDecidiu = !!p.decisaoConvite;
+    $('#performanceConviteTitulo').textContent = jaDecidiu ? 'Performance desativado' : 'Copeiro Performance';
+    $('#performanceConviteTexto').textContent = jaDecidiu
+      ? 'Ative quando quiser ligar estudo e movimento. Teus dados anteriores continuam guardados.'
+      : 'Movimento para recuperar o corpo, cuidar da disposição e continuar estudando.';
+    $('#btAgoraNaoPerformance').classList.toggle('oculto', jaDecidiu);
+    return;
+  }
+  aplicaContextoPerformance();
+  $$('#perfDuracoes [data-perf-duracao]').forEach((bt) => {
+    const selecionada = Number(bt.dataset.perfDuracao) === duracaoPerformance;
+    bt.classList.toggle('ativa', selecionada);
+    bt.setAttribute('aria-pressed', String(selecionada));
+  });
+  $('#btVoltarPausaNormal').classList.toggle('oculto', !origemPerformancePosBloco);
+  if (!$('#perfAtividadeData').value) $('#perfAtividadeData').value = chaveHoje();
+  desenhaSugestaoPerformance();
+  desenhaProtocoloAtivo();
+  desenhaAtividadesPerformance();
+  desenhaProgressoPerformance();
+}
+
 /* ---------- Redesenha tudo ---------- */
 
 function atualizaTudo() {
@@ -4352,6 +5087,7 @@ function atualizaTudo() {
   desenhaTemporada();
   desenhaEstante();
   desenhaAlbum();
+  desenhaPerformance();
   if (telaAtual === 'mais') desenhaMais();
   if (telaAtual === 'abas') desenhaOrganizar();
 }
@@ -4618,6 +5354,7 @@ $('#arquivoImportar').addEventListener('change', (ev) => {
             estado.ciclos = Array.isArray(dados.ciclos) ? dados.ciclos : [];
             estado.temporadas = Array.isArray(dados.temporadas) ? dados.temporadas : [];
             estado.prefs = Object.assign({}, padrao.prefs, dados.prefs || {});
+            estado.performance = normalizaPerformance(dados.performance);
             // Backup antigo não traz navegação: entra o padrão, e a dica já
             // dispensada neste aparelho continua dispensada.
             estado.prefs.abasPrincipais = validaAbasPrincipais(estado.prefs.abasPrincipais);
@@ -7599,6 +8336,11 @@ const MODULOS = [
     disponivel: () => true,
     assinatura: () => '' },
 
+  { id: 'performance', rotulo: 'Copeiro Performance', curto: 'Corpo', tela: 'performance', grupo: 'performance',
+    descricao: 'Movimento para recuperar o corpo e voltar ao foco.',
+    disponivel: () => true,
+    assinatura: () => '' },
+
   { id: 'album', rotulo: 'Álbum', curto: 'Álbum', tela: 'album', grupo: 'estudos',
     descricao: 'A coleção da temporada, figurinha por figurinha.',
     disponivel: () => true,
@@ -7648,7 +8390,7 @@ function moduloDaTela(tela) {
 /* Ordem de reserva única, usada tanto pra completar a barra quanto pelo
    "Restaurar padrão": sem ela, dois módulos indisponíveis fariam a barra ou
    repetir uma aba ou nascer com menos botões, dependendo de quem escrevesse. */
-const ORDEM_DE_RESERVA = ['cartas', 'progresso', 'album', 'estante', 'historico', 'tabela'];
+const ORDEM_DE_RESERVA = ['cartas', 'progresso', 'album', 'performance', 'estante', 'historico', 'tabela'];
 
 function padraoDisponivel() {
   return ORDEM_DE_RESERVA.filter((id) => {
@@ -7812,7 +8554,7 @@ function linhaDeMais(ir, nome, descricao, ponto) {
 function desenhaMais() {
   const naBarra = abasAtuais();
   const fora = (grupo) => modulosDisponiveis()
-    .filter((m) => m.grupo === grupo && naBarra.indexOf(m.id) === -1);
+    .filter((m) => m.grupo === grupo && (grupo === 'performance' || naBarra.indexOf(m.id) === -1));
 
   let html = '';
   // Versão nova é o único item passageiro desta página, e por isso abre a
@@ -7824,7 +8566,7 @@ function desenhaMais() {
         'Versão nova já baixada, pronta pra entrar.', true) +
       '</div></div>';
   }
-  [['Estudos', 'estudos'], ['Campanha', 'campanha']].forEach(([titulo, grupo]) => {
+  [['Performance', 'performance'], ['Estudos', 'estudos'], ['Campanha', 'campanha']].forEach(([titulo, grupo]) => {
     const itens = fora(grupo);
     if (!itens.length) return;      // grupo vazio não vira cartão vazio
     html += '<div class="cartao"><h3 class="grupo-mais">' + titulo + '</h3>' +
@@ -7903,6 +8645,7 @@ function vaiPara(nome, extra, doHistorico) {
   if (nome === 'mais') desenhaMais();
   if (nome === 'abas') desenhaOrganizar();
   if (nome === 'config') abreConfig(extra || null);
+  if (nome === 'performance') { marcaConvitePerformanceVisto(); desenhaPerformance(); }
 
   registraVisita(nome);
   document.title = tituloDaTela(nome);
@@ -7931,7 +8674,7 @@ function desenhaOrganizar() {
         '. Setas para cima e para baixo reordenam.">&#8942;&#8942;</button>' +
       '<button class="vaga-nome" data-trocar="' + i + '">' +
         '<b>' + escapaHTML(m.rotulo) + '</b>' +
-        '<small>' + (m.grupo === 'estudos' ? 'Estudos' : 'Campanha') + ' · tocar para trocar</small></button>' +
+        '<small>' + (m.grupo === 'estudos' ? 'Estudos' : (m.grupo === 'performance' ? 'Performance' : 'Campanha')) + ' · tocar para trocar</small></button>' +
       '<span class="vaga-setas">' +
         '<button class="bt-passo" data-mover="' + i + '" data-dir="-1" aria-label="Subir ' + escapaHTML(m.rotulo) + '"' + (i === 0 ? ' disabled' : '') + '>&uarr;</button>' +
         '<button class="bt-passo" data-mover="' + i + '" data-dir="1" aria-label="Descer ' + escapaHTML(m.rotulo) + '"' + (i === atuais.length - 1 ? ' disabled' : '') + '>&darr;</button>' +
@@ -8662,6 +9405,60 @@ $('#campoNome').addEventListener('input', () => {
 });
 $('#campoNome').addEventListener('keydown', (ev) => {
   if (ev.key === 'Enter') { ev.preventDefault(); $('#campoNome').blur(); }
+});
+
+/* ---- Copeiro Performance ---- */
+$('#btAtivarPerformance').addEventListener('click', ativaPerformance);
+$('#btAgoraNaoPerformance').addEventListener('click', recusaPerformance);
+$('#btDesativarPerformance').addEventListener('click', pedeDesativacaoPerformance);
+
+$('#performancePainel').addEventListener('change', (ev) => {
+  const contexto = ['perfAmbiente', 'perfPodeLevantar', 'perfSilencio', 'perfSemSuor', 'perfAcademia'];
+  if (contexto.indexOf(ev.target.id) !== -1 || ev.target.name === 'perfPreferida' || ev.target.name === 'perfDia') {
+    salvaContextoPerformance();
+  }
+});
+
+$('#perfDuracoes').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-perf-duracao]');
+  if (!bt) return;
+  duracaoPerformance = Number(bt.dataset.perfDuracao);
+  sugestaoPerformance = null;
+  desenhaPerformance();
+});
+
+$('#btSugerirProtocolo').addEventListener('click', () => {
+  const protocolo = escolheProtocoloPerformance();
+  sugestaoPerformance = protocolo ? protocolo.id : null;
+  desenhaSugestaoPerformance();
+  if (!protocolo) avisa('Intervalo inteligente', 'Não achei um protocolo piloto para essa combinação.');
+  else setTimeout(() => $('#perfSugestao [data-iniciar-protocolo]').focus(), 0);
+});
+
+$('#perfSugestao').addEventListener('click', (ev) => {
+  const iniciar = ev.target.closest('[data-iniciar-protocolo]');
+  if (iniciar) { iniciaProtocoloPerformance(iniciar.dataset.iniciarProtocolo); return; }
+  if (ev.target.closest('#btOutraSugestao')) {
+    const candidatos = PROTOCOLOS_PERFORMANCE.filter((p) => p.duracao === duracaoPerformance);
+    const atual = candidatos.findIndex((p) => p.id === sugestaoPerformance);
+    if (candidatos.length) sugestaoPerformance = candidatos[(atual + 1) % candidatos.length].id;
+    desenhaSugestaoPerformance();
+  }
+});
+
+$('#perfAtivo').addEventListener('click', (ev) => {
+  if (ev.target.closest('[data-concluir-protocolo]')) { concluiProtocoloPerformance(); return; }
+  if (ev.target.closest('[data-pular-protocolo]')) pulaProtocoloPerformance();
+});
+
+$('#btVoltarPausaNormal').addEventListener('click', iniciaPausaNormalDoPerformance);
+$('#btRegistrarAtividade').addEventListener('click', registraAtividadePerformance);
+$('#btDesfazerAtividade').addEventListener('click', () => {
+  if (ultimoRegistroDeAtividade) removeAtividadePerformance(ultimoRegistroDeAtividade);
+});
+$('#perfListaAtividades').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-excluir-atividade]');
+  if (bt) pedeExclusaoDeAtividade(bt.dataset.excluirAtividade);
 });
 
 /* ---- Esc e o Voltar do Android fecham o que estiver por cima ---- */
