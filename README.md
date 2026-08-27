@@ -129,10 +129,13 @@ outro aparelho.
 
 ### `copeiro/`
 
-Pomodoro de estudo, PWA instalável, feito para o tablet Android. Quatro
-arquivos, nenhuma dependência: `index.html` (HTML + CSS + JS embutidos),
-`manifest.webmanifest`, `service-worker.js` e os dois ícones PNG. Depois de
-instalado, funciona 100% offline.
+Pomodoro de estudo, PWA instalável, feito para o tablet Android. Nenhuma
+dependência: `index.html` (HTML + CSS + JS embutidos), `manifest.webmanifest`,
+`service-worker.js`, os dois ícones PNG, os temas em `temas/`, o fundo da tela
+de Foco em `assets/` e os protocolos do Performance em
+`performance-protocols.js` — que fica de fora do `index.html` de propósito, pra
+o conteúdo poder ser trocado sem mexer no motor do app. Depois de instalado,
+funciona 100% offline.
 
 #### Como se navega
 
@@ -145,13 +148,14 @@ Foco | Cartas | Progresso | Álbum | Mais
 **Foco** e **Mais** nunca saem e nunca se movem. As três do meio são do Davi:
 `Mais → Organizar abas` troca e reordena (arrastando pelo punho, ou com as
 setas, que também respondem ao teclado), salva na hora e nunca aceita duas abas
-iguais. As candidatas são Cartas, Progresso, Álbum, Histórico, Campeonato e
-Estante.
+iguais. As candidatas são Cartas, Progresso, Álbum, Copeiro Performance,
+Estante, Histórico e Campeonato.
 
 **Mais** é aba de verdade, não menu escondido: lista vertical com nome,
-descrição de uma linha e a linha inteira clicável, agrupada em Estudos,
-Campanha e Aplicativo. Nada fica inacessível por sair da barra — o que sai,
-aparece ali. Na barra, "Campeonato" vira **Tabela**: cinco fatias iguais a
+descrição de uma linha e a linha inteira clicável, agrupada em Performance,
+Estudos, Campanha e Aplicativo. Nada fica inacessível por sair da barra — o que
+sai, aparece ali. O Performance é a única exceção ao avesso: continua listado em
+Mais mesmo quando está na barra, porque é dali que se ativa e se desativa. Na barra, "Campeonato" vira **Tabela**: cinco fatias iguais a
 320 px não comportam a palavra inteira, e cortar rótulo está fora de questão.
 
 Quem já usava o app vê uma vez, ancorada na aba Mais, a dica de onde as coisas
@@ -306,6 +310,7 @@ usam `{nome}`), **Navegação** e **Dados** (backup, que saiu do Histórico).
 | **Cartas** | Flashcards com prazo: escada de 1, 2, 4, 8 e 16 dias, teto pela data da prova e reta final nos últimos 3 dias. Travei / Quase / Mandei bem, lacunas com `{{chaves}}`, revisão livre fora da fila e edição de qualquer campo, inclusive degrau e data. Ao encerrar o ciclo, o baralho é guardado junto com ele. |
 | **Progresso** | Mapa de calor anual, estante de ciclos, comparação em tempo real com o ciclo anterior, contador vitalício de horas com marcos de 100/250/500/1000h, recordes pessoais e os números do baralho do ciclo. |
 | **Tabela** | Campeonato com os amigos: classificação por horas copadas no ciclo (1 hora = 1 ponto, empate no desempate por dias ativos), campeão congelado quando o ciclo fecha, sala de troféus e campeão geral por número de títulos. Quem termina em primeiro ganha acabamento dourado no objeto da Estante. |
+| **Performance** | Opcional e desligado por padrão. Ligado, o fim do bloco oferece um **intervalo inteligente** de 2, 5 ou 10 min — seis protocolos leves, filtrados por silêncio, espaço, suor e treino — sem nunca tirar a pausa normal do caminho. Registro de atividade sem calorias nem peso, e um painel cumulativo de estudo + movimento. Os protocolos são piloto, com aviso na tela até a revisão de um profissional de Educação Física. Ver abaixo. |
 
 Sem meta de horas, sem barra de ciclo, sem moeda, loja, ponto ou nível. Nada
 murcha nem cobra por dia parado: o app só registra e mostra o que foi feito.
@@ -637,6 +642,52 @@ minutos do ciclo, dias ativos e blocos. Nenhum assunto de estudo sai do aparelho
 
 O plano grátis dá 20 mil escritas por dia; um grupo de amigos usa algumas
 dezenas. Não há como cair na cobrança sem trocar de plano de propósito.
+
+#### Copeiro Performance
+
+Módulo opcional que liga o fim de um bloco a uma pausa de movimento. Nasce
+desligado: a tela mostra um convite com duas saídas — **Ativar Performance** ou
+**Agora não** — e quem recusa continua com o app inteiro, sem nenhuma função a
+menos. Desativar depois devolve exatamente o mesmo estado.
+
+Ligado, o fim do bloco troca os três botões de sempre por **Intervalo
+inteligente**, **Pausa normal** e **Próximo bloco** — a pausa comum nunca deixa
+de estar a um toque. O intervalo pergunta o tempo disponível (2, 5 ou 10 min, já
+pré-selecionado pelo que mais se aproxima da pausa que entraria agora) e filtra
+os protocolos por **Silencioso**, **Sem suar**, **Pouco espaço**, **Posso
+caminhar**, **Antes do treino** e **Depois do treino**. A sugestão pode ser
+recusada em qualquer ponto: *Prefiro pausa normal* antes, pular durante.
+
+Cada protocolo roda passo a passo, com barra de progresso e uma instrução por
+vez. São seis, todos de intensidade leve ou muito leve, e vivem sozinhos em
+`performance-protocols.js` — separados do motor do app justamente para poderem
+ser trocados depois da revisão profissional sem tocar em mais nada. **Todos
+carregam o aviso de piloto na tela, em toda exibição:** nome, CREF ou aprovação
+não entram aqui antes de um profissional de Educação Física revisar objetivo,
+intensidade, ambientes e cada instrução. Isso está pendente, e o aviso sai só
+depois.
+
+Existe ainda um **contexto** opcional (onde estuda, se pode levantar, se precisa
+de silêncio, se quer evitar suor, relação entre estudo e academia, atividades
+preferidas e dias de treino) e um **registro de atividade** simples — o que foi,
+quantos minutos, a data e uma observação de até 160 caracteres. Sem calorias,
+sem peso, sem comparação com ninguém.
+
+O painel **Estudo + movimento** é cumulativo e nada nele zera: horas de foco,
+blocos, intervalos concluídos, atividades registradas, dias com foco *e*
+movimento, e a resposta mais frequente à pergunta do fim do intervalo (*Mais
+desperto*, *Igual* ou *Não ajudou*, perguntada no primeiro intervalo e a cada
+três). Os marcos são de acontecimento, não de meta — inclusive "retorno depois
+de um período sem atividade", que só existe pra registrar volta, nunca cobrança
+por ausência.
+
+Os dados ficam no mesmo `copeiro.v1` do resto do app, entram no backup JSON e
+não saem do aparelho. Os eventos guardam nome estável e horário, ficam limitados
+aos 500 mais recentes e não incluem nome, observações nem qualquer outro
+identificador pessoal. A coleção bônus "Preparação Física" no Álbum ficou
+deliberadamente de fora desta entrega: quando vier, tem de ser opcional e fora
+da porcentagem, pra quem mantém o Performance desligado nunca ver coleção
+obrigatória incompleta.
 
 #### Onde os dados ficam
 
