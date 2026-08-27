@@ -195,12 +195,13 @@ input:focus,select:focus{border-color:var(--primaria)}
 }
 .anel.pausa .progresso{stroke:var(--tinta)}
 .anel-centro{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:2px;text-align:center;padding:0 12px;
+  position:absolute;inset:12%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;text-align:center;padding:0 4px;
 }
 .tempo{
-  font-size:clamp(3.1rem,13vw,4.6rem);font-weight:800;letter-spacing:-1px;
-  font-variant-numeric:tabular-nums;color:var(--tinta);line-height:1;
+  font-size:clamp(2.35rem,22cqi,4.4rem);font-weight:800;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;color:var(--tinta);line-height:.96;
+  max-width:100%;white-space:nowrap;text-align:center;
 }
 .modo-rot{font-size:.82rem;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--primaria-texto)}
 .anel.pausa .modo-rot{color:var(--tinta)}
@@ -1097,7 +1098,11 @@ body.sem-animacao .tela{animation:none}
 .painel-foco.em-pausa .foco-titulo{color:var(--tinta)}
 
 .foco-palco{display:flex;justify-content:center;width:100%;margin:auto 0}
-.anel{position:relative;width:min(58vw,36vh,320px);aspect-ratio:1}
+.anel{
+  position:relative;width:min(58vw,36vh,320px);aspect-ratio:1;
+  /* O número responde ao círculo, não à largura da janela. */
+  container-type:inline-size;
+}
 @supports (height:1svh){ .anel{width:min(58vw,36svh,320px)} }
 
 .foco-escolhas{display:flex;gap:10px;width:100%;max-width:440px}
@@ -1158,7 +1163,18 @@ body.sem-animacao .tela{animation:none}
 .folha-topo{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .folha-topo h2{flex:1;min-width:0;font-size:1.05rem}
 #btFecharFolha{min-height:44px;min-width:44px;padding:0;font-size:1.5rem;line-height:1}
-.fichas-duracao .ficha{flex:1 1 auto;justify-content:center;text-align:center}
+.fichas-tempo{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));
+  gap:8px;width:100%;
+}
+.fichas-tempo .ficha{
+  min-height:44px;padding:0 6px;justify-content:center;text-align:center;
+  white-space:nowrap;font-size:.92rem;
+}
+.ajuste-topo{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.ajuste-topo .ajuste-rot{margin:0}
+.ajuste-topo b{font-size:1rem;color:var(--primaria-texto);font-variant-numeric:tabular-nums}
+@media (orientation:landscape) and (min-width:900px){.ajuste-intervalo{grid-column:1/-1}}
 @keyframes folha-sobe{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
 @media (min-width:720px){
   .folha{align-items:center}
@@ -1282,7 +1298,7 @@ body.sem-animacao .folha-caixa{animation:none}
             <span class="escolha-val" id="valAssunto">Estudo livre</span>
           </button>
           <button class="escolha escolha-duracao" id="btDuracao" aria-haspopup="dialog">
-            <span class="escolha-rot">Bloco</span>
+            <span class="escolha-rot">Foco</span>
             <span class="escolha-val" id="valDuracao">30 min</span>
           </button>
         </div>
@@ -1331,12 +1347,25 @@ body.sem-animacao .folha-caixa{animation:none}
             <button class="bt-passo" data-ajuste="pausaCurta" data-delta="1" aria-label="Aumentar a pausa curta em 1 minuto">+</button>
           </div>
         </div>
-        <div class="ajuste">
-          <div class="ajuste-rot">Intervalo</div>
-          <div class="passo">
-            <button class="bt-passo" data-ajuste="pausaLonga" data-delta="-5" aria-label="Diminuir o intervalo em 5 minutos">&minus;</button>
+        <div class="ajuste ajuste-intervalo">
+          <div class="ajuste-topo">
+            <div class="ajuste-rot">Intervalo</div>
             <b id="valPausaLongaFoco">15 min</b>
-            <button class="bt-passo" data-ajuste="pausaLonga" data-delta="5" aria-label="Aumentar o intervalo em 5 minutos">+</button>
+          </div>
+          <div class="fichas fichas-tempo" id="fichasIntervaloFoco" role="group"
+               aria-label="Duração do intervalo, em passos de 5 minutos">
+            <button class="ficha" data-intervalo-min="5">5 min</button>
+            <button class="ficha" data-intervalo-min="10">10 min</button>
+            <button class="ficha ativa" data-intervalo-min="15">15 min</button>
+            <button class="ficha" data-intervalo-min="20">20 min</button>
+            <button class="ficha" data-intervalo-min="25">25 min</button>
+            <button class="ficha" data-intervalo-min="30">30 min</button>
+            <button class="ficha" data-intervalo-min="35">35 min</button>
+            <button class="ficha" data-intervalo-min="40">40 min</button>
+            <button class="ficha" data-intervalo-min="45">45 min</button>
+            <button class="ficha" data-intervalo-min="50">50 min</button>
+            <button class="ficha" data-intervalo-min="55">55 min</button>
+            <button class="ficha" data-intervalo-min="60">60 min</button>
           </div>
         </div>
         <div class="ajuste">
@@ -1918,12 +1947,20 @@ body.sem-animacao .folha-caixa{animation:none}
         <button class="bt bt-fantasma bt-voltar" data-voltar="1">&larr; Voltar</button>
         <h2>Foco e pausas</h2>
       </div>
-      <p class="sub">Duração padrão do bloco de foco.</p>
-      <div class="fichas" role="group" aria-label="Duração padrão do bloco" id="fichasDuracao">
+      <p class="sub">Duração padrão do bloco de foco, em passos de 5 minutos.</p>
+      <div class="fichas fichas-tempo" role="group" aria-label="Duração padrão do bloco" id="fichasDuracao">
+        <button class="ficha" data-min="5">5 min</button>
+        <button class="ficha" data-min="10">10 min</button>
         <button class="ficha" data-min="15">15 min</button>
+        <button class="ficha" data-min="20">20 min</button>
         <button class="ficha" data-min="25">25 min</button>
         <button class="ficha ativa" data-min="30">30 min</button>
+        <button class="ficha" data-min="35">35 min</button>
+        <button class="ficha" data-min="40">40 min</button>
+        <button class="ficha" data-min="45">45 min</button>
         <button class="ficha" data-min="50">50 min</button>
+        <button class="ficha" data-min="55">55 min</button>
+        <button class="ficha" data-min="60">60 min</button>
       </div>
       <hr class="divisor">
       <p class="sub" id="subPausas" style="margin-top:18px"></p>
@@ -2139,7 +2176,7 @@ body.sem-animacao .folha-caixa{animation:none}
 /* ============================ 1. UTILIDADES ============================ */
 
 const DIA_MS = 86400000;
-const DURACOES = [15, 25, 30, 50];   // blocos de foco disponíveis
+const DURACOES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
 const LIMITES = {                    // faixas dos ajustes de pausa
   pausaCurta:   { min: 1,  max: 30 },
   pausaLonga:   { min: 5,  max: 60 },
@@ -8991,13 +9028,14 @@ function assuntosRecentes() {
 function abreFolhaDeDuracao() {
   if (estado.timer) return;                 // durante o bloco, duração trava
   abreFolha({
-    titulo: 'Quanto tempo vai durar?',
+    titulo: 'Tempo de foco',
     voltarPara: '#btDuracao',
-    corpo: '<div class="fichas fichas-duracao" role="group" aria-label="Duração do bloco">' + DURACOES.map((m) => (
+    corpo: '<p class="sub" style="margin-bottom:12px">Escolha de 5 em 5 minutos.</p>' +
+    '<div class="fichas fichas-tempo" role="group" aria-label="Duração do foco, em passos de 5 minutos">' + DURACOES.map((m) => (
       '<button class="ficha' + (m === estado.prefs.duracao ? ' ativa' : '') +
       '" aria-pressed="' + (m === estado.prefs.duracao) + '" data-min="' + m + '">' + m + ' min</button>'
     )).join('') + '</div>' +
-    '<p class="sub" style="margin-top:14px">Vira o teu padrão. Pausas e intervalo ficam em Configurações.</p>',
+    '<p class="sub" style="margin-top:14px">A escolha vira o teu padrão. O intervalo fica logo abaixo, na própria aba Foco.</p>',
     aoTocar: (alvo) => {
       const f = alvo.closest('[data-min]');
       if (!f) return false;
@@ -9079,6 +9117,12 @@ function desenhaPausas() {
   $('#valPausaLongaFoco').textContent = p.pausaLonga + ' min';
   $('#valFocosAteLongaFoco').textContent = p.focosAteLonga;
 
+  $$('#fichasIntervaloFoco [data-intervalo-min]').forEach((ficha) => {
+    const ativa = Number(ficha.dataset.intervaloMin) === p.pausaLonga;
+    ficha.classList.toggle('ativa', ativa);
+    ficha.setAttribute('aria-pressed', String(ativa));
+  });
+
   $('#pausasExpandido').classList.toggle('oculto', !pausasAbertas);
   $('#btAjustarPausas').setAttribute('aria-expanded', String(pausasAbertas));
   $('#btAjustarPausas').textContent = pausasAbertas ? 'Pronto' : 'Ajustar';
@@ -9110,6 +9154,12 @@ function passoDeAjuste(chave, delta) {
   if (estado.timer && estado.timer.modo === 'pausa' && (chave === 'pausaCurta' || chave === 'pausaLonga')) {
     avisa('Pausas', 'Vale a partir da próxima pausa.');
   }
+}
+
+/** Seleção direta do intervalo, sempre em degraus de cinco minutos. */
+function defineIntervalo(min) {
+  if (!Number.isInteger(min) || min % 5 !== 0) return;
+  passoDeAjuste('pausaLonga', min - estado.prefs.pausaLonga);
 }
 
 /** Os ajustes que moram em Configurações. Fora do tique do relógio. */
@@ -9305,6 +9355,11 @@ $('#btAjustarPausas').addEventListener('click', () => {
 });
 
 $('#pausasExpandido').addEventListener('click', (ev) => {
+  const intervalo = ev.target.closest('[data-intervalo-min]');
+  if (intervalo) {
+    defineIntervalo(Number(intervalo.dataset.intervaloMin));
+    return;
+  }
   const bt = ev.target.closest('[data-ajuste]');
   if (bt) passoDeAjuste(bt.dataset.ajuste, bt.dataset.delta);
 });

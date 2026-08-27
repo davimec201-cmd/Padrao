@@ -73,7 +73,8 @@ for (let i = 0; i < estilos.length; i += 1) {
 assert.equal(nivel, 0, 'CSS contém bloco não fechado');
 
 assert.match(html, /<script src="\.\/performance-protocols\.js"><\/script>/);
-assert.match(worker, /copeiro-v18/);
+assert.match(worker, /copeiro-v20/);
+assert.match(html, /const DURACOES = \[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60\]/);
 assert.match(worker, /performance-protocols\.js/);
 
 console.log('validate-app: sintaxe, migração e exclusão válidas; ' + ids.length + ' IDs inspecionados');
