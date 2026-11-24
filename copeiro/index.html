@@ -1254,8 +1254,26 @@ body.sem-animacao .tela{animation:none}
 }
 .vale-corrente::before{left:0;top:31%;width:47%}
 .vale-corrente::after{left:23%;top:68%;width:62%}
+.vale-palpebra{position:absolute}
+.vale-palpebra-esquerda{
+  left:64.17%;top:33.5%;width:2.64%;height:2.5%;
+  clip-path:polygon(0 20%,17% 9%,35% 2%,60% 0,85% 8%,96% 16%,100% 39%,
+    97% 62%,88% 81%,74% 96%,57% 100%,38% 93%,24% 80%,11% 58%,5% 36%);
+}
+.vale-palpebra-direita{
+  left:69.22%;top:32.53%;width:3.46%;height:2.84%;
+  clip-path:polygon(0 33%,15% 20%,37% 9%,60% 3%,82% 0,100% 4%,91% 29%,
+    85% 48%,77% 67%,61% 86%,42% 97%,24% 100%,12% 87%,5% 65%);
+}
+.vale-palpebra::before{
+  content:"";position:absolute;inset:-2% -3% 0;
+  background:linear-gradient(160deg,#c9a386,#ae866f);
+  border-bottom:min(.25vw,3px) solid #442d23;border-radius:0 0 46% 46%;
+  transform:translateY(-102%);
+}
 .rio-em-foco .vale-luz{animation:vale-chama 3.8s ease-in-out infinite}
 .rio-em-foco .vale-corrente{animation:vale-agua 12s ease-in-out infinite}
+.vale-imersivo .rio-em-foco .vale-palpebra::before{animation:vale-piscada 21s ease-in-out infinite}
 @keyframes vale-chama{
   0%,100%{opacity:.12;transform:scale(.98,.94) rotate(-3deg)}
   34%{opacity:.36;transform:scale(1.06,1.08) rotate(3deg)}
@@ -1265,9 +1283,15 @@ body.sem-animacao .tela{animation:none}
   0%,100%{opacity:.08;transform:translateX(0)}
   50%{opacity:.29;transform:translateX(16%)}
 }
+@keyframes vale-piscada{
+  0%,52%,53.7%,100%{transform:translateY(-102%)}
+  52.6%,52.95%{transform:translateY(3%)}
+}
 .sem-animacao .rio-em-foco :is(.vale-luz,.vale-corrente){animation:none}
+.sem-animacao .vale-imersivo .rio-em-foco .vale-palpebra::before{animation:none}
 @media (prefers-reduced-motion:reduce){
   .rio-em-foco :is(.vale-luz,.vale-corrente){animation:none}
+  .vale-imersivo .rio-em-foco .vale-palpebra::before{animation:none}
 }
 
 body.foco-tela-inteira{overflow:hidden}
@@ -1298,12 +1322,13 @@ body.foco-tela-inteira{overflow:hidden}
 .vale-imersivo #btSomRio[aria-pressed="true"]{background:#495137;color:#fff}
 .vale-imersivo .foco-conteudo{
   flex:0 1 auto;
-  width:min(calc(100% - 24px),340px);
+  width:min(calc(100% - 24px),360px);
   max-height:calc(100% - 66px);overflow:auto;
   margin:0 0 calc(clamp(12px,4vh,36px) + env(safe-area-inset-bottom));
   padding:12px 14px 14px;gap:7px;
   border:1px solid #ddc99b70;border-radius:18px;
-  background:#23251ced;color:#fff8e6;box-shadow:0 8px 30px #1a130b55;
+  background:#22251cbd;color:#fff8e6;box-shadow:0 5px 22px #1a130b32;
+  backdrop-filter:blur(7px);
 }
 .vale-imersivo :is(.foco-escolhas,.resumo-dia,.anel svg){display:none}
 .vale-imersivo .anel{width:100%;aspect-ratio:auto;container-type:normal}
@@ -1319,6 +1344,28 @@ body.foco-tela-inteira{overflow:hidden}
 .vale-imersivo .foco-acoes .bt{width:auto;min-height:44px;padding:0 13px;font-size:.85rem}
 .vale-imersivo .foco-acoes .bt-fantasma{color:#fff8e6;border-color:#d6c39369}
 .vale-imersivo :focus-visible{outline-color:#fff8e6}
+.vale-imersivo .vale-reflexao{
+  padding:10px 2px 0;border:0;border-top:1px solid #ddc99b6e;border-radius:0;
+  background:transparent;color:#fff8e6;
+}
+.vale-imersivo .vale-reflexao h3{margin-bottom:4px;color:#e7dcc4}
+.vale-imersivo .vale-reflexao p{margin-bottom:3px;font-size:1rem;line-height:1.32}
+.vale-imersivo .vale-reflexao a{color:#f2e6ca;font-size:.76rem}
+@media (min-width:760px) and (orientation:landscape){
+  .vale-imersivo .foco-conteudo{
+    display:grid;width:min(calc(100% - 24px),660px);padding:16px 20px;
+    grid-template-columns:minmax(0,1fr) 220px;align-items:center;column-gap:18px;
+    grid-template-areas:"reflexao titulo" "reflexao palco" "reflexao acoes" "reflexao nota";
+  }
+  .vale-imersivo .foco-titulo{grid-area:titulo;text-align:center}
+  .vale-imersivo .foco-palco{grid-area:palco}
+  .vale-imersivo .foco-acoes{grid-area:acoes}
+  .vale-imersivo .rio-acoes{grid-area:nota}
+  .vale-imersivo .vale-reflexao{
+    grid-area:reflexao;padding:0 18px 0 0;border-top:0;border-right:1px solid #ddc99b6e;
+  }
+  .vale-imersivo .vale-reflexao p{font-size:1.15rem}
+}
 @media (max-aspect-ratio:3/4){
   .vale-imersivo #rioCena::before{
     content:"";position:absolute;inset:0;
@@ -1481,6 +1528,8 @@ body.sem-animacao .folha-caixa{animation:none}
                alt="Senhor Miau lê seu diário num pórtico com colunas dóricas e um busto de Marco Aurélio, à margem do rio.">
           <div class="vale-luz" aria-hidden="true"></div>
           <div class="vale-corrente" aria-hidden="true"></div>
+          <div class="vale-palpebra vale-palpebra-esquerda" aria-hidden="true"></div>
+          <div class="vale-palpebra vale-palpebra-direita" aria-hidden="true"></div>
         </div>
         <div class="rio-reflexos" aria-hidden="true"></div>
         <div class="rio-pedras" aria-hidden="true">
@@ -9426,12 +9475,13 @@ const REFLEXOES_DO_VALE = [
   }
 ];
 
-function desenhaReflexaoDoVale(mostrar) {
+function desenhaReflexaoDoVale(mostrar, duranteFoco) {
   const caixa = $('#valeReflexao');
   caixa.classList.toggle('oculto', !mostrar);
   if (!mostrar) return;
   const n = estado.rio.reflexoes;
-  const reflexao = REFLEXOES_DO_VALE[n ? (n - 1) % REFLEXOES_DO_VALE.length : 0];
+  const posicao = duranteFoco ? n : Math.max(0, n - 1);
+  const reflexao = REFLEXOES_DO_VALE[posicao % REFLEXOES_DO_VALE.length];
   const fonte = $('#valeReflexaoFonte');
   if (fonte.href === reflexao.url && fonte.dataset.fonte === reflexao.fonte) return;
   $('#valeReflexaoTexto').textContent = reflexao.texto;
@@ -9495,7 +9545,7 @@ function desenhaRio() {
   if (anotacao.value !== estado.rio.proximaAcao) anotacao.value = estado.rio.proximaAcao;
   $('#rioAcaoAtual').classList.toggle('oculto', !acaoAtual);
   $('#rioAcaoAtual').textContent = acaoAtual;
-  desenhaReflexaoDoVale(noVale && visivel && !emFoco);
+  desenhaReflexaoDoVale(noVale && visivel && (!emFoco || valeEmTelaInteira), emFoco);
   atualizaSomDoRio(visivel && rodando && estado.prefs.somRio === true);
 }
 
