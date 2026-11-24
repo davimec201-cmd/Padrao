@@ -13,6 +13,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icone-192.png" type="image/png">
 <link rel="apple-touch-icon" href="./icone-192.png">
+<link rel="preload" href="./assets/focus/rio-da-calma.webp" as="image">
 <style>
 /* =======================================================================
    IDENTIDADE TRICOLOR
@@ -1148,6 +1149,71 @@ body.sem-animacao .tela{animation:none}
   .anel{width:min(38vw,50vh,360px)}
 }
 
+/* Rio da Calma, com o cronômetro em uma área própria de leitura. */
+.foco-rio .cabecalho > .faixas,.foco-rio .losango{background:#477b68}
+.foco-rio #saudacao{display:none}
+.painel-foco.tem-rio{background:#f8f7ee;color:#213d35}
+.tem-rio::before,.tem-rio::after,.tem-rio .painel-faixa{display:none}
+.tem-rio .foco-titulo,.tem-rio .foco-acoes .bt-fantasma,.tem-rio .resumo-dia{color:#294c41}
+.tem-rio .foco-acoes .bt-azul{
+  background:#215f50;border-color:#215f50;color:#fff;box-shadow:0 4px 14px #215f5029;
+}
+.tem-rio .foco-acoes .bt-azul:hover{background:#194d40}
+.tem-rio .anel .progresso{stroke:#417c69}
+.tem-rio .anel .trilho{stroke:#dce5d7}
+.tem-rio .foco-conteudo{width:100%;justify-content:center}
+.tem-rio .escolha:disabled{opacity:.8}
+.tem-rio .foco-palco{margin:0}
+.tem-rio .foco-escolhas{max-width:340px}
+.rio-cena{
+  position:relative;aspect-ratio:3/2;overflow:hidden;
+  align-self:stretch;background:#c7dbcd;
+}
+.rio-cena img{display:block;width:100%;height:100%;object-fit:cover}
+.rio-cena h2,.rio-legenda{
+  position:absolute;left:12px;max-width:calc(100% - 24px);
+  padding:5px 9px;margin:0;border-radius:8px;background:#f8f7ee;color:#213d35;
+}
+.rio-cena h2{top:10px;font-size:clamp(.8rem,2vw,1rem)}
+.rio-legenda{bottom:10px;font-size:.78rem;font-weight:700}
+.rio-reflexos{
+  position:absolute;left:14%;top:55%;width:12%;height:2px;border-radius:50%;
+  background:#f9fff1;opacity:.18;box-shadow:22px 10px 0 -0.5px #f9fff1;
+}
+.rio-cena.rio-em-foco .rio-reflexos{animation:rio-corrente 9s ease-in-out infinite}
+@keyframes rio-corrente{
+  0%,100%{transform:translateX(0);opacity:.10}
+  50%{transform:translateX(14%);opacity:.32}
+}
+.sem-animacao .rio-cena.rio-em-foco .rio-reflexos,.tem-rio .foco-titulo{animation:none}
+@media (prefers-reduced-motion:reduce){.rio-cena.rio-em-foco .rio-reflexos{animation:none}}
+.rio-pedras{position:absolute;inset:0;pointer-events:none}
+.rio-pedra{
+  position:absolute;width:3%;height:2%;border-radius:50% 55% 42% 46%;
+  border:1px solid #5c5746;background:#c0ac82;box-shadow:0 1px 0 #574e4160;
+}
+.rio-pedra:nth-child(1){left:68%;top:71.5%;transform:rotate(-18deg)}
+.rio-pedra:nth-child(2){left:71%;top:68%;background:#a7aaa2;transform:rotate(-9deg)}
+.rio-pedra:nth-child(3){left:74%;top:71.5%;background:#d3bd99;transform:rotate(18deg)}
+.rio-retorno{display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
+.rio-retorno .bt{min-height:44px}
+.rio-som{
+  position:absolute;top:8px;right:10px;min-height:44px;padding:0 10px;
+  color:#213d35;background:#f8f7ee;border-color:#dddccd;font-size:.82rem;
+}
+.rio-som[aria-pressed="true"]{background:#215f50;border-color:#215f50;color:#fff}
+.rio-acoes{width:100%;max-width:340px}
+.rio-acoes input{margin:0}
+.rio-acoes p{margin:0;color:#294c41;overflow-wrap:anywhere;text-align:center}
+@media (max-width:599px){.rio-visivel .anel{width:min(49vw,31vh,230px)}}
+@media (orientation:landscape) and (min-width:900px){
+  .painel-foco.tem-rio.rio-visivel{display:grid;grid-template-columns:minmax(290px,2fr) 3fr}
+  .rio-visivel .rio-cena{grid-row:1;grid-column:2;align-self:center;border-radius:0 0 0 20px}
+  .tem-rio .foco-conteudo{display:flex;gap:8px}
+  .rio-visivel .foco-conteudo{grid-row:1;grid-column:1}
+  .rio-visivel .anel{width:min(34vh,270px)}
+}
+
 /* ---------- Folha de escolha rápida ---------- */
 /* Abaixo do modal (60), acima do cabeçalho grudento (20): quando o bloco
    termina, o modal do fim tem que vir por cima — e abreModal fecha a folha. */
@@ -1280,13 +1346,24 @@ body.sem-animacao .folha-caixa{animation:none}
 <main>
 
   <!-- ================= TELA: FOCO ================= -->
-  <!-- Uma partida vista do meio-campo: o cronômetro É o círculo central e a
-       foto do estádio fica atrás dele, em pseudo-elemento do painel — fora da
-       árvore de acessibilidade e fora do caminho do toque. -->
   <section class="tela" id="tela-foco">
     <div class="painel-foco cartao-relogio" id="painelFoco">
 
       <div class="faixas faixas-fina painel-faixa" aria-hidden="true"></div>
+
+      <div class="rio-cena oculto" id="rioCena">
+        <img src="./assets/focus/rio-da-calma.webp" width="1200" height="800"
+             alt="Pipo na margem do Rio da Calma, entre pedras e colinas do Vale da Harmonia.">
+        <div class="rio-reflexos" aria-hidden="true"></div>
+        <div class="rio-pedras" aria-hidden="true">
+          <span class="rio-pedra oculto"></span>
+          <span class="rio-pedra oculto"></span>
+          <span class="rio-pedra oculto"></span>
+        </div>
+        <h2>Rio da Calma</h2>
+        <button class="bt rio-som oculto" id="btSomRio" aria-pressed="false">Som do rio</button>
+        <p class="rio-legenda oculto" id="rioLegenda"></p>
+      </div>
 
       <div class="foco-conteudo">
 
@@ -1322,6 +1399,19 @@ body.sem-animacao .folha-caixa{animation:none}
           <button class="bt bt-azul bt-grande" id="btPrincipal">Entrar em campo</button>
           <button class="bt bt-fantasma oculto" id="btSecundario">Encerrar bloco</button>
           <button class="bt bt-fantasma" id="btAquecimento">Aquecimento &middot; 10 min</button>
+          <div class="rio-retorno oculto" id="rioRetorno">
+            <button class="bt bt-fantasma" id="btPausaRio">Fazer uma pausa</button>
+            <button class="bt bt-fantasma oculto" id="btMovimentoRio">Intervalo inteligente</button>
+          </div>
+        </div>
+
+        <div class="rio-acoes oculto" id="rioAcoes">
+          <div id="rioAnotacao">
+            <label class="rot" for="rioProximaAcao">Próxima ação (opcional)</label>
+            <input type="text" id="rioProximaAcao" maxlength="120" placeholder="Ex.: corrigir a questão 1"
+                   autocomplete="off" enterkeyhint="done">
+          </div>
+          <p id="rioAcaoAtual" class="oculto"></p>
         </div>
 
         <p class="resumo-dia" id="resumoDia"></p>
@@ -2041,6 +2131,10 @@ body.sem-animacao .folha-caixa{animation:none}
       <div class="fichas" role="group" aria-label="Tema" id="fichasTema" style="margin-top:8px"></div>
       <p class="sub" style="margin-top:10px">As cores e as frases do app vêm do tema escolhido.</p>
       <hr class="divisor">
+      <div class="fichas" role="group" aria-label="Cenário de foco">
+        <button class="ficha" data-festejo="cenarioRio" aria-pressed="true">Rio da Calma no Foco</button>
+      </div>
+      <hr class="divisor">
       <p class="sub" style="margin-top:18px;font-weight:700;color:var(--tinta)">Movimento</p>
       <div class="fichas" role="group" aria-label="Movimento" id="fichasMovimento" style="margin-top:8px">
         <button class="ficha" data-festejo="animacoes">Animações</button>
@@ -2406,6 +2500,8 @@ function estadoNovo() {
       somAlbum: true,       // som curto na abertura do pacote
       vibracao: true,       // vibração do app inteiro
       animacoes: true,      // animação da revelação do pacote
+      cenarioRio: true,
+      somRio: false,
       telaAcesa: true,      // Wake Lock durante o bloco, onde houver suporte
       nome: 'Davi',         // como o app te chama
       abasPrincipais: ['cartas', 'progresso', 'album'],   // os três atalhos da barra
@@ -2428,6 +2524,7 @@ function estadoNovo() {
       em: null          // quando foi a última sincronização
     },
     performance: performanceNovo(),
+    rio: { pedras: 0, proximaAcao: '' },
     timer: null        // bloco em andamento (sobrevive a fechar o app)
   };
 }
@@ -2461,6 +2558,7 @@ function carregaEstado() {
   if (!Array.isArray(estado.campeonato.tabela)) estado.campeonato.tabela = [];
   if (!Array.isArray(estado.campeonato.titulos)) estado.campeonato.titulos = [];
   estado.performance = normalizaPerformance(salvo.performance);
+  estado.rio = normalizaRio(salvo.rio);
   if (!estado.campeonato.meuId) estado.campeonato.meuId = idNovo();
   if (DURACOES.indexOf(estado.prefs.duracao) === -1) estado.prefs.duracao = 30;
   Object.keys(LIMITES).forEach((chave) => { estado.prefs[chave] = limita(chave, estado.prefs[chave]); });
@@ -2481,6 +2579,13 @@ function carregaEstado() {
     if (!modulo(id)) delete estado.prefs.indicadorVisto[id];
   });
   if (!migrando) estado.prefs.orientacaoMaisVista = true;
+}
+
+function normalizaRio(salvo) {
+  return {
+    pedras: Number.isSafeInteger(salvo?.pedras) && salvo.pedras >= 0 ? salvo.pedras : 0,
+    proximaAcao: typeof salvo?.proximaAcao === 'string' ? salvo.proximaAcao.slice(0, 120) : ''
+  };
 }
 
 /** Como o app chama o dono do aparelho. Vazio volta pro padrão da casa. */
@@ -3137,7 +3242,9 @@ function apito(t0, duracao, volume) {
  */
 function montaAlarme(tipo, t0) {
   const fontes = [];
-  if (tipo === 'foco') {
+  if (usaRio()) {
+    notasDoRio(tipo).forEach((f, i) => fontes.push(nota(f, t0 + i * 0.26, 0.65, 0.23)));
+  } else if (tipo === 'foco') {
     const seq = [523.25, 659.25, 783.99, 1046.5];
     seq.forEach((f, i) => fontes.push(nota(f, t0 + i * 0.16, 0.30, 0.32)));
     seq.forEach((f, i) => fontes.push(nota(f, t0 + 0.95 + i * 0.16, 0.30, 0.28)));
@@ -3147,6 +3254,10 @@ function montaAlarme(tipo, t0) {
     apito(t0 + 0.86, 0.95, 0.34).forEach((n) => fontes.push(n));
   }
   return fontes;
+}
+
+function notasDoRio(tipo) {
+  return tipo === 'foco' ? [523.25, 659.25, 783.99] : [659.25, 523.25];
 }
 
 /** Toca o alarme agora. */
@@ -3199,6 +3310,10 @@ function gravaAlarmeNaTrilha(amostras, inicioSeg, tipo) {
     return v * env;
   });
 
+  if (usaRio()) {
+    notasDoRio(tipo).forEach((f, i) => sino(inicioSeg + i * 0.26, f, 0.65, 0.23));
+    return;
+  }
   if (tipo === 'foco') {
     [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => sino(inicioSeg + i * 0.16, f, 0.55, 0.30));
     [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => sino(inicioSeg + 0.95 + i * 0.16, f, 0.55, 0.26));
@@ -3547,6 +3662,12 @@ function comecaBloco(modo, minutos, assunto, longa) {
     cicloId: ciclo ? ciclo.id : null,
     cicloNome: ciclo ? ciclo.nome : null
   };
+  rioOferecePausa = false;
+  if (modo === 'foco' && usaRio()) {
+    rioAberto = true;
+    estado.timer.acaoRio = estado.rio.proximaAcao.trim();
+    estado.rio.proximaAcao = '';
+  }
   if (modo === 'foco' && estado.performance && estado.performance.aguardaRetornoFoco) {
     estado.performance.aguardaRetornoFoco = false;
     registraEventoPerformance('focus_returned');
@@ -3560,6 +3681,7 @@ function comecaBloco(modo, minutos, assunto, longa) {
   desenhaTimer();
   desenhaFoco();
 
+  if (usaRio()) return;
   if (modo === 'foco') {
     avisa('Em campo', fala('iniciaBloco', {
       assunto: estado.timer.assunto, min: minutos + ' min'
@@ -3649,6 +3771,7 @@ function pulaBloco() {
   if (minutos >= 1) {
     fechaBlocoDeFoco(inicio, fimReal, minutos, t.assunto, t.cicloId, t.cicloNome, true);
   } else {
+    if (t.acaoRio && !estado.rio.proximaAcao) estado.rio.proximaAcao = t.acaoRio;
     salvaEstado();
     desenhaTimer();
     atualizaTudo();
@@ -3677,8 +3800,13 @@ function terminaBloco(silencioso) {
     tocaAlarmeDoFim('pausa', silencioso);
     if (!silencioso) {
       vibra([200, 100, 200]);
-      notifica(t.longa ? 'Fim do intervalo' : 'Fim da pausa',
-               'Voltou o jogo, ' + nomeDoDavi() + '. Escolhe o assunto do próximo bloco.');
+      notifica(t.longa ? 'Fim do intervalo' : 'Fim da pausa', usaRio()
+        ? 'O Rio da Calma está pronto pra quando tu voltar.'
+        : 'Voltou o jogo, ' + nomeDoDavi() + '. Escolhe o assunto do próximo bloco.');
+    }
+    if (usaRio()) {
+      avisa(t.longa ? 'Intervalo concluído' : 'Pausa concluída', 'Volta ao foco quando quiser.');
+      return;
     }
     abreModal({
       titulo: t.longa ? 'Fim do intervalo' : 'Fim da pausa',
@@ -3707,6 +3835,12 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
     cicloId: cicloId || null,
     cicloNome: cicloNome || null
   });
+  const comRio = usaRio();
+  if (comRio) {
+    rioAberto = true;
+    rioOferecePausa = true;
+    if (!parcial && estado.rio.pedras < Number.MAX_SAFE_INTEGER) estado.rio.pedras++;
+  }
   sincronizaDiasComFocoEMovimento();
   atualizaMarcosPerformance();
   salvaEstado();
@@ -3714,7 +3848,7 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
   tocaAlarmeDoFim('foco', silencioso);
   if (!silencioso) {
     vibra([300, 120, 300, 120, 500]);
-    notifica('Bloco copado — ' + formataTempoAcumulado(minutos),
+    notifica((comRio ? 'Bloco de foco — ' : 'Bloco copado — ') + formataTempoAcumulado(minutos),
              assunto + '. Terminou às ' + horaDoDia(fim) + '.');
   }
 
@@ -3727,6 +3861,12 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
 
   desenhaTimer();
   atualizaTudo();
+
+  if (comRio) {
+    avisa(parcial ? 'Bloco registrado' : 'Bloco concluído',
+      parcial ? formataTempoAcumulado(minutos) + ' de foco.' : 'Pipo colocou uma pedra no arranjo.');
+    return;
+  }
 
   acendeOsRefletores();
 
@@ -4095,9 +4235,9 @@ function desenhaTimer() {
   $('#painelFoco').classList.toggle('em-pausa', emPausa);
 
   const rotulo = $('#modoRotulo');
-  if (!t) rotulo.textContent = 'Partida de foco';
+  if (!t) rotulo.textContent = usaRio() ? 'Foco' : 'Partida de foco';
   else if (t.pausadoEm) rotulo.textContent = t.modo === 'foco' ? 'Foco pausado' : (t.longa ? 'Intervalo parado' : 'Pausa parada');
-  else rotulo.textContent = t.modo === 'foco' ? 'Em campo' : (t.longa ? 'Intervalo' : 'Pausa');
+  else rotulo.textContent = t.modo === 'foco' ? (usaRio() ? 'Em foco' : 'Em campo') : (t.longa ? 'Intervalo' : 'Pausa');
   rotulo.classList.toggle('piscando', !!(t && t.pausadoEm));
 
   const assunto = $('#assuntoAtual');
@@ -4122,7 +4262,8 @@ function desenhaBotoesDoTimer() {
   const t = estado.timer;
   // Só mexe no DOM quando o estado muda de verdade: reescrever botão quatro
   // vezes por segundo custaria o foco do teclado e a posição do leitor de tela.
-  const chave = t ? t.modo + '|' + (t.pausadoEm ? 'parado' : 'rodando') + '|' + (t.longa ? 'longa' : 'curta') : 'pronto';
+  const fase = t ? t.modo + '|' + (t.pausadoEm ? 'parado' : 'rodando') + '|' + (t.longa ? 'longa' : 'curta') : 'pronto';
+  const chave = fase + '|' + usaRio() + '|' + rioAberto;
   if (chave === ultimoEstadoDoTimer) return;
   ultimoEstadoDoTimer = chave;
 
@@ -4131,7 +4272,7 @@ function desenhaBotoesDoTimer() {
   let rotuloPrincipal, rotuloSegundo;
 
   if (!t) {
-    rotuloPrincipal = 'Entrar em campo';
+    rotuloPrincipal = usaRio() ? (rioAberto ? 'Continuar' : 'Começar') : 'Entrar em campo';
     rotuloSegundo = '';
   } else if (t.modo === 'foco') {
     rotuloPrincipal = t.pausadoEm ? 'Retomar' : 'Pausar';
@@ -4140,8 +4281,9 @@ function desenhaBotoesDoTimer() {
     // "Voltar ao foco" encerra o descanso e já começa o bloco. Parado, o
     // primeiro botão retoma o próprio descanso e o segundo é a saída.
     const nome = t.longa ? 'intervalo' : 'descanso';
-    rotuloPrincipal = t.pausadoEm ? 'Retomar ' + nome : 'Voltar ao foco';
-    rotuloSegundo = t.pausadoEm ? 'Voltar ao foco' : 'Pausar ' + nome;
+    const voltar = usaRio() ? 'Continuar' : 'Voltar ao foco';
+    rotuloPrincipal = t.pausadoEm ? 'Retomar ' + nome : voltar;
+    rotuloSegundo = t.pausadoEm ? voltar : 'Pausar ' + nome;
   }
 
   principal.textContent = rotuloPrincipal;
@@ -4151,6 +4293,7 @@ function desenhaBotoesDoTimer() {
   // Durante o bloco, assunto e duração ficam trancados.
   $('#btAssunto').disabled = !!t;
   $('#btDuracao').disabled = !!t;
+  desenhaRio();
 }
 
 /* ---------- Saudação (varia com a hora e com o dia) ---------- */
@@ -5392,6 +5535,9 @@ $('#arquivoImportar').addEventListener('change', (ev) => {
             estado.temporadas = Array.isArray(dados.temporadas) ? dados.temporadas : [];
             estado.prefs = Object.assign({}, padrao.prefs, dados.prefs || {});
             estado.performance = normalizaPerformance(dados.performance);
+            estado.rio = normalizaRio(dados.rio);
+            rioAberto = false;
+            rioOferecePausa = false;
             // Backup antigo não traz navegação: entra o padrão, e a dica já
             // dispensada neste aparelho continua dispensada.
             estado.prefs.abasPrincipais = validaAbasPrincipais(estado.prefs.abasPrincipais);
@@ -8680,6 +8826,7 @@ function vaiPara(nome, extra, doHistorico) {
     if (velha) sincronizaCampeonato(true);
   }
   if (nome === 'mais') desenhaMais();
+  desenhaRio();
   if (nome === 'abas') desenhaOrganizar();
   if (nome === 'config') abreConfig(extra || null);
   if (nome === 'performance') { marcaConvitePerformanceVisto(); desenhaPerformance(); }
@@ -9078,7 +9225,83 @@ function textoDoProgressoNoFoco() {
     const min = minutosDoDia(chaveHoje());
     return 'Hoje: ' + formataTempoAcumulado(min) + ' · ' + blocos + (blocos === 1 ? ' bloco' : ' blocos');
   }
-  return blocos ? 'Você já entrou em campo hoje.' : 'O próximo bloco já conta.';
+  return blocos
+    ? (usaRio() ? 'Tu já estudou hoje.' : 'Você já entrou em campo hoje.')
+    : 'O próximo bloco já conta.';
+}
+
+let rioAberto = false;
+let rioOferecePausa = false;
+let somDoRio = null;
+
+function usaRio() {
+  return estado.prefs.cenarioRio !== false;
+}
+
+function desenhaRio() {
+  const habilitado = usaRio();
+  const t = estado.timer;
+  if (habilitado && (t || estado.rio.proximaAcao)) rioAberto = true;
+  const visivel = habilitado && rioAberto;
+  const emFoco = !!t && t.modo === 'foco';
+  const rodando = emFoco && !t.pausadoEm;
+  const painel = $('#painelFoco');
+  document.body.classList.toggle('foco-rio', habilitado && telaAtual === 'foco');
+  painel.classList.toggle('tem-rio', habilitado);
+  painel.classList.toggle('rio-visivel', visivel);
+  $('#rioCena').classList.toggle('oculto', !visivel);
+  $('#rioCena').classList.toggle('rio-em-foco', visivel && rodando);
+  $('#btSomRio').classList.toggle('oculto', !visivel);
+  $('#btSomRio').setAttribute('aria-pressed', String(estado.prefs.somRio === true));
+  $('#rioRetorno').classList.toggle('oculto', !visivel || !!t || !rioOferecePausa);
+  $('#btPausaRio').textContent = pausaLongaAgora()
+    ? 'Intervalo · ' + estado.prefs.pausaLonga + ' min'
+    : 'Pausa · ' + estado.prefs.pausaCurta + ' min';
+  $('#btMovimentoRio').classList.toggle('oculto', !estado.performance.ativo);
+  $('#btAquecimento').textContent = habilitado ? 'Só 5 minutos' : 'Aquecimento · 10 min';
+
+  const total = estado.rio.pedras;
+  const pedras = total ? (total - 1) % 3 + 1 : 0;
+  const arranjos = Math.floor(total / 3);
+  $$('.rio-pedra').forEach((el, i) => el.classList.toggle('oculto', i >= pedras));
+  const legenda = $('#rioLegenda');
+  legenda.classList.toggle('oculto', !total);
+  legenda.textContent = arranjos
+    ? arranjos + (arranjos === 1 ? ' arranjo guardado' : ' arranjos guardados') +
+      (pedras < 3 ? ' · ' + pedras + '/3 no novo arranjo' : '')
+    : pedras + '/3 no arranjo';
+
+  const anotacao = $('#rioProximaAcao');
+  const acaoAtual = emFoco && typeof t.acaoRio === 'string' ? t.acaoRio : '';
+  const podeAnotar = !emFoco && (visivel || !!estado.rio.proximaAcao);
+  $('#rioAcoes').classList.toggle('oculto', !habilitado || !(podeAnotar || acaoAtual));
+  $('#rioAnotacao').classList.toggle('oculto', !podeAnotar);
+  if (anotacao.value !== estado.rio.proximaAcao) anotacao.value = estado.rio.proximaAcao;
+  $('#rioAcaoAtual').classList.toggle('oculto', !acaoAtual);
+  $('#rioAcaoAtual').textContent = acaoAtual;
+  atualizaSomDoRio(visivel && rodando && estado.prefs.somRio === true);
+}
+
+/** Água sintetizada pelo mesmo contexto que toca os avisos. */
+function atualizaSomDoRio(tocar) {
+  if (!tocar) {
+    if (somDoRio) somDoRio.stop();
+    somDoRio = null;
+    return;
+  }
+  if (somDoRio || !audio || audio.state !== 'running') return;
+  const fonte = audio.createBufferSource();
+  fonte.buffer = ruidoBranco();
+  fonte.loop = true;
+  const filtro = audio.createBiquadFilter();
+  filtro.type = 'lowpass';
+  filtro.frequency.value = 850;
+  const ganho = audio.createGain();
+  ganho.gain.value = .09;
+  fonte.connect(filtro).connect(ganho).connect(audio.destination);
+  fonte.onended = () => { fonte.disconnect(); filtro.disconnect(); ganho.disconnect(); };
+  fonte.start();
+  somDoRio = fonte;
 }
 
 /** Só o que a tela precisa fora do tique do relógio. */
@@ -9102,6 +9325,7 @@ function desenhaFoco() {
   $('#btAssunto').setAttribute('aria-label', 'Assunto: ' + assunto + '. Tocar para trocar.');
   $('#btAquecimento').classList.toggle('oculto', !!estado.timer);
   desenhaPausas();
+  desenhaRio();
 }
 
 /* ---------- Pausas e intervalo, na própria tela de Foco ---------- */
@@ -9148,6 +9372,7 @@ function passoDeAjuste(chave, delta) {
   estado.prefs[chave] = depois;
   salvaEstado();
   desenhaPausas();
+  desenhaRio();
   desenhaAjustes();
   // Confirmação discreta só quando ela é necessária: uma pausa já rolando não
   // encolhe nem estica no meio do caminho.
@@ -9221,7 +9446,7 @@ function desenhaAjustes() {
   fichaLembrete.setAttribute('aria-pressed', String(lembrete));
   fichaLembrete.textContent = 'Lembrar do Modo Foco: ' + (lembrete ? 'sim' : 'não');
   $('#subLembreteFoco').textContent = lembrete
-    ? 'Antes de cada bloco o app pergunta se o Modo Foco do Android está ligado. Bloquear app é coisa que só o sistema faz — o Copeiro só não deixa tu esquecer.'
+    ? 'Com o cenário do Rio da Calma, o foco começa direto. No modo clássico o app pergunta se o Modo Foco do Android está ligado.'
     : 'O app não pergunta mais nada antes de começar.';
 
   $$('[data-festejo]').forEach((f) => {
@@ -9323,7 +9548,7 @@ $('#btDuracao').addEventListener('click', abreFolhaDeDuracao);
 $('#btPrincipal').addEventListener('click', () => {
   const t = estado.timer;
   if (!t) {
-    pedeModoFoco(() => comecaBloco('foco', estado.prefs.duracao, assuntoEscolhido()));
+    iniciaFoco(estado.prefs.duracao);
     return;
   }
   if (t.modo === 'foco') { if (t.pausadoEm) retomaTimer(); else pausaTimer(); return; }
@@ -9338,10 +9563,32 @@ $('#btSecundario').addEventListener('click', () => {
   if (t.pausadoEm) voltaAoFoco(); else pausaTimer();   // "Voltar ao foco" / "Pausar intervalo"
 });
 
-/* Entrada curta: dez minutos que não mexem na duração padrão do bloco. */
+/* Entrada curta que não mexe na duração padrão. */
 $('#btAquecimento').addEventListener('click', () => {
   if (estado.timer) return;
-  pedeModoFoco(() => comecaBloco('foco', 10, assuntoEscolhido()));
+  iniciaFoco(usaRio() ? 5 : 10);
+});
+
+function iniciaFoco(minutos) {
+  const iniciar = () => comecaBloco('foco', minutos, assuntoEscolhido());
+  if (usaRio()) iniciar();
+  else pedeModoFoco(iniciar);
+}
+
+$('#btPausaRio').addEventListener('click', comecaPausa);
+$('#btMovimentoRio').addEventListener('click', abrePerformanceDepoisDoBloco);
+$('#rioProximaAcao').addEventListener('input', (ev) => {
+  estado.rio.proximaAcao = ev.target.value.slice(0, 120);
+  salvaEstado();
+});
+$('#btSomRio').addEventListener('click', () => {
+  estado.prefs.somRio = estado.prefs.somRio !== true;
+  salvaEstado();
+  desenhaRio();
+  const contexto = garanteAudio();
+  if (estado.prefs.somRio && contexto && contexto.state === 'suspended') {
+    contexto.resume().then(desenhaRio).catch(() => {});
+  }
 });
 
 /* Ajustar pausas: o cartão abre e fecha aqui mesmo, sem sair da tela. */
@@ -9367,7 +9614,7 @@ $('#pausasExpandido').addEventListener('click', (ev) => {
 /** Encerra o descanso e já entra no bloco seguinte, pelo mesmo caminho do Começar. */
 function voltaAoFoco() {
   pulaBloco();
-  pedeModoFoco(() => comecaBloco('foco', estado.prefs.duracao, assuntoEscolhido()));
+  iniciaFoco(estado.prefs.duracao);
 }
 
 /**
@@ -9446,6 +9693,14 @@ $('#tela-config').addEventListener('click', (ev) => {
   estado.prefs[chave] = (estado.prefs[chave] === false);
   salvaEstado();
   aplicaPreferenciaDeAnimacao();
+  if (chave === 'cenarioRio') {
+    desenhaFoco();
+    desenhaTimer();
+    if (timerRodando()) {
+      cancelaAlarmeAgendado();
+      agendaAlarmeDoTimer();
+    }
+  }
   if (chave === 'telaAcesa') {
     if (estado.prefs.telaAcesa === false) soltaTravaTela();
     else if (timerRodando()) pedeTravaTela();
@@ -9672,8 +9927,8 @@ function inicia() {
   desenhaBarra();
   desenhaSaudacao();
   atualizaTudo();
-  desenhaTimer();
   retomaTimerSalvo();
+  desenhaTimer();
   iniciaTema();                   // cores e frases vêm do arquivo de tema
   preparaOrientacaoDeMais();      // a dica da aba Mais, uma vez só
   ligaArrasteDasVagas();
@@ -9684,7 +9939,13 @@ function inicia() {
   document.addEventListener('pointerdown', garanteAudioUmaVez, { once: true });
 }
 
-function garanteAudioUmaVez() { garanteAudio(); agendaAlarmeDoTimer(); }
+function garanteAudioUmaVez() {
+  const contexto = garanteAudio();
+  agendaAlarmeDoTimer();
+  if (!contexto || estado.prefs.somRio !== true) return;
+  if (contexto.state === 'suspended') contexto.resume().then(desenhaRio).catch(() => {});
+  else desenhaRio();
+}
 
 inicia();
 

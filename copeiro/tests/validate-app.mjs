@@ -73,7 +73,10 @@ for (let i = 0; i < estilos.length; i += 1) {
 assert.equal(nivel, 0, 'CSS contém bloco não fechado');
 
 assert.match(html, /<script src="\.\/performance-protocols\.js"><\/script>/);
-assert.match(worker, /copeiro-v20/);
+assert.match(worker, /copeiro-v\d+/);
+assert.match(html, /<link rel="preload" href="\.\/assets\/focus\/rio-da-calma\.webp" as="image">/);
+assert.match(worker, /\.\/assets\/focus\/rio-da-calma\.webp/);
+assert.ok(fs.statSync(new URL('../assets/focus/rio-da-calma.webp', import.meta.url)).size > 0);
 assert.match(html, /const DURACOES = \[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60\]/);
 assert.match(worker, /performance-protocols\.js/);
 

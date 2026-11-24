@@ -1,8 +1,8 @@
 /* =========================================================================
    Service worker do Copeiro — estratégia offline-first.
 
-   Tudo que o app precisa cabe em quatro arquivos, então o cache é feito
-   inteiro na instalação. Depois disso o app abre sem rede nenhuma: a rede
+   Os arquivos que o app precisa entram no cache durante a instalação.
+   Depois disso o app abre sem rede nenhuma: a rede
    só é consultada quando o arquivo não está no cache.
 
    Para publicar uma versão nova, basta trocar o número em VERSAO: o
@@ -11,7 +11,7 @@
    esperaAVezOuAssume(), mais abaixo.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v20';
+const VERSAO = 'copeiro-v21';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */
@@ -25,7 +25,8 @@ const ARQUIVOS = [
   './temas/indice.json',
   './temas/gremio.json',
   './temas/neutro.json',
-  './assets/focus/focus-stadium-neutral.webp'
+  './assets/focus/focus-stadium-neutral.webp',
+  './assets/focus/rio-da-calma.webp'
 ];
 
 /* ---- Instalação: baixa e guarda tudo ---- */
