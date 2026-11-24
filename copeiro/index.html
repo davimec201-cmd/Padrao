@@ -1246,7 +1246,7 @@ body.sem-animacao .tela{animation:none}
   transform-origin:50% 90%;opacity:0;
 }
 .vale-corrente{
-  position:absolute;left:35.6%;top:40.3%;width:12%;height:5%;opacity:0;
+  position:absolute;left:34.8%;top:39.5%;width:6.2%;height:4.2%;opacity:0;
 }
 .vale-corrente::before,.vale-corrente::after{
   content:"";position:absolute;height:4%;border-radius:50%;
@@ -1256,18 +1256,18 @@ body.sem-animacao .tela{animation:none}
 .vale-corrente::after{left:23%;top:68%;width:62%}
 .vale-palpebra{position:absolute}
 .vale-palpebra-esquerda{
-  left:64.17%;top:33.5%;width:2.64%;height:2.5%;
-  clip-path:polygon(0 20%,17% 9%,35% 2%,60% 0,85% 8%,96% 16%,100% 39%,
-    97% 62%,88% 81%,74% 96%,57% 100%,38% 93%,24% 80%,11% 58%,5% 36%);
+  left:64.78%;top:34.57%;width:2.8%;height:2.15%;
+  clip-path:polygon(0 22%,25% 9%,49% 0,74% 2%,93% 11%,100% 42%,
+    98% 69%,86% 90%,64% 100%,46% 95%,29% 79%,11% 49%);
 }
 .vale-palpebra-direita{
-  left:69.22%;top:32.53%;width:3.46%;height:2.84%;
-  clip-path:polygon(0 33%,15% 20%,37% 9%,60% 3%,82% 0,100% 4%,91% 29%,
-    85% 48%,77% 67%,61% 86%,42% 97%,24% 100%,12% 87%,5% 65%);
+  left:69.66%;top:32.52%;width:3.45%;height:3.22%;
+  clip-path:polygon(0 49%,17% 35%,40% 19%,63% 8%,83% 1%,99% 0,92% 37%,
+    81% 64%,63% 85%,43% 100%,22% 96%,10% 82%,3% 64%);
 }
 .vale-palpebra::before{
   content:"";position:absolute;inset:-2% -3% 0;
-  background:linear-gradient(160deg,#c9a386,#ae866f);
+  background:linear-gradient(160deg,#ac7c66,#94624f);
   border-bottom:min(.25vw,3px) solid #442d23;border-radius:0 0 46% 46%;
   transform:translateY(-102%);
 }
@@ -1275,9 +1275,9 @@ body.sem-animacao .tela{animation:none}
 .rio-em-foco .vale-corrente{animation:vale-agua 12s ease-in-out infinite}
 .vale-imersivo .rio-em-foco .vale-palpebra::before{animation:vale-piscada 21s ease-in-out infinite}
 @keyframes vale-chama{
-  0%,100%{opacity:.12;transform:scale(.98,.94) rotate(-3deg)}
-  34%{opacity:.36;transform:scale(1.06,1.08) rotate(3deg)}
-  68%{opacity:.18;transform:scale(.97,1.02) rotate(-1deg)}
+  0%,100%{opacity:.08;transform:scale(.98,.94) rotate(-3deg)}
+  34%{opacity:.24;transform:scale(1.06,1.08) rotate(3deg)}
+  68%{opacity:.14;transform:scale(.97,1.02) rotate(-1deg)}
 }
 @keyframes vale-agua{
   0%,100%{opacity:.08;transform:translateX(0)}
@@ -1525,7 +1525,7 @@ body.sem-animacao .folha-caixa{animation:none}
              alt="Pipo na margem do Rio da Calma, entre pedras e colinas do Vale da Harmonia.">
         <div class="vale-arte" id="quadroVale">
           <img id="arteVale" src="./assets/focus/vale-dos-estudos.webp" width="1200" height="800"
-               alt="Senhor Miau lê seu diário num pórtico com colunas dóricas e um busto de Marco Aurélio, à margem do rio.">
+               alt="À luz da luminária, Senhor Miau lê as Confissões de Santo Agostinho. Ao fundo, uma escultura de São Tomás de Aquino aponta para o céu e mostra um livro aberto.">
           <div class="vale-luz" aria-hidden="true"></div>
           <div class="vale-corrente" aria-hidden="true"></div>
           <div class="vale-palpebra vale-palpebra-esquerda" aria-hidden="true"></div>
@@ -9443,6 +9443,16 @@ function cenarioDeFoco() {
 
 // Paráfrases em português das passagens indicadas, com a referência de cada uma.
 const REFLEXOES_DO_VALE = [
+  {
+    texto: 'Para ti nos fizeste, Senhor, e nosso coração permanece inquieto até encontrar repouso em ti.',
+    fonte: 'Santo Agostinho · Confissões, I.1',
+    url: 'https://www.newadvent.org/fathers/110101.htm'
+  },
+  {
+    texto: 'Estudar é aplicar a mente com empenho. Primeiro buscamos compreender, e o que compreendemos orienta nossas ações.',
+    fonte: 'São Tomás de Aquino · Suma Teológica, II-II, q. 166, a. 1',
+    url: 'https://www.newadvent.org/summa/3166.htm'
+  },
   {
     texto: 'Dedica atenção ao que tens diante de ti, com simplicidade e cuidado.',
     fonte: 'Marco Aurélio · Meditações, II.5',
