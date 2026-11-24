@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icone-192.png" type="image/png">
 <link rel="apple-touch-icon" href="./icone-192.png">
-<link rel="preload" href="./assets/focus/rio-da-calma.webp" as="image">
+<link rel="preload" href="./assets/focus/vale-dos-estudos.webp" as="image">
 <style>
 /* =======================================================================
    IDENTIDADE TRICOLOR
@@ -1149,10 +1149,12 @@ body.sem-animacao .tela{animation:none}
   .anel{width:min(38vw,50vh,360px)}
 }
 
-/* Rio da Calma, com o cronômetro em uma área própria de leitura. */
-.foco-rio .cabecalho > .faixas,.foco-rio .losango{background:#477b68}
+/* Cenários de estudo, com o cronômetro em uma área própria de leitura. */
+.foco-rio .cabecalho > .faixas,.foco-rio .losango{background:var(--foco-cenario,#477b68)}
+.foco-vale{--foco-cenario:#586143}
 .foco-rio #saudacao{display:none}
 .painel-foco.tem-rio{background:#f8f7ee;color:#213d35}
+.painel-foco.tem-vale{background:#f6efe2;border-color:#dfd4bd;color:#353827}
 .tem-rio::before,.tem-rio::after,.tem-rio .painel-faixa{display:none}
 .tem-rio .foco-titulo,.tem-rio .foco-acoes .bt-fantasma,.tem-rio .resumo-dia{color:#294c41}
 .tem-rio .foco-acoes .bt-azul{
@@ -1161,6 +1163,13 @@ body.sem-animacao .tela{animation:none}
 .tem-rio .foco-acoes .bt-azul:hover{background:#194d40}
 .tem-rio .anel .progresso{stroke:#417c69}
 .tem-rio .anel .trilho{stroke:#dce5d7}
+.tem-vale .foco-titulo,.tem-vale .foco-acoes .bt-fantasma,.tem-vale .resumo-dia{color:#454d33}
+.tem-vale .foco-acoes .bt-azul,.tem-vale .rio-som[aria-pressed="true"]{
+  background:#484f36;border-color:#484f36;color:#fff;box-shadow:0 4px 14px #484f3629;
+}
+.tem-vale .foco-acoes .bt-azul:hover{background:#3b442d}
+.tem-vale .anel .progresso{stroke:#667351}
+.tem-vale .anel .trilho{stroke:#e2d9c6}
 .tem-rio .foco-conteudo{width:100%;justify-content:center}
 .tem-rio .escolha:disabled{opacity:.8}
 .tem-rio .foco-palco{margin:0}
@@ -1170,11 +1179,16 @@ body.sem-animacao .tela{animation:none}
   align-self:stretch;background:#c7dbcd;
 }
 .rio-cena img{display:block;width:100%;height:100%;object-fit:cover}
+.rio-cena img.oculto{display:none}
 .rio-cena h2,.rio-legenda{
   position:absolute;left:12px;max-width:calc(100% - 24px);
   padding:5px 9px;margin:0;border-radius:8px;background:#f8f7ee;color:#213d35;
 }
 .rio-cena h2{top:10px;font-size:clamp(.8rem,2vw,1rem)}
+.tem-vale .rio-cena h2{
+  background:#f6efe2;color:#353827;
+  font-family:Georgia,serif;font-size:clamp(.95rem,2.2vw,1.3rem);
+}
 .rio-legenda{bottom:10px;font-size:.78rem;font-weight:700}
 .rio-reflexos{
   position:absolute;left:14%;top:55%;width:12%;height:2px;border-radius:50%;
@@ -1205,6 +1219,14 @@ body.sem-animacao .tela{animation:none}
 .rio-acoes{width:100%;max-width:340px}
 .rio-acoes input{margin:0}
 .rio-acoes p{margin:0;color:#294c41;overflow-wrap:anywhere;text-align:center}
+.vale-reflexao{
+  width:100%;max-width:520px;margin:0;padding:14px 17px;
+  border-left:3px solid #a38653;border-radius:0 12px 12px 0;
+  background:#fffbf3;color:#353827;text-align:left;
+}
+.vale-reflexao h3{margin:0 0 6px;color:#60543b;font-size:.75rem;font-weight:800}
+.vale-reflexao p{margin:0 0 6px;font:1.1rem/1.4 Georgia,serif}
+.vale-reflexao a{color:#424d32;text-underline-offset:3px;font-size:.8rem;font-weight:700}
 @media (max-width:599px){.rio-visivel .anel{width:min(49vw,31vh,230px)}}
 @media (orientation:landscape) and (min-width:900px){
   .painel-foco.tem-rio.rio-visivel{display:grid;grid-template-columns:minmax(290px,2fr) 3fr}
@@ -1352,15 +1374,17 @@ body.sem-animacao .folha-caixa{animation:none}
       <div class="faixas faixas-fina painel-faixa" aria-hidden="true"></div>
 
       <div class="rio-cena oculto" id="rioCena">
-        <img src="./assets/focus/rio-da-calma.webp" width="1200" height="800"
+        <img class="oculto" id="arteRio" src="./assets/focus/rio-da-calma.webp" width="1200" height="800"
              alt="Pipo na margem do Rio da Calma, entre pedras e colinas do Vale da Harmonia.">
+        <img id="arteVale" src="./assets/focus/vale-dos-estudos.webp" width="1200" height="800"
+             alt="Senhor Miau lê seu diário num pórtico com colunas dóricas e um busto de Marco Aurélio, à margem do rio.">
         <div class="rio-reflexos" aria-hidden="true"></div>
         <div class="rio-pedras" aria-hidden="true">
           <span class="rio-pedra oculto"></span>
           <span class="rio-pedra oculto"></span>
           <span class="rio-pedra oculto"></span>
         </div>
-        <h2>Rio da Calma</h2>
+        <h2 id="rioTitulo">Vale dos Estudos</h2>
         <button class="bt rio-som oculto" id="btSomRio" aria-pressed="false">Som do rio</button>
         <p class="rio-legenda oculto" id="rioLegenda"></p>
       </div>
@@ -1413,6 +1437,12 @@ body.sem-animacao .folha-caixa{animation:none}
           </div>
           <p id="rioAcaoAtual" class="oculto"></p>
         </div>
+
+        <aside class="vale-reflexao oculto" id="valeReflexao" aria-labelledby="valeReflexaoTitulo">
+          <h3 id="valeReflexaoTitulo">Caderno do Senhor Miau</h3>
+          <p id="valeReflexaoTexto"></p>
+          <a id="valeReflexaoFonte" target="_blank" rel="noopener noreferrer"></a>
+        </aside>
 
         <p class="resumo-dia" id="resumoDia"></p>
 
@@ -2131,8 +2161,10 @@ body.sem-animacao .folha-caixa{animation:none}
       <div class="fichas" role="group" aria-label="Tema" id="fichasTema" style="margin-top:8px"></div>
       <p class="sub" style="margin-top:10px">As cores e as frases do app vêm do tema escolhido.</p>
       <hr class="divisor">
-      <div class="fichas" role="group" aria-label="Cenário de foco">
-        <button class="ficha" data-festejo="cenarioRio" aria-pressed="true">Rio da Calma no Foco</button>
+      <div class="fichas" id="fichasCenarioFoco" role="group" aria-label="Cenário de foco">
+        <button class="ficha" data-cenario-foco="vale" aria-pressed="true">Vale dos Estudos</button>
+        <button class="ficha" data-cenario-foco="rio" aria-pressed="false">Rio da Calma</button>
+        <button class="ficha" data-cenario-foco="classico" aria-pressed="false">Clássico</button>
       </div>
       <hr class="divisor">
       <p class="sub" style="margin-top:18px;font-weight:700;color:var(--tinta)">Movimento</p>
@@ -2524,7 +2556,7 @@ function estadoNovo() {
       em: null          // quando foi a última sincronização
     },
     performance: performanceNovo(),
-    rio: { pedras: 0, proximaAcao: '' },
+    rio: normalizaRio(),
     timer: null        // bloco em andamento (sobrevive a fechar o app)
   };
 }
@@ -2584,6 +2616,7 @@ function carregaEstado() {
 function normalizaRio(salvo) {
   return {
     pedras: Number.isSafeInteger(salvo?.pedras) && salvo.pedras >= 0 ? salvo.pedras : 0,
+    reflexoes: Number.isSafeInteger(salvo?.reflexoes) && salvo.reflexoes >= 0 ? salvo.reflexoes : 0,
     proximaAcao: typeof salvo?.proximaAcao === 'string' ? salvo.proximaAcao.slice(0, 120) : ''
   };
 }
@@ -3801,7 +3834,7 @@ function terminaBloco(silencioso) {
     if (!silencioso) {
       vibra([200, 100, 200]);
       notifica(t.longa ? 'Fim do intervalo' : 'Fim da pausa', usaRio()
-        ? 'O Rio da Calma está pronto pra quando tu voltar.'
+        ? 'Volta ao foco quando quiser.'
         : 'Voltou o jogo, ' + nomeDoDavi() + '. Escolhe o assunto do próximo bloco.');
     }
     if (usaRio()) {
@@ -3836,10 +3869,14 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
     cicloNome: cicloNome || null
   });
   const comRio = usaRio();
+  const noVale = cenarioDeFoco() === 'vale';
   if (comRio) {
     rioAberto = true;
     rioOferecePausa = true;
-    if (!parcial && estado.rio.pedras < Number.MAX_SAFE_INTEGER) estado.rio.pedras++;
+    if (!parcial) {
+      const recompensa = noVale ? 'reflexoes' : 'pedras';
+      if (estado.rio[recompensa] < Number.MAX_SAFE_INTEGER) estado.rio[recompensa]++;
+    }
   }
   sincronizaDiasComFocoEMovimento();
   atualizaMarcosPerformance();
@@ -3864,7 +3901,8 @@ function fechaBlocoDeFoco(inicio, fim, minutos, assunto, cicloId, cicloNome, par
 
   if (comRio) {
     avisa(parcial ? 'Bloco registrado' : 'Bloco concluído',
-      parcial ? formataTempoAcumulado(minutos) + ' de foco.' : 'Pipo colocou uma pedra no arranjo.');
+      parcial ? formataTempoAcumulado(minutos) + ' de foco.' :
+        (noVale ? 'O Senhor Miau abriu o caderno.' : 'Pipo colocou uma pedra no arranjo.'));
     return;
   }
 
@@ -9235,11 +9273,67 @@ let rioOferecePausa = false;
 let somDoRio = null;
 
 function usaRio() {
-  return estado.prefs.cenarioRio !== false;
+  return cenarioDeFoco() !== 'classico';
+}
+
+function cenarioDeFoco() {
+  const escolha = estado.prefs.cenarioFoco;
+  if (escolha === 'rio' || escolha === 'vale' || escolha === 'classico') return escolha;
+  return estado.prefs.cenarioRio === false ? 'classico' : 'vale';
+}
+
+// Paráfrases em português das passagens indicadas, com a referência de cada uma.
+const REFLEXOES_DO_VALE = [
+  {
+    texto: 'Dedica atenção ao que tens diante de ti, com simplicidade e cuidado.',
+    fonte: 'Marco Aurélio · Meditações, II.5',
+    url: 'https://classics.mit.edu/Antoninus/meditations.2.two.html'
+  },
+  {
+    texto: 'Distingue o que depende de ti e dirige teu esforço para as ações que podes escolher.',
+    fonte: 'Epicteto · Manual, §1',
+    url: 'https://classics.mit.edu/Epictetus/epicench.html'
+  },
+  {
+    texto: 'A filosofia se prova no modo de agir. Que a prática dê corpo às tuas palavras.',
+    fonte: 'Sêneca · Cartas a Lucílio, 20.2',
+    url: 'https://en.wikisource.org/wiki/Moral_letters_to_Lucilius/Letter_20'
+  },
+  {
+    texto: 'Reserva um instante para recolher os pensamentos. Uma mente em ordem já oferece um lugar de descanso.',
+    fonte: 'Marco Aurélio · Meditações, IV.3',
+    url: 'https://classics.mit.edu/Antoninus/meditations.4.four.html'
+  },
+  {
+    texto: 'Antes de começar, pensa no que a tarefa envolve. Assim, os contratempos te encontram com um propósito claro.',
+    fonte: 'Epicteto · Manual, §4',
+    url: 'https://classics.mit.edu/Epictetus/epicench.html'
+  },
+  {
+    texto: 'Dá a ti mesmo tempo para aprender algo novo e bom. Escolhe um propósito que oriente a tua atenção.',
+    fonte: 'Marco Aurélio · Meditações, II.7',
+    url: 'https://classics.mit.edu/Antoninus/meditations.2.two.html'
+  }
+];
+
+function desenhaReflexaoDoVale(mostrar) {
+  const caixa = $('#valeReflexao');
+  caixa.classList.toggle('oculto', !mostrar);
+  if (!mostrar) return;
+  const n = estado.rio.reflexoes;
+  const reflexao = REFLEXOES_DO_VALE[n ? (n - 1) % REFLEXOES_DO_VALE.length : 0];
+  const fonte = $('#valeReflexaoFonte');
+  if (fonte.href === reflexao.url && fonte.dataset.fonte === reflexao.fonte) return;
+  $('#valeReflexaoTexto').textContent = reflexao.texto;
+  fonte.textContent = reflexao.fonte + ' · Paráfrase';
+  fonte.dataset.fonte = reflexao.fonte;
+  fonte.href = reflexao.url;
 }
 
 function desenhaRio() {
-  const habilitado = usaRio();
+  const cenario = cenarioDeFoco();
+  const habilitado = cenario !== 'classico';
+  const noVale = cenario === 'vale';
   const t = estado.timer;
   if (habilitado && (t || estado.rio.proximaAcao)) rioAberto = true;
   const visivel = habilitado && rioAberto;
@@ -9247,10 +9341,15 @@ function desenhaRio() {
   const rodando = emFoco && !t.pausadoEm;
   const painel = $('#painelFoco');
   document.body.classList.toggle('foco-rio', habilitado && telaAtual === 'foco');
+  document.body.classList.toggle('foco-vale', noVale && telaAtual === 'foco');
   painel.classList.toggle('tem-rio', habilitado);
+  painel.classList.toggle('tem-vale', noVale);
   painel.classList.toggle('rio-visivel', visivel);
   $('#rioCena').classList.toggle('oculto', !visivel);
   $('#rioCena').classList.toggle('rio-em-foco', visivel && rodando);
+  $('#arteRio').classList.toggle('oculto', noVale);
+  $('#arteVale').classList.toggle('oculto', !noVale);
+  $('#rioTitulo').textContent = noVale ? 'Vale dos Estudos' : 'Rio da Calma';
   $('#btSomRio').classList.toggle('oculto', !visivel);
   $('#btSomRio').setAttribute('aria-pressed', String(estado.prefs.somRio === true));
   $('#rioRetorno').classList.toggle('oculto', !visivel || !!t || !rioOferecePausa);
@@ -9263,9 +9362,9 @@ function desenhaRio() {
   const total = estado.rio.pedras;
   const pedras = total ? (total - 1) % 3 + 1 : 0;
   const arranjos = Math.floor(total / 3);
-  $$('.rio-pedra').forEach((el, i) => el.classList.toggle('oculto', i >= pedras));
+  $$('.rio-pedra').forEach((el, i) => el.classList.toggle('oculto', noVale || i >= pedras));
   const legenda = $('#rioLegenda');
-  legenda.classList.toggle('oculto', !total);
+  legenda.classList.toggle('oculto', noVale || !total);
   legenda.textContent = arranjos
     ? arranjos + (arranjos === 1 ? ' arranjo guardado' : ' arranjos guardados') +
       (pedras < 3 ? ' · ' + pedras + '/3 no novo arranjo' : '')
@@ -9279,6 +9378,7 @@ function desenhaRio() {
   if (anotacao.value !== estado.rio.proximaAcao) anotacao.value = estado.rio.proximaAcao;
   $('#rioAcaoAtual').classList.toggle('oculto', !acaoAtual);
   $('#rioAcaoAtual').textContent = acaoAtual;
+  desenhaReflexaoDoVale(noVale && visivel && !emFoco);
   atualizaSomDoRio(visivel && rodando && estado.prefs.somRio === true);
 }
 
@@ -9446,9 +9546,14 @@ function desenhaAjustes() {
   fichaLembrete.setAttribute('aria-pressed', String(lembrete));
   fichaLembrete.textContent = 'Lembrar do Modo Foco: ' + (lembrete ? 'sim' : 'não');
   $('#subLembreteFoco').textContent = lembrete
-    ? 'Com o cenário do Rio da Calma, o foco começa direto. No modo clássico o app pergunta se o Modo Foco do Android está ligado.'
+    ? 'Nos cenários de estudo, o foco começa direto. No modo Clássico o app pergunta se o Modo Foco do Android está ligado.'
     : 'O app não pergunta mais nada antes de começar.';
 
+  $$('#fichasCenarioFoco [data-cenario-foco]').forEach((f) => {
+    const ativo = f.dataset.cenarioFoco === cenarioDeFoco();
+    f.classList.toggle('ativa', ativo);
+    f.setAttribute('aria-pressed', String(ativo));
+  });
   $$('[data-festejo]').forEach((f) => {
     const ligado = estado.prefs[f.dataset.festejo] !== false;
     f.classList.toggle('ativa', ligado);
@@ -9679,6 +9784,20 @@ $('#fichasTema').addEventListener('click', (ev) => {
   if (bt) trocaTema(bt.dataset.tema);
 });
 
+$('#fichasCenarioFoco').addEventListener('click', (ev) => {
+  const bt = ev.target.closest('[data-cenario-foco]');
+  if (!bt || bt.dataset.cenarioFoco === cenarioDeFoco()) return;
+  estado.prefs.cenarioFoco = bt.dataset.cenarioFoco;
+  salvaEstado();
+  desenhaFoco();
+  desenhaTimer();
+  if (timerRodando()) {
+    cancelaAlarmeAgendado();
+    agendaAlarmeDoTimer();
+  }
+  desenhaAjustes();
+});
+
 $('#fichaLembreteFoco').addEventListener('click', () => {
   estado.prefs.lembreteFoco = !estado.prefs.lembreteFoco;
   salvaEstado();
@@ -9693,14 +9812,6 @@ $('#tela-config').addEventListener('click', (ev) => {
   estado.prefs[chave] = (estado.prefs[chave] === false);
   salvaEstado();
   aplicaPreferenciaDeAnimacao();
-  if (chave === 'cenarioRio') {
-    desenhaFoco();
-    desenhaTimer();
-    if (timerRodando()) {
-      cancelaAlarmeAgendado();
-      agendaAlarmeDoTimer();
-    }
-  }
   if (chave === 'telaAcesa') {
     if (estado.prefs.telaAcesa === false) soltaTravaTela();
     else if (timerRodando()) pedeTravaTela();

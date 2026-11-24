@@ -36,6 +36,17 @@ assert.equal(parcial.contexto.ambiente, 'casa');
 assert.deepEqual(parcial.contexto.preferidas, []);
 assert.deepEqual(parcial.contexto.diasTreino, []);
 
+const migracaoCenario = new Function(
+  'const estado = { prefs: {} };\n' + fonteDaFuncao('normalizaRio') + '\n' +
+  fonteDaFuncao('cenarioDeFoco') +
+  '\nreturn { normalizaRio, escolhe(prefs) { estado.prefs = prefs; return cenarioDeFoco(); } };'
+)();
+assert.deepEqual(migracaoCenario.normalizaRio({ pedras: 4, proximaAcao: 'Ler a questão' }),
+  { pedras: 4, reflexoes: 0, proximaAcao: 'Ler a questão' });
+assert.equal(migracaoCenario.escolhe({ cenarioRio: true }), 'vale');
+assert.equal(migracaoCenario.escolhe({ cenarioRio: false }), 'classico');
+assert.equal(migracaoCenario.escolhe({ cenarioRio: false, cenarioFoco: 'rio' }), 'rio');
+
 const estadoTeste = { performance: { atividades: [{ id: 'a1' }, { id: 'a2' }] } };
 const chamadas = [];
 const exclusao = new Function('estado', 'registraEventoPerformance', 'salvaEstado', 'desenhaPerformance',
@@ -74,9 +85,11 @@ assert.equal(nivel, 0, 'CSS contém bloco não fechado');
 
 assert.match(html, /<script src="\.\/performance-protocols\.js"><\/script>/);
 assert.match(worker, /copeiro-v\d+/);
-assert.match(html, /<link rel="preload" href="\.\/assets\/focus\/rio-da-calma\.webp" as="image">/);
-assert.match(worker, /\.\/assets\/focus\/rio-da-calma\.webp/);
-assert.ok(fs.statSync(new URL('../assets/focus/rio-da-calma.webp', import.meta.url)).size > 0);
+assert.match(html, /<link rel="preload" href="\.\/assets\/focus\/vale-dos-estudos\.webp" as="image">/);
+for (const arte of ['rio-da-calma.webp', 'vale-dos-estudos.webp']) {
+  assert.ok(worker.includes('./assets/focus/' + arte));
+  assert.ok(fs.statSync(new URL('../assets/focus/' + arte, import.meta.url)).size > 0);
+}
 assert.match(html, /const DURACOES = \[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60\]/);
 assert.match(worker, /performance-protocols\.js/);
 

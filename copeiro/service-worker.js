@@ -11,7 +11,7 @@
    esperaAVezOuAssume(), mais abaixo.
    ========================================================================= */
 
-const VERSAO = 'copeiro-v21';
+const VERSAO = 'copeiro-v22';
 
 /* Caminhos relativos: assim funciona igual em https://usuario.github.io/repo/copeiro/
    e em qualquer outra pasta, sem precisar ajustar nada. */
@@ -26,7 +26,8 @@ const ARQUIVOS = [
   './temas/gremio.json',
   './temas/neutro.json',
   './assets/focus/focus-stadium-neutral.webp',
-  './assets/focus/rio-da-calma.webp'
+  './assets/focus/rio-da-calma.webp',
+  './assets/focus/vale-dos-estudos.webp'
 ];
 
 /* ---- Instalação: baixa e guarda tudo ---- */
