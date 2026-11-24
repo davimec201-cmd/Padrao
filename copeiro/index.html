@@ -1180,6 +1180,8 @@ body.sem-animacao .tela{animation:none}
 }
 .rio-cena img{display:block;width:100%;height:100%;object-fit:cover}
 .rio-cena img.oculto{display:none}
+.vale-arte{position:relative;width:100%;height:100%;pointer-events:none}
+.tem-vale .rio-reflexos{display:none}
 .rio-cena h2,.rio-legenda{
   position:absolute;left:12px;max-width:calc(100% - 24px);
   padding:5px 9px;margin:0;border-radius:8px;background:#f8f7ee;color:#213d35;
@@ -1211,8 +1213,9 @@ body.sem-animacao .tela{animation:none}
 .rio-pedra:nth-child(3){left:74%;top:71.5%;background:#d3bd99;transform:rotate(18deg)}
 .rio-retorno{display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
 .rio-retorno .bt{min-height:44px}
+.rio-controles{position:absolute;top:8px;right:10px;display:flex;gap:6px}
 .rio-som{
-  position:absolute;top:8px;right:10px;min-height:44px;padding:0 10px;
+  min-height:44px;padding:0 10px;
   color:#213d35;background:#f8f7ee;border-color:#dddccd;font-size:.82rem;
 }
 .rio-som[aria-pressed="true"]{background:#215f50;border-color:#215f50;color:#fff}
@@ -1234,6 +1237,103 @@ body.sem-animacao .tela{animation:none}
   .tem-rio .foco-conteudo{display:flex;gap:8px}
   .rio-visivel .foco-conteudo{grid-row:1;grid-column:1}
   .rio-visivel .anel{width:min(34vh,270px)}
+}
+
+/* Os efeitos usam coordenadas do quadro para acompanhar a arte ao redimensionar. */
+.vale-luz{
+  position:absolute;left:40.2%;top:50.4%;width:2.9%;height:5.8%;
+  background:radial-gradient(ellipse at 53% 63%,#fff9bd 0%,#ffd26266 48%,transparent 74%);
+  transform-origin:50% 90%;opacity:0;
+}
+.vale-corrente{
+  position:absolute;left:35.6%;top:40.3%;width:12%;height:5%;opacity:0;
+}
+.vale-corrente::before,.vale-corrente::after{
+  content:"";position:absolute;height:4%;border-radius:50%;
+  background:linear-gradient(90deg,transparent,#dbfff3,transparent);
+}
+.vale-corrente::before{left:0;top:31%;width:47%}
+.vale-corrente::after{left:23%;top:68%;width:62%}
+.rio-em-foco .vale-luz{animation:vale-chama 3.8s ease-in-out infinite}
+.rio-em-foco .vale-corrente{animation:vale-agua 12s ease-in-out infinite}
+@keyframes vale-chama{
+  0%,100%{opacity:.12;transform:scale(.98,.94) rotate(-3deg)}
+  34%{opacity:.36;transform:scale(1.06,1.08) rotate(3deg)}
+  68%{opacity:.18;transform:scale(.97,1.02) rotate(-1deg)}
+}
+@keyframes vale-agua{
+  0%,100%{opacity:.08;transform:translateX(0)}
+  50%{opacity:.29;transform:translateX(16%)}
+}
+.sem-animacao .rio-em-foco :is(.vale-luz,.vale-corrente){animation:none}
+@media (prefers-reduced-motion:reduce){
+  .rio-em-foco :is(.vale-luz,.vale-corrente){animation:none}
+}
+
+body.foco-tela-inteira{overflow:hidden}
+.foco-tela-inteira :is(.cabecalho,#abas,#orientacaoMais,#cartaoPausas){visibility:hidden}
+.foco-tela-inteira #tela-foco{animation:none}
+.painel-foco.tem-rio.vale-imersivo{
+  position:fixed;inset:0;z-index:45;border:0;border-radius:0;
+  display:flex;align-items:center;justify-content:flex-end;
+  min-height:0;height:100vh;height:100dvh;background:#25281d;
+}
+.vale-imersivo #rioCena{
+  position:absolute;inset:0;width:100%;height:100%;border-radius:0;container-type:size;
+  background:#25281d;
+}
+.vale-imersivo .vale-arte{
+  position:absolute;left:50%;top:50%;
+  width:max(100cqw,150cqh);height:max(100cqh,66.667cqw);
+  transform:translate(-50%,-50%);
+}
+.vale-imersivo .rio-cena h2{
+  z-index:1;left:max(12px,env(safe-area-inset-left));top:calc(11px + env(safe-area-inset-top));
+  background:#25271df4;color:#fff8e6;padding:9px 12px;
+}
+.vale-imersivo .rio-controles{
+  z-index:1;top:calc(8px + env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));
+}
+.vale-imersivo .rio-som{background:#25271df4;color:#fff8e6;border-color:#d6c39369}
+.vale-imersivo #btSomRio[aria-pressed="true"]{background:#495137;color:#fff}
+.vale-imersivo .foco-conteudo{
+  flex:0 1 auto;
+  width:min(calc(100% - 24px),340px);
+  max-height:calc(100% - 66px);overflow:auto;
+  margin:0 0 calc(clamp(12px,4vh,36px) + env(safe-area-inset-bottom));
+  padding:12px 14px 14px;gap:7px;
+  border:1px solid #ddc99b70;border-radius:18px;
+  background:#23251ced;color:#fff8e6;box-shadow:0 8px 30px #1a130b55;
+}
+.vale-imersivo :is(.foco-escolhas,.resumo-dia,.anel svg){display:none}
+.vale-imersivo .anel{width:100%;aspect-ratio:auto;container-type:normal}
+.vale-imersivo .anel-centro{position:static}
+.vale-imersivo :is(.foco-titulo,.tempo,.assunto-atual,.rio-acoes p){color:#fff8e6}
+.vale-imersivo .tempo{font-size:clamp(2.2rem,9vh,4rem)}
+.vale-imersivo .assunto-atual{font-size:.86rem}
+.vale-imersivo .rio-acoes p{
+  font-size:.81rem;display:-webkit-box;overflow:hidden;
+  -webkit-box-orient:vertical;-webkit-line-clamp:2;
+}
+.vale-imersivo .foco-acoes{flex-flow:row wrap;justify-content:center;gap:6px}
+.vale-imersivo .foco-acoes .bt{width:auto;min-height:44px;padding:0 13px;font-size:.85rem}
+.vale-imersivo .foco-acoes .bt-fantasma{color:#fff8e6;border-color:#d6c39369}
+.vale-imersivo :focus-visible{outline-color:#fff8e6}
+@media (max-aspect-ratio:3/4){
+  .vale-imersivo #rioCena::before{
+    content:"";position:absolute;inset:0;
+    background:url("./assets/focus/vale-dos-estudos.webp") 55% center / cover;
+    filter:blur(24px) brightness(.72);transform:scale(1.12);
+  }
+  .vale-imersivo .vale-arte{
+    left:31%;top:46%;width:245cqw;height:calc(245cqw * 2 / 3);
+    mask-image:linear-gradient(transparent,#000 10% 87%,transparent);
+  }
+  .vale-imersivo .foco-conteudo{margin-bottom:calc(16px + env(safe-area-inset-bottom))}
+}
+@media (max-width:360px){
+  .tem-vale .rio-cena h2{padding-inline:7px;font-size:.8rem}
+  .tem-vale .rio-controles .bt{padding-inline:7px;font-size:.75rem}
 }
 
 /* ---------- Folha de escolha rápida ---------- */
@@ -1376,8 +1476,12 @@ body.sem-animacao .folha-caixa{animation:none}
       <div class="rio-cena oculto" id="rioCena">
         <img class="oculto" id="arteRio" src="./assets/focus/rio-da-calma.webp" width="1200" height="800"
              alt="Pipo na margem do Rio da Calma, entre pedras e colinas do Vale da Harmonia.">
-        <img id="arteVale" src="./assets/focus/vale-dos-estudos.webp" width="1200" height="800"
-             alt="Senhor Miau lê seu diário num pórtico com colunas dóricas e um busto de Marco Aurélio, à margem do rio.">
+        <div class="vale-arte" id="quadroVale">
+          <img id="arteVale" src="./assets/focus/vale-dos-estudos.webp" width="1200" height="800"
+               alt="Senhor Miau lê seu diário num pórtico com colunas dóricas e um busto de Marco Aurélio, à margem do rio.">
+          <div class="vale-luz" aria-hidden="true"></div>
+          <div class="vale-corrente" aria-hidden="true"></div>
+        </div>
         <div class="rio-reflexos" aria-hidden="true"></div>
         <div class="rio-pedras" aria-hidden="true">
           <span class="rio-pedra oculto"></span>
@@ -1385,7 +1489,10 @@ body.sem-animacao .folha-caixa{animation:none}
           <span class="rio-pedra oculto"></span>
         </div>
         <h2 id="rioTitulo">Vale dos Estudos</h2>
-        <button class="bt rio-som oculto" id="btSomRio" aria-pressed="false">Som do rio</button>
+        <div class="rio-controles">
+          <button class="bt rio-som oculto" id="btSomRio" aria-pressed="false">Som do rio</button>
+          <button class="bt rio-som oculto" id="btTelaInteiraVale">Tela inteira</button>
+        </div>
         <p class="rio-legenda oculto" id="rioLegenda"></p>
       </div>
 
@@ -3695,6 +3802,7 @@ function comecaBloco(modo, minutos, assunto, longa) {
     cicloId: ciclo ? ciclo.id : null,
     cicloNome: ciclo ? ciclo.nome : null
   };
+  valeEmTelaInteira = modo === 'foco' && cenarioDeFoco() === 'vale';
   rioOferecePausa = false;
   if (modo === 'foco' && usaRio()) {
     rioAberto = true;
@@ -3713,6 +3821,7 @@ function comecaBloco(modo, minutos, assunto, longa) {
   ligaDesenho();
   desenhaTimer();
   desenhaFoco();
+  if (valeEmTelaInteira && telaAtual === 'foco') $('#btPrincipal').focus({ preventScroll: true });
 
   if (usaRio()) return;
   if (modo === 'foco') {
@@ -9271,6 +9380,7 @@ function textoDoProgressoNoFoco() {
 let rioAberto = false;
 let rioOferecePausa = false;
 let somDoRio = null;
+let valeEmTelaInteira = false;
 
 function usaRio() {
   return cenarioDeFoco() !== 'classico';
@@ -9339,19 +9449,26 @@ function desenhaRio() {
   const visivel = habilitado && rioAberto;
   const emFoco = !!t && t.modo === 'foco';
   const rodando = emFoco && !t.pausadoEm;
+  const permiteTelaInteira = noVale && emFoco && telaAtual === 'foco';
+  if (!permiteTelaInteira) valeEmTelaInteira = false;
   const painel = $('#painelFoco');
   document.body.classList.toggle('foco-rio', habilitado && telaAtual === 'foco');
   document.body.classList.toggle('foco-vale', noVale && telaAtual === 'foco');
+  document.body.classList.toggle('foco-tela-inteira', valeEmTelaInteira);
   painel.classList.toggle('tem-rio', habilitado);
   painel.classList.toggle('tem-vale', noVale);
   painel.classList.toggle('rio-visivel', visivel);
+  painel.classList.toggle('vale-imersivo', valeEmTelaInteira);
   $('#rioCena').classList.toggle('oculto', !visivel);
   $('#rioCena').classList.toggle('rio-em-foco', visivel && rodando);
   $('#arteRio').classList.toggle('oculto', noVale);
-  $('#arteVale').classList.toggle('oculto', !noVale);
+  $('#quadroVale').classList.toggle('oculto', !noVale);
   $('#rioTitulo').textContent = noVale ? 'Vale dos Estudos' : 'Rio da Calma';
   $('#btSomRio').classList.toggle('oculto', !visivel);
   $('#btSomRio').setAttribute('aria-pressed', String(estado.prefs.somRio === true));
+  const telaInteira = $('#btTelaInteiraVale');
+  telaInteira.classList.toggle('oculto', !permiteTelaInteira);
+  telaInteira.textContent = valeEmTelaInteira ? 'Voltar ao app' : 'Tela inteira';
   $('#rioRetorno').classList.toggle('oculto', !visivel || !!t || !rioOferecePausa);
   $('#btPausaRio').textContent = pausaLongaAgora()
     ? 'Intervalo · ' + estado.prefs.pausaLonga + ' min'
@@ -9696,6 +9813,11 @@ $('#btSomRio').addEventListener('click', () => {
   }
 });
 
+$('#btTelaInteiraVale').addEventListener('click', () => {
+  valeEmTelaInteira = !valeEmTelaInteira;
+  desenhaRio();
+});
+
 /* Ajustar pausas: o cartão abre e fecha aqui mesmo, sem sair da tela. */
 $('#btAjustarPausas').addEventListener('click', () => {
   pausasAbertas = !pausasAbertas;
@@ -9889,6 +10011,12 @@ document.addEventListener('keydown', (ev) => {
   if (typeof revelacao !== 'undefined' && revelacao) { fechaRevelacao(); return; }
   if (!$('#modal').classList.contains('oculto')) { fechaModal(); return; }
   if (!$('#modalTemporada').classList.contains('oculto')) { fechaModelosDeTemporada(); return; }
+  if (valeEmTelaInteira) {
+    valeEmTelaInteira = false;
+    desenhaRio();
+    $('#btTelaInteiraVale').focus({ preventScroll: true });
+    return;
+  }
   if (!$('#orientacaoMais').classList.contains('oculto')) fechaOrientacaoDeMais();
 });
 
